@@ -1344,7 +1344,7 @@ const panelStyles = `
     display: inline-flex; align-items: center; justify-content: center; gap: 6px;
     padding: 0 12px;
     color: #fff; transition: all 0.2s;
-    box-shadow: 0 2px 8px rgba(249,115,22,0.25); flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(14,165,233,0.25); flex-shrink: 0;
     font-size: 12px; font-weight: 700; font-family: var(--sans), sans-serif;
   }
   .send-btn:hover:not(:disabled) { background: #38BDF8; transform: scale(1.05); }
@@ -1554,8 +1554,8 @@ const panelStyles = `
   .tw-title { font-size: 13px; font-weight: 700; color: #f5c642; margin-bottom: 5px; }
   .tw-body { font-size: 12px; color: var(--muted, #9ba3be); margin-bottom: 6px; }
   .tw-suggestion {
-    font-size: 12px; color: #f7b097;
-    border-left: 2px solid rgba(249,115,22,0.5);
+    font-size: 12px; color: #7dd3fc;
+    border-left: 2px solid rgba(14,165,233,0.5);
     padding-left: 8px; margin-bottom: 10px;
   }
   .tw-actions { display: flex; gap: 8px; justify-content: flex-end; }
