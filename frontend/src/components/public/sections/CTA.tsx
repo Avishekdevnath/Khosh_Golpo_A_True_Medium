@@ -2,7 +2,7 @@ export default function CTA() {
   return (
     <section className="cta-section">
       <div className="container">
-        <div className="cta-inner reveal">
+        <div className="cta-inner">
           <p className="section-label cta-label">Ready to join?</p>
           <h2 className="cta-title">
             Your next great conversation
