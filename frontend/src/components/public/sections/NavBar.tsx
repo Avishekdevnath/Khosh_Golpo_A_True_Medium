@@ -210,7 +210,7 @@ export default function NavBar() {
     margin: -6px -6px -6px 0;
   }
   .nav-profile-toggle:hover {
-    background: rgba(240, 131, 74, 0.08);
+    background: rgba(14, 165, 233, 0.08);
     color: var(--accent);
   }
   .nav-avatar {
@@ -351,11 +351,11 @@ export default function NavBar() {
     flex: 1;
   }
   .menu-item:hover {
-    background: rgba(240, 131, 74, 0.12);
+    background: rgba(14, 165, 233, 0.12);
     color: var(--accent);
   }
   .menu-item.active {
-    background: rgba(240, 131, 74, 0.15);
+    background: rgba(14, 165, 233, 0.15);
     color: var(--accent);
   }
   :global(.dark) .nav-menu {
@@ -376,18 +376,18 @@ export default function NavBar() {
     color: #c5d3e8;
   }
   :global(.dark) .menu-item:hover {
-    background: rgba(240, 131, 74, 0.15);
+    background: rgba(14, 165, 233, 0.15);
     color: #ffb380;
   }
   :global(.dark) .menu-item.active {
-    background: rgba(240, 131, 74, 0.2);
+    background: rgba(14, 165, 233, 0.2);
     color: #ffb380;
   }
   :global(.dark) .menu-item.danger {
     color: #ff9999;
   }
   :global(.dark) .menu-item.danger:hover {
-    background: rgba(240, 131, 74, 0.15);
+    background: rgba(14, 165, 233, 0.15);
     color: #ffb3b3;
   }
   .menu-item:focus-visible {
