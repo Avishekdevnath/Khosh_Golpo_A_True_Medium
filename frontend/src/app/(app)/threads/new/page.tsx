@@ -238,18 +238,18 @@ export default function NewThreadPage() {
 
       <style jsx>{`
         .create-page {
-          --bg: #0c0e14;
-          --surface: #13151e;
-          --surface2: #1a1d2a;
-          --border: #252836;
-          --text: #e8eaf0;
-          --muted: #6b7080;
+          --bg: var(--app-bg, #060810);
+          --surface: var(--app-card, #13151f);
+          --surface2: var(--app-card-hover, #181b27);
+          --border: var(--app-border, #1c1f2e);
+          --text: var(--text, #e4e8f4);
+          --muted: var(--muted, #9ba3be);
           --accent: #0EA5E9;
-          --accent2: #7b6ef6;
+          --accent2: #818CF8;
           --yellow: #fbbf24;
           --red: #e74c3c;
-          --serif: var(--font-dm-serif), Georgia, serif;
-          --sans: var(--font-dm-sans), sans-serif;
+          --serif: var(--serif), Georgia, serif;
+          --sans: var(--sans), sans-serif;
 
           min-height: 100vh;
           background: var(--bg);
@@ -277,14 +277,14 @@ export default function NewThreadPage() {
         .orb-1 {
           width: 500px;
           height: 500px;
-          background: radial-gradient(circle, rgba(244, 132, 95, 0.08) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, transparent 70%);
           top: -150px;
           right: -100px;
         }
         .orb-2 {
           width: 400px;
           height: 400px;
-          background: radial-gradient(circle, rgba(123, 110, 246, 0.08) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(129, 140, 248, 0.08) 0%, transparent 70%);
           bottom: -150px;
           left: -100px;
         }
@@ -293,7 +293,7 @@ export default function NewThreadPage() {
           top: 0;
           z-index: 10;
           padding: 16px 24px;
-          background: rgba(12, 14, 20, 0.85);
+          background: rgba(6, 8, 16, 0.85);
           backdrop-filter: blur(16px);
           border-bottom: 1px solid var(--border);
           display: flex;
@@ -412,7 +412,7 @@ export default function NewThreadPage() {
         input:focus,
         textarea:focus {
           border-color: var(--accent);
-          box-shadow: 0 0 0 3px rgba(244, 132, 95, 0.1);
+          box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
         }
         .tags-section {
           display: flex;
@@ -520,9 +520,9 @@ export default function NewThreadPage() {
           margin-bottom: 8px;
         }
         .modal-box.suggestion {
-          border-color: rgba(244, 132, 95, 0.4);
-          background: rgba(244, 132, 95, 0.12);
-          color: #f7b097;
+          border-color: rgba(14, 165, 233, 0.4);
+          background: rgba(14, 165, 233, 0.12);
+          color: #7dd3fc;
         }
         .modal-actions {
           margin-top: 14px;
