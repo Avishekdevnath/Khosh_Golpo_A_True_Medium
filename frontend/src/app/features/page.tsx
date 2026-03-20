@@ -1,7 +1,6 @@
 "use client";
 
 import NavBar from "@/components/public/sections/NavBar";
-import CTA from "@/components/public/sections/CTA";
 import Footer from "@/components/public/sections/Footer";
 
 const features = [
@@ -259,7 +258,6 @@ export default function FeaturesPage() {
 
       </main>
 
-      <CTA />
       <Footer />
 
       <style jsx>{`
