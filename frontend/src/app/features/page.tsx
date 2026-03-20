@@ -11,8 +11,8 @@ const featureTiles = [
     details:
       "Our tone coach analyzes sentiment and suggests friendlier phrasings when needed. You always have the final say.",
     icon: "M13 2L3 14h9l-1 8 10-12h-9l1-8z",
-    accent: "rgba(244,132,95,0.15)",
-    color: "#F4845F",
+    accent: "rgba(14,165,233,0.15)",
+    color: "#0EA5E9",
   },
   {
     title: "Live Threads",
@@ -43,8 +43,8 @@ const featureTiles = [
     desc: "Conversations branch naturally. Reply to any post, not just the top-level thread. Context never gets lost in a linear feed.",
     details: "Hierarchical threading lets conversations unfold organically with every voice heard.",
     icon: "M7 8a3 3 0 100-6 3 3 0 000 6zM7 15a6 6 0 110-12 6 6 0 010 12zm8-5a2 2 0 11-4 0 2 2 0 014 0zM16 19a4 4 0 11-8 0 4 4 0 018 0z",
-    accent: "rgba(244,132,95,0.12)",
-    color: "#F4845F",
+    accent: "rgba(14,165,233,0.12)",
+    color: "#0EA5E9",
   },
   {
     title: "AI Summaries",
