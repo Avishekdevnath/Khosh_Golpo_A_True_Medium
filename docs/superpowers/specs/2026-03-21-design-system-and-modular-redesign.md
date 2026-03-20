@@ -52,7 +52,7 @@ Added to `:root` (light values) and `.dark` (dark values):
 | `--success` | `#16a34a` | `#3dd68c` | Online, approve, save |
 | `--warning` | `#d97706` | `#fbbf24` | Pending, caution |
 | `--info` | `#6366f1` | `#818CF8` | Tags, badges, secondary accent |
-| `--accent-glow` | `transparent` | `rgba(14,165,233,0.4)` | Glow effects (dark only) |
+| `--accent-glow` | `transparent` | `rgba(14,165,233,0.4)` | Glow effects — dark-only; use with `dark:` prefix (e.g., `dark:shadow-[0_0_8px_var(--accent-glow)]`) |
 | `--accent-muted` | `rgba(14,165,233,0.08)` | `rgba(14,165,233,0.10)` | Active nav bg, subtle highlights |
 
 ### 3.3 `@theme inline` Additions
@@ -65,15 +65,20 @@ Map new tokens for Tailwind v4 consumption:
   --color-card-hover: var(--card-hover);
   --color-card-active: var(--card-active);
   --color-surface-elevated: var(--surface-elevated);
-  --color-border-subtle: var(--border-subtle);
-  --color-text-tertiary: var(--text-tertiary);
+  --color-separator: var(--border-subtle);
+  --color-tertiary: var(--text-tertiary);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-info: var(--info);
   --color-accent-glow: var(--accent-glow);
-  --color-accent-muted: var(--accent-muted);
+  --color-accent-subtle: var(--accent-muted);
 }
 ```
+
+**Naming rationale:**
+- `--color-separator` (not `--color-border-subtle`) → avoids `border-separator` double-prefix; usage: `border-separator`
+- `--color-tertiary` (not `--color-text-tertiary`) → produces clean `text-tertiary` class
+- `--color-accent-subtle` (not `--color-accent-muted`) → avoids ambiguity with separate `--color-accent` and `--color-muted` tokens; usage: `bg-accent-subtle`
 
 ### 3.4 Existing Tokens Retained
 
@@ -164,7 +169,7 @@ interface AvatarProps {
 Add variants to existing shadcn badge:
 
 ```tsx
-variant: "default" | "secondary" | "destructive" | "outline"
+variant: "default" | "secondary" | "destructive" | "outline" | "ghost" | "link"  // existing
        | "success" | "warning" | "info"   // NEW
 size?: "sm" | "md"                         // NEW: sm=20px height, md=24px
 ```
@@ -242,7 +247,7 @@ interface ToastProps {
 - Success: `bg-success/15 border-success/30 text-success`
 - Error: `bg-destructive/15 border-destructive/30 text-destructive`
 - Info: `bg-info/15 border-info/30 text-info`
-- `pointer-events-none` so they don't block interaction
+- Toast container overlay is `pointer-events-none`; individual toast cards are `pointer-events-auto` (allows click-to-dismiss)
 - Respects `prefers-reduced-motion`
 
 #### 4.2.7 SearchInput
@@ -269,8 +274,9 @@ interface SearchInputProps {
 ```tsx
 interface FilterChipsProps {
   items: { value: string; label: string; count?: number }[];
-  value: string | string[];     // single or multi select
+  value: string | string[];
   onChange: (value: string | string[]) => void;
+  mode?: "single" | "multi";    // determines value/onChange type narrowing
   variant?: "pill" | "underline";
   className?: string;
 }
@@ -418,7 +424,7 @@ interface DividerProps {
 }
 ```
 
-- `line`: `<hr>` with `border-border-subtle`
+- `line`: `<hr>` with `border-separator`
 - `labeled`: flex row with lines on each side of centered text, text in `text-muted-foreground text-xs`
 
 ### 4.3 Layer 2: Form Components
@@ -565,6 +571,7 @@ interface DataTableProps<T> {
   onSort?: (key: string, direction: "asc" | "desc") => void;
   sortKey?: string;
   sortDirection?: "asc" | "desc";
+  size?: "comfortable" | "compact";  // row height: 48px | 36px (default "comfortable")
   emptyState?: { icon: LucideIcon; title: string; description?: string };
   className?: string;
 }
@@ -679,7 +686,7 @@ interface NotificationItemProps {
 ```
 
 - Flex row: colored icon + content + time + actions
-- Unread: `bg-accent-muted` background
+- Unread: `bg-accent-subtle` background
 - Icon colors by type: follow=blue, like=pink, reply=green, moderation=red, connection=purple
 - Inline actions: contextual buttons (Follow back, Accept/Decline, Appeal)
 - Action buttons use `success`/`danger` colors appropriately
@@ -806,6 +813,8 @@ components/threads/
 **Shared state in orchestrator:** `tabState` (4 buckets), `activeThreadId`, `rightPanel`, `contentColumns`
 **Why:** Liking/deleting a thread must patch ALL tab buckets simultaneously.
 
+**Note:** `/threads/new` (`app/(app)/threads/new/page.tsx`) stays as a standalone page component — not part of this feature-folder. It gets reskinned in Phase 2 (Section 6.3) using FormField, TextArea, Select from the design system.
+
 ### 5.3 ThreadDetailWorkspace (1,129 → 5 files)
 
 ```
@@ -879,6 +888,8 @@ FeedTopicsSettings already extracted — stays as-is.
 
 ### 5.9 UserProfileWorkspace (888 → 4 files)
 
+Existing path `components/users/` is renamed to `components/user-profile/` for consistency with the feature-folder convention.
+
 ```
 components/user-profile/
   UserProfileWorkspace.tsx    ← orchestrator (~100 lines): data fetch, modal state
@@ -891,6 +902,33 @@ components/user-profile/
 ### 5.10 Auth Pages (no structural change)
 
 `login/page.tsx`, `register/page.tsx`, `forgot-password/page.tsx`, `reset-password/page.tsx` — swap inline form markup for FormField, PasswordInput, Checkbox, Divider. Keep as page components.
+
+**Font note:** Auth pages currently override `--serif` to DM Serif Display locally. During migration, auth pages adopt Sora headings (the global `--serif` value) for consistency with the in-app design system. The DM Serif Display override is removed.
+
+### 5.11 Shared Components (`components/shared/`)
+
+Existing shared components are addressed individually:
+
+| Component | Action |
+|---|---|
+| `FollowButton.tsx` | **Reskin** — drop styled-jsx, use Tailwind + design system tokens. Keep as shared component (used by UserCard, ProfileHeader, UserHoverCard) |
+| `ConnectionButton.tsx` | **Reskin** — same as FollowButton |
+| `UserHoverCard.tsx` | **Reskin** — drop styled-jsx, use Avatar + Badge from design system |
+| `FollowersModal.tsx` | **Reskin** — use Modal wrapper + Avatar + Pagination from design system |
+| `ReportModal.tsx` | **Reskin** — use Modal + RadioGroup + TextArea + FormField from design system |
+| `RichText.tsx` | **Keep** — already minimal, just ensure token consistency |
+| `PageLoader.tsx` | **Replace** — use Spinner from design system |
+| `ScrollArea.tsx` | **Keep** — utility component, no visual changes needed |
+| `ThemeToggle.tsx` | **Keep** — already functional, no visual changes needed |
+
+### 5.12 Layout Components (`components/app/`)
+
+| Component | Action |
+|---|---|
+| `WorkspaceShell.tsx` | **Reskin** — drop styled-jsx, convert to Tailwind. This MUST be migrated since it wraps all workspace pages; leaving it unmigrated would keep styled-jsx as a dependency. |
+| `AppShell.tsx` | **Reskin** — drop styled-jsx, convert grid layout to Tailwind |
+| `AppNavbar.tsx` | **Reskin** — drop styled-jsx, use Tailwind + design system tokens |
+| `AppSidebar.tsx` | **Reskin** — drop styled-jsx, use Tailwind + design system tokens |
 
 ---
 
@@ -926,7 +964,7 @@ Each page drops styled-jsx and rebuilds with Tailwind + design system components
 
 **Components:** NotificationItem, FilterChips, TabBar, Pagination, EmptyState, Skeleton, Toast, Badge, Avatar, Modal
 **Layout:** WorkspaceShell single column
-**Key changes:** Unread → `bg-accent-muted`. Action buttons use `text-success`/`text-destructive`.
+**Key changes:** Unread → `bg-accent-subtle`. Action buttons use `text-success`/`text-destructive`.
 
 ### 6.6 People (`/people/*`)
 
@@ -992,16 +1030,19 @@ Design decisions that protect against future restructuring:
 ### 9.1 styled-jsx Removal Order
 
 1. Build design system components (all Tailwind)
-2. Migrate workspace files one at a time, starting with smallest (MessagesWorkspace → NotificationsWorkspace → UserProfile → Settings → ThreadDetail → People → Admin → ThreadsWorkspace)
-3. For each workspace: create feature-folder, extract sub-components, drop `<style jsx>` blocks, replace with Tailwind classes
-4. After all workspaces migrated: remove `styled-jsx` from dependencies if no other consumers
+2. Migrate layout components first: WorkspaceShell → AppShell → AppNavbar → AppSidebar (these wrap everything, so they must be migrated before workspaces)
+3. Migrate shared components: FollowButton, ConnectionButton, UserHoverCard, FollowersModal, ReportModal
+4. Migrate workspace files one at a time, starting with smallest: MessagesWorkspace → NotificationsWorkspace → UserProfile → Settings → ThreadDetail → People → Admin → ThreadsWorkspace
+5. Migrate auth pages last (standalone page components)
+6. For each workspace: create feature-folder, extract sub-components, drop `<style jsx>` blocks, replace with Tailwind classes
+7. After all files migrated: remove `styled-jsx` from dependencies
 
 ### 9.2 shadcn Compatibility
 
 All new components follow shadcn conventions:
 - CVA for variant management
 - `cn()` utility for class merging
-- `forwardRef` where applicable
+- `ref` as a standard prop via `React.ComponentProps` (React 19 pattern, not legacy `forwardRef`)
 - Props extend HTML element props where relevant
 - Components are unstyled containers that accept `className`
 
