@@ -70,6 +70,18 @@ Sidebar = drawer overlay
 
 ## 4. In-App Color System
 
+### 4.0 Token Migration Strategy
+
+The `--app-*` tokens are **scoped to in-app pages only** via a `.app-shell` wrapper class on the AppShell container. They do NOT replace the global `--bg`, `--surface`, `--border` tokens in `:root` / `.dark` — those remain for public pages and shadcn/ui components.
+
+**Coexistence rules:**
+- In-app styled-jsx components use `--app-*` tokens exclusively
+- shadcn/ui components (Button, Dialog, Dropdown, etc.) continue using their existing `--card`, `--popover`, `--background` variables — these already match the sky-blue palette from the public redesign and are close enough to the in-app values
+- The `@theme inline` block stays untouched — Tailwind utilities map to the global tokens
+- If a shadcn component appears inside the app shell (e.g., a Dialog), it inherits global tokens which are visually compatible (same accent, same font). No custom override needed.
+
+**Why not replace?** The global tokens serve public pages, auth pages, and shadcn defaults. Overriding them for in-app use would break those pages. A scoped `.app-shell` block is cleaner.
+
 ### 4.1 Dark Mode Tokens
 
 | Token | Value | Usage |
@@ -129,6 +141,8 @@ Light mode accent: `--accent: #0369A1` (deeper sky blue for contrast).
 ## 5. In-App Typography
 
 Fonts: Plus Jakarta Sans (body via `--sans`) + Sora (headings via `--serif`). Already loaded globally via `layout.tsx`.
+
+**Font variable migration:** Existing styled-jsx components reference `var(--font-dm-sans)` and `var(--font-dm-serif)` (the old Next.js font CSS variables). All Phase 1 files must replace these with `var(--sans)` and `var(--serif)` respectively. This applies to every styled-jsx block in WorkspaceShell, WorkspaceSidebar, ThreadsWorkspace, ThreadDetailWorkspace, and NewThreadPage.
 
 | Element | Size | Weight | Font |
 |---------|------|--------|------|
@@ -200,6 +214,17 @@ Letter spacing: `-0.02em` on headings ≥ 22px.
 | Threads | "Search threads..." | Sort (Latest/Popular/Unanswered), Channel | + New Thread |
 | Thread Detail | — | — | Breadcrumb back to list |
 
+**Search behavior:**
+- Scope: current section only (thread list when on Threads)
+- Trigger: debounce 300ms after typing, no Enter required
+- Clear button (X) appears when input has text
+- Replaces the existing in-panel search — this is a relocation, not a new feature
+- Uses existing SWR search hook (`useThreads` with `q` param)
+
+**Filter dropdowns:** Use shadcn/ui `Select` component with default styling. Tokens adapt to `--app-*` palette via CSS variable inheritance. No custom dropdown implementation needed.
+
+**Theme toggle:** Rendered in the header right zone, between the action button and bell icon. Uses existing `ThemeToggle` component (relocated from current AppNavbar position).
+
 **Mobile header (52px):** Hamburger left, section name center, essential icons right. Search → expandable overlay on icon tap.
 
 ### 6.3 Thread Card (list panel)
@@ -209,7 +234,8 @@ Letter spacing: `-0.02em` on headings ≥ 22px.
 - Top row: avatar 28px (mobile: 24px) + author 13px 600 + time 12px `--muted` right-aligned
 - Title: 14px 600, `line-clamp-2`, `8px` top margin
 - Preview: 13px `--muted`, `line-clamp-2`, `8px` top margin
-- Bottom row: tag pill + stats (12px `--muted`, icons 14px: `MessageCircle`, `Eye`, `ArrowUp`), `12px` top margin
+- Bottom row: tag pill + stats (12px `--muted`, icons 14px: `MessageCircle`, `ArrowUp`), `12px` top margin
+  - **Views stat (`Eye` icon):** Hidden until backend provides a `view_count` field. Currently no API support — do not render a fake counter.
 - Hover: bg → `--app-card-hover`, border → `rgba(14,165,233,0.20)`
 - Active/selected: bg → `--app-card-active`, left `2px solid --accent`
 - Unread: title weight `700` (vs 600), `6px` sky-blue dot left of title
@@ -231,6 +257,8 @@ Letter spacing: `-0.02em` on headings ≥ 22px.
 - Each: `32px` height, `8px` radius, `8px 12px` padding, `--muted` resting, hover `--text` with bg
 - Upvoted state: `--accent` icon + count
 - Bookmarked state: `--accent` filled icon
+
+> **API mapping:** "Upvote" in the UI maps to the existing `like_count` / `liked_by_me` API fields. This is a display-only label change — no backend modification needed.
 
 **Replies section:**
 - Header: "REPLIES" 11px 700 uppercase `--muted` + count badge, `2px` divider below
@@ -385,6 +413,19 @@ All respect `prefers-reduced-motion: reduce` → instant.
 
 Custom scrollbar: `4px` width, `--app-border` thumb, transparent track. Hover: thumb → `--muted` at 40%.
 
+### 8.5 Z-Index Scale
+
+| Layer | z-index | Usage |
+|-------|---------|-------|
+| Base content | `0` | Cards, panels, list items |
+| Sticky composer | `10` | Reply composer sticky bottom |
+| Header | `20` | App header bar |
+| Sidebar | `30` | Sidebar (desktop) |
+| Drawer overlay | `40` | Mobile sidebar drawer + scrim |
+| Dropdown / Popover | `50` | shadcn Select, DropdownMenu |
+| Modal | `60` | Dialog, confirmation modals |
+| Toast | `70` | Toast notifications |
+
 ---
 
 ## 9. File Change Map
@@ -396,14 +437,15 @@ Custom scrollbar: `4px` width, `--app-border` thumb, transparent track. Hover: t
 
 | File | Changes |
 |------|---------|
-| `frontend/src/app/globals.css` | Add `--app-*` token block (dark + light) |
-| `frontend/src/components/app/AppShell.tsx` | Restructure layout: sidebar + header + content |
-| `frontend/src/components/app/AppNavbar.tsx` | Redesign to contextual header bar (60px) |
-| `frontend/src/components/app/AppSidebar.tsx` | Redesign: grouped sections, nav items, user footer |
+| `frontend/src/app/globals.css` | Add `.app-shell` scoped `--app-*` token block (dark + light) |
+| `frontend/src/components/app/AppShell.tsx` | Restructure layout: add `.app-shell` wrapper, sidebar + header + content |
+| `frontend/src/components/app/AppNavbar.tsx` | Redesign to contextual header bar (60px), add ThemeToggle |
+| `frontend/src/components/app/AppSidebar.tsx` | Minimal wrapper — may merge into AppShell |
+| `frontend/src/components/app/WorkspaceSidebar.tsx` | **Primary sidebar file.** Full rewrite: grouped sections (MAIN/YOU/ADMIN), new nav items, user footer, mobile drawer. Replace all `#f0834a` / `rgba(240,131,74,...)` / `--font-dm-sans` / `--font-dm-serif` references |
 | `frontend/src/components/app/WorkspaceShell.tsx` | Simplify: remove internal sidebar/orbs, delegate to AppShell |
-| `frontend/src/components/threads/ThreadsWorkspace.tsx` | Full visual reskin: new tokens, cards, layout |
-| `frontend/src/components/threads/ThreadDetailWorkspace.tsx` | Full visual reskin: detail panel, reply tree, composer |
-| `frontend/src/app/(app)/threads/new/page.tsx` | Reskin to match new tokens and typography |
+| `frontend/src/components/threads/ThreadsWorkspace.tsx` | Full visual reskin: new tokens, cards, layout. Replace all old color/font references |
+| `frontend/src/components/threads/ThreadDetailWorkspace.tsx` | Full visual reskin: detail panel, reply tree, composer. Replace all old color/font references |
+| `frontend/src/app/(app)/threads/new/page.tsx` | Reskin to match new tokens and typography. Replace old font/color references |
 
 ### Files NOT changed (Phase 2/3):
 - Messages, People, Notifications, Settings, Admin workspaces
