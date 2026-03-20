@@ -78,7 +78,13 @@ export default function CommunityPage() {
             <div className="voices-grid">
               {voices.map((voice) => (
                 <article key={voice.name} className="voice-card">
-                  <div className="star-row">*****</div>
+                  <div className="star-row">
+                    {[...Array(5)].map((_, i) => (
+                      <svg key={i} width="14" height="14" viewBox="0 0 24 24" fill="#0EA5E9" aria-hidden="true">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                      </svg>
+                    ))}
+                  </div>
                   <p className="voice-quote">{voice.quote}</p>
                   <div className="voice-author">
                     <div className="voice-avatar" style={{ background: voice.avatar }}>
@@ -179,16 +185,16 @@ export default function CommunityPage() {
         }
 
         .voice-card:hover {
-          border-color: rgba(244, 132, 95, 0.3);
+          border-color: rgba(14, 165, 233, 0.3);
           transform: translateY(-2px);
           box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
         }
 
         .star-row {
-          color: var(--yellow);
-          font-size: 12px;
+          display: flex;
+          gap: 2px;
+          align-items: center;
           margin-bottom: 14px;
-          letter-spacing: 2px;
         }
 
         .voice-quote {
