@@ -1,7 +1,6 @@
 ﻿"use client";
 
 import NavBar from "@/components/public/sections/NavBar";
-import CTA from "@/components/public/sections/CTA";
 import Footer from "@/components/public/sections/Footer";
 
 const voices = [
@@ -119,7 +118,6 @@ export default function CommunityPage() {
         </section>
       </main>
 
-      <CTA />
       <Footer />
 
       <style jsx>{`
