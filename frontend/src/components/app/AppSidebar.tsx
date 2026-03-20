@@ -4,8 +4,9 @@ import { createPortal } from "react-dom";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  BarChart3, Bell, LogOut, Mail,
-  MessageSquare, Settings, User, Users,
+  BarChart3, Bell, ChevronDown,
+  LogOut, Mail, MessageSquare,
+  Settings, User, Users,
 } from "lucide-react";
 
 import { useAuthStore } from "@/store/authStore";
@@ -14,239 +15,309 @@ import { useMessageUnreadCount } from "@/hooks/useMessages";
 import { profilePathFromUsername } from "@/lib/profileRouting";
 import { avatarSeed, initials } from "@/lib/workspaceUtils";
 
-// ─── Nav config ──────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-const MAIN_NAV = [
-  { label: "Threads",       href: "/threads",       Icon: MessageSquare },
-  { label: "Messages",      href: "/messages",       Icon: Mail          },
-  { label: "People",        href: "/people",         Icon: Users         },
-] as const;
+interface NavSection {
+  label: string;
+  items: NavDef[];
+}
 
-const YOU_NAV = [
-  { label: "Notifications", href: "/notifications",  Icon: Bell          },
-  { label: "Settings",      href: "/settings",       Icon: Settings      },
-] as const;
+interface NavDef {
+  label: string;
+  href:  string;
+  Icon:  React.ComponentType<{ size?: number; strokeWidth?: number }>;
+  badgeKey?: "messages" | "notifications";
+}
 
-// ─── Component ───────────────────────────────────────────────────────────────
+// ─── Nav config ───────────────────────────────────────────────────────────────
+
+const NAV_SECTIONS: NavSection[] = [
+  {
+    label: "Main",
+    items: [
+      { label: "Threads",  href: "/threads",       Icon: MessageSquare },
+      { label: "Messages", href: "/messages",       Icon: Mail,          badgeKey: "messages"      },
+      { label: "People",   href: "/people",         Icon: Users          },
+    ],
+  },
+  {
+    label: "You",
+    items: [
+      { label: "Notifications", href: "/notifications", Icon: Bell,     badgeKey: "notifications" },
+      { label: "Settings",      href: "/settings",       Icon: Settings  },
+    ],
+  },
+];
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function AppSidebar() {
   const router   = useRouter();
   const pathname = usePathname();
-  const { user, logout }                    = useAuthStore();
-  const { unreadCount }                     = useNotifications();
-  const { unreadCount: msgCount }           = useMessageUnreadCount();
-  const [userMenuOpen, setUserMenuOpen]     = useState(false);
-  const [mobileOpen, setMobileOpen]         = useState(false);
-  const [mounted, setMounted]               = useState(false);
+
+  const { user, logout }               = useAuthStore();
+  const { unreadCount }                = useNotifications();
+  const { unreadCount: msgCount }      = useMessageUnreadCount();
+  const [menuOpen, setMenuOpen]        = useState(false);
+  const [mobileOpen, setMobileOpen]    = useState(false);
+  const [mounted, setMounted]          = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Let portal render on client only
-  useEffect(() => { setMounted(true); }, []);
+  const badges: Record<string, number> = {
+    messages:      msgCount,
+    notifications: unreadCount,
+  };
 
-  // Close user-menu on outside click
+  // Client-only portal
+  useEffect(() => setMounted(true), []);
+
+  // Close user menu on outside click
   useEffect(() => {
-    if (!userMenuOpen) return;
-    const handler = (e: MouseEvent) => {
+    if (!menuOpen) return;
+    const h = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node))
-        setUserMenuOpen(false);
+        setMenuOpen(false);
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [userMenuOpen]);
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [menuOpen]);
 
   // Listen for hamburger event from AppNavbar
   useEffect(() => {
-    const handler = () => setMobileOpen(v => !v);
-    window.addEventListener("toggle-sidebar", handler);
-    return () => window.removeEventListener("toggle-sidebar", handler);
+    const h = () => setMobileOpen(v => !v);
+    window.addEventListener("toggle-sidebar", h);
+    return () => window.removeEventListener("toggle-sidebar", h);
   }, []);
 
-  // Close sidebar on route change (mobile)
-  useEffect(() => { setMobileOpen(false); }, [pathname]);
+  // Close drawer on route change
+  useEffect(() => setMobileOpen(false), [pathname]);
 
   // ── helpers ──
-  const go = (href: string) => { setMobileOpen(false); router.push(href); };
+  const go = (href: string) => router.push(href);
 
-  function active(href: string) {
-    if (href === "/threads") return pathname.startsWith("/threads");
-    if (href === "/messages") return pathname.startsWith("/messages");
-    if (href === "/people") return pathname.startsWith("/people");
-    if (href === "/notifications") return pathname.startsWith("/notifications");
-    if (href === "/settings") return pathname.startsWith("/settings");
-    if (href === "/admin") return pathname.startsWith("/admin");
-    return pathname === href;
+  function isActive(href: string) {
+    if (href === "/") return pathname === "/";
+    return pathname === href || pathname.startsWith(href + "/");
   }
 
-  const name       = user?.display_name ?? user?.username ?? "Guest";
-  const [c1, c2]  = avatarSeed(user?.id ?? "guest");
+  const name        = user?.display_name ?? user?.username ?? "Guest";
+  const handle      = user?.username ? `@${user.username}` : null;
+  const [c1, c2]   = avatarSeed(user?.id ?? "guest");
   const profileHref = user ? profilePathFromUsername(user.username) : "/login";
-  const isAdmin    = user?.role === "admin";
+  const isAdmin     = user?.role === "admin";
 
-  // ── badge map ──
-  const badges: Record<string, number> = {
-    "/messages":      msgCount,
-    "/notifications": unreadCount,
-  };
+  const totalBadge = (msgCount || 0) + (unreadCount || 0);
 
   return (
     <>
-      {/* ── Sidebar ─────────────────────────────────────────────────── */}
-      <aside className={`sidebar${mobileOpen ? " open" : ""}`}>
-
-        {/* Logo */}
-        <button className="logo-row" type="button" onClick={() => go("/")}>
-          <span className="logo-mark">K</span>
-          <span className="logo-text">KhoshGolpo</span>
+      {/* ── Sidebar ──────────────────────────────────────────────────── */}
+      <aside
+        className={`sidebar${mobileOpen ? " open" : ""}`}
+        aria-label="Primary navigation"
+      >
+        {/* Logo ───────────────────────────────────────────────────── */}
+        <button className="logo" type="button" onClick={() => go("/")} aria-label="KhoshGolpo home">
+          <span className="logo-icon" aria-hidden="true">K</span>
+          <span className="logo-name">KhoshGolpo</span>
+          {totalBadge > 0 && (
+            <span className="logo-badge" aria-label={`${totalBadge} unread`}>
+              {totalBadge > 99 ? "99+" : totalBadge}
+            </span>
+          )}
         </button>
 
-        {/* Scrollable nav */}
-        <nav className="nav-body">
-
-          {/* MAIN */}
-          <p className="section-label">Main</p>
-          {MAIN_NAV.map(({ label, href, Icon }) => (
-            <NavItem
-              key={href}
-              label={label}
-              href={href}
-              Icon={Icon}
-              isActive={active(href)}
-              badge={badges[href] || null}
-              onClick={() => go(href)}
-            />
+        {/* Nav body ──────────────────────────────────────────────── */}
+        <nav className="nav" role="navigation">
+          {NAV_SECTIONS.map(section => (
+            <div key={section.label} className="nav-section">
+              <span className="section-label" aria-hidden="true">{section.label}</span>
+              {section.items.map(({ label, href, Icon, badgeKey }) => {
+                const count = badgeKey ? badges[badgeKey] : 0;
+                const active = isActive(href);
+                return (
+                  <button
+                    key={href}
+                    type="button"
+                    className={`nav-item${active ? " active" : ""}`}
+                    onClick={() => go(href)}
+                    aria-label={count > 0 ? `${label}, ${count} unread` : label}
+                    aria-current={active ? "page" : undefined}
+                  >
+                    <span className="item-icon" aria-hidden="true">
+                      <Icon size={16} strokeWidth={active ? 2.2 : 1.8} />
+                    </span>
+                    <span className="item-label">{label}</span>
+                    {count > 0 && (
+                      <span className="item-badge" aria-hidden="true">
+                        {count > 99 ? "99+" : count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           ))}
 
-          {/* YOU */}
-          <p className="section-label">You</p>
-          {YOU_NAV.map(({ label, href, Icon }) => (
-            <NavItem
-              key={href}
-              label={label}
-              href={href}
-              Icon={Icon}
-              isActive={active(href)}
-              badge={badges[href] || null}
-              onClick={() => go(href)}
-            />
-          ))}
-
-          {/* ADMIN */}
+          {/* Admin section */}
           {isAdmin && (
-            <>
-              <p className="section-label">Admin</p>
-              <NavItem
-                label="Dashboard"
-                href="/admin"
-                Icon={BarChart3}
-                isActive={active("/admin")}
-                badge={null}
+            <div className="nav-section">
+              <span className="section-label" aria-hidden="true">Admin</span>
+              <button
+                type="button"
+                className={`nav-item${isActive("/admin") ? " active" : ""}`}
                 onClick={() => go("/admin")}
-              />
-            </>
+                aria-current={isActive("/admin") ? "page" : undefined}
+              >
+                <span className="item-icon" aria-hidden="true">
+                  <BarChart3 size={16} strokeWidth={isActive("/admin") ? 2.2 : 1.8} />
+                </span>
+                <span className="item-label">Dashboard</span>
+              </button>
+            </div>
           )}
-
         </nav>
 
-        {/* User footer */}
-        <div className="user-footer" ref={menuRef}>
-
+        {/* User footer ───────────────────────────────────────────── */}
+        <div className="footer" ref={menuRef}>
           {/* Pop-up menu */}
-          {userMenuOpen && user && (
-            <div className="user-menu" role="menu">
-              <button className="menu-item" type="button"
-                onClick={() => { setUserMenuOpen(false); go(profileHref); }}>
-                <User size={14} /> Profile
+          {menuOpen && user && (
+            <div className="user-menu" role="menu" aria-label="User options">
+              <button
+                className="menu-item"
+                type="button"
+                role="menuitem"
+                onClick={() => { setMenuOpen(false); go(profileHref); }}
+              >
+                <User size={14} strokeWidth={1.8} />
+                <span>View profile</span>
               </button>
-              <button className="menu-item" type="button"
-                onClick={() => { setUserMenuOpen(false); go("/settings"); }}>
-                <Settings size={14} /> Settings
+              <button
+                className="menu-item"
+                type="button"
+                role="menuitem"
+                onClick={() => { setMenuOpen(false); go("/settings"); }}
+              >
+                <Settings size={14} strokeWidth={1.8} />
+                <span>Settings</span>
               </button>
-              <div className="menu-divider" />
-              <button className="menu-item danger" type="button"
+              <div className="menu-sep" role="separator" />
+              <button
+                className="menu-item danger"
+                type="button"
+                role="menuitem"
                 onClick={async () => {
-                  setUserMenuOpen(false);
+                  setMenuOpen(false);
                   await logout();
                   router.push("/login");
-                }}>
-                <LogOut size={14} /> Sign out
+                }}
+              >
+                <LogOut size={14} strokeWidth={1.8} />
+                <span>Sign out</span>
               </button>
             </div>
           )}
 
+          {/* User row */}
           <button
-            className="user-btn"
+            className="user-row"
             type="button"
-            onClick={() => user && setUserMenuOpen(v => !v)}
-            aria-label="User menu"
+            onClick={() => user && setMenuOpen(v => !v)}
+            aria-label={user ? `${name} — open user menu` : "User options"}
+            aria-expanded={menuOpen}
           >
             {/* Avatar */}
             <span
               className="avatar"
               style={{ background: `linear-gradient(135deg,${c1},${c2})` }}
+              aria-hidden="true"
             >
-              {initials(name)}
-              {user && <span className="online-dot" />}
+              <span className="avatar-initials">{initials(name)}</span>
+              {user && <span className="status-dot" aria-hidden="true" />}
             </span>
 
-            {/* Name + status */}
-            <span className="user-info">
+            {/* Text */}
+            <span className="user-text">
               <span className="user-name">{name}</span>
-              <span className="user-status">
-                {user ? "● Online" : "Not signed in"}
-              </span>
+              {handle && <span className="user-handle">{handle}</span>}
             </span>
+
+            {/* Chevron */}
+            {user && (
+              <span
+                className={`chevron${menuOpen ? " flipped" : ""}`}
+                aria-hidden="true"
+              >
+                <ChevronDown size={13} strokeWidth={2} />
+              </span>
+            )}
           </button>
         </div>
       </aside>
 
-      {/* ── Mobile scrim — rendered outside grid via portal ─────────── */}
+      {/* ── Mobile scrim (portal — outside grid) ─────────────────────── */}
       {mounted && mobileOpen &&
         createPortal(
           <button
             type="button"
-            className="scrim"
-            aria-label="Close sidebar"
+            className="mobile-scrim"
+            aria-label="Close navigation"
             onClick={() => setMobileOpen(false)}
+            tabIndex={-1}
           />,
           document.body
         )
       }
 
       <style jsx>{`
-        /* ── Sidebar shell ─────────────────────────────────── */
+        /* ═══════════════════════════════════════════════════════════
+           SIDEBAR SHELL
+        ═══════════════════════════════════════════════════════════ */
         .sidebar {
+          /* Layout */
           display: flex;
           flex-direction: column;
           width: 240px;
           height: 100vh;
           position: sticky;
           top: 0;
+          flex-shrink: 0;
+          overflow: hidden;
+
+          /* Visuals */
           background: var(--app-sidebar, #0a0c14);
           border-right: 1px solid var(--app-border, #1c1f2e);
           z-index: 30;
-          overflow: hidden;
-          flex-shrink: 0;
         }
 
-        /* ── Logo row ──────────────────────────────────────── */
-        .logo-row {
+        /* ═══════════════════════════════════════════════════════════
+           LOGO ROW
+        ═══════════════════════════════════════════════════════════ */
+        .logo {
+          /* Layout */
           display: flex;
           align-items: center;
           gap: 10px;
           padding: 0 16px;
           height: 56px;
           flex-shrink: 0;
-          border: none;
+
+          /* Visuals */
           background: transparent;
+          border: none;
+          border-bottom: 1px solid var(--app-border, #1c1f2e);
           cursor: pointer;
           text-align: left;
-          border-bottom: 1px solid var(--app-border, #1c1f2e);
+          width: 100%;
+          transition: background 0.15s ease;
         }
-        .logo-mark {
+        .logo:hover { background: rgba(14,165,233,0.04); }
+
+        .logo-icon {
+          /* 30px square, sky-blue, Sora font */
           width: 30px;
           height: 30px;
           border-radius: 8px;
-          background: #0EA5E9;
+          background: linear-gradient(135deg, #0EA5E9, #0284C7);
           color: #fff;
           font-family: var(--serif, sans-serif);
           font-weight: 700;
@@ -254,243 +325,17 @@ export default function AppSidebar() {
           display: grid;
           place-items: center;
           flex-shrink: 0;
+          box-shadow: 0 2px 8px rgba(14,165,233,0.35);
         }
-        .logo-text {
-          font-family: var(--serif, sans-serif);
-          font-size: 15px;
-          font-weight: 700;
-          color: var(--text, #e4e8f4);
-          white-space: nowrap;
-        }
-
-        /* ── Scrollable nav body ───────────────────────────── */
-        .nav-body {
+        .logo-name {
           flex: 1;
-          overflow-y: auto;
-          padding: 8px 0;
-          min-height: 0;
-        }
-        .nav-body::-webkit-scrollbar { width: 3px; }
-        .nav-body::-webkit-scrollbar-thumb { background: var(--app-border, #1c1f2e); border-radius: 4px; }
-
-        /* Section label */
-        .section-label {
-          margin: 0;
-          padding: 16px 20px 6px;
-          font-size: 10px;
+          font-family: var(--serif, sans-serif);
+          font-size: 15px;
           font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          color: var(--muted, #9ba3be);
-          opacity: 0.6;
-        }
-
-        /* ── User footer ───────────────────────────────────── */
-        .user-footer {
-          flex-shrink: 0;
-          position: relative;
-          padding: 8px 12px 12px;
-          border-top: 1px solid var(--app-border, #1c1f2e);
-        }
-        .user-btn {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          width: 100%;
-          padding: 8px 8px;
-          border: none;
-          border-radius: 10px;
-          background: transparent;
-          cursor: pointer;
-          text-align: left;
-          transition: background 0.15s;
-          font-family: var(--sans, sans-serif);
-          color: inherit;
-        }
-        .user-btn:hover { background: var(--app-card-hover, #181b27); }
-
-        .avatar {
-          position: relative;
-          width: 34px;
-          height: 34px;
-          border-radius: 10px;
-          display: grid;
-          place-items: center;
-          font-size: 11px;
-          font-weight: 700;
-          color: #fff;
-          flex-shrink: 0;
-        }
-        .online-dot {
-          position: absolute;
-          bottom: -2px;
-          right: -2px;
-          width: 9px;
-          height: 9px;
-          border-radius: 50%;
-          background: #3dd68c;
-          border: 2px solid var(--app-sidebar, #0a0c14);
-        }
-        .user-info {
-          display: flex;
-          flex-direction: column;
-          min-width: 0;
-          gap: 1px;
-        }
-        .user-name {
-          font-size: 13px;
-          font-weight: 600;
           color: var(--text, #e4e8f4);
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+          letter-spacing: -0.01em;
         }
-        .user-status {
-          font-size: 11px;
-          color: #3dd68c;
-        }
-
-        /* ── User pop-up menu ──────────────────────────────── */
-        .user-menu {
-          position: absolute;
-          bottom: calc(100% - 4px);
-          left: 12px;
-          right: 12px;
-          background: var(--app-card, #13151f);
-          border: 1px solid var(--app-border, #1c1f2e);
-          border-radius: 12px;
-          padding: 4px;
-          box-shadow: 0 -8px 24px rgba(0,0,0,0.5);
-          z-index: 50;
-          animation: popUp 0.12s ease;
-        }
-        @keyframes popUp {
-          from { opacity: 0; transform: translateY(6px); }
-          to   { opacity: 1; transform: translateY(0);   }
-        }
-        .menu-item {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          width: 100%;
-          padding: 9px 12px;
-          border: none;
-          border-radius: 8px;
-          background: transparent;
-          color: var(--text, #e4e8f4);
-          font-size: 13px;
-          font-family: var(--sans, sans-serif);
-          cursor: pointer;
-          transition: background 0.12s;
-          text-align: left;
-        }
-        .menu-item:hover { background: var(--app-card-hover, #181b27); }
-        .menu-item.danger { color: #ef4444; }
-        .menu-item.danger:hover { background: rgba(239,68,68,0.12); }
-        .menu-divider { height: 1px; background: var(--app-border, #1c1f2e); margin: 3px 8px; }
-
-        /* ── Mobile drawer ─────────────────────────────────── */
-        @media (max-width: 859px) {
-          .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            height: 100dvh;
-            transform: translateX(-100%);
-            transition: transform 200ms ease-in;
-            z-index: 40;
-            box-shadow: 4px 0 24px rgba(0,0,0,0.5);
-          }
-          .sidebar.open {
-            transform: translateX(0);
-            transition: transform 260ms ease-out;
-          }
-        }
-
-        /* Mobile scrim (rendered via portal) */
-        :global(.scrim) {
-          position: fixed;
-          inset: 0;
-          background: rgba(0,0,0,0.45);
-          z-index: 39;
-          border: none;
-          cursor: pointer;
-        }
-
-        /* ── Reduced motion ────────────────────────────────── */
-        @media (prefers-reduced-motion: reduce) {
-          .sidebar { transition: none; }
-        }
-      `}</style>
-    </>
-  );
-}
-
-// ─── NavItem sub-component ────────────────────────────────────────────────────
-
-interface NavItemProps {
-  label: string;
-  href: string;
-  Icon: React.ComponentType<{ size?: number }>;
-  isActive: boolean;
-  badge: number | string | null;
-  onClick: () => void;
-}
-
-function NavItem({ label, Icon, isActive, badge, onClick }: NavItemProps) {
-  return (
-    <button
-      type="button"
-      className={`nav-item${isActive ? " active" : ""}`}
-      onClick={onClick}
-    >
-      <span className="nav-icon"><Icon size={17} /></span>
-      <span className="nav-label">{label}</span>
-      {badge != null && Number(badge) > 0 && (
-        <span className="nav-badge">{Number(badge) > 99 ? "99+" : badge}</span>
-      )}
-
-      <style jsx>{`
-        .nav-item {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          width: calc(100% - 16px);
-          margin: 1px 8px;
-          padding: 0 12px;
-          height: 36px;
-          border: none;
-          border-left: 2px solid transparent;
-          border-radius: 8px;
-          background: transparent;
-          color: var(--muted, #9ba3be);
-          font-size: 13px;
-          font-weight: 500;
-          font-family: var(--sans, sans-serif);
-          cursor: pointer;
-          text-align: left;
-          transition: background 0.15s, color 0.15s;
-        }
-        .nav-item:hover {
-          background: var(--app-card-hover, #181b27);
-          color: var(--text, #e4e8f4);
-        }
-        .nav-item.active {
-          background: rgba(14, 165, 233, 0.10);
-          color: #0EA5E9;
-          border-left-color: #0EA5E9;
-        }
-        .nav-icon {
-          display: flex;
-          align-items: center;
-          flex-shrink: 0;
-          opacity: 0.85;
-        }
-        .nav-item.active .nav-icon { opacity: 1; }
-        .nav-label { flex: 1; }
-        .nav-badge {
-          margin-left: auto;
+        .logo-badge {
           background: #0EA5E9;
           color: #fff;
           border-radius: 999px;
@@ -503,7 +348,314 @@ function NavItem({ label, Icon, isActive, badge, onClick }: NavItemProps) {
           align-items: center;
           justify-content: center;
         }
+
+        /* ═══════════════════════════════════════════════════════════
+           NAV BODY
+        ═══════════════════════════════════════════════════════════ */
+        .nav {
+          flex: 1;
+          overflow-y: auto;
+          padding: 12px 0 8px;
+          min-height: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .nav::-webkit-scrollbar { width: 3px; }
+        .nav::-webkit-scrollbar-thumb {
+          background: var(--app-border, #1c1f2e);
+          border-radius: 4px;
+        }
+
+        /* Section block */
+        .nav-section {
+          display: flex;
+          flex-direction: column;
+          padding: 0 8px;
+          gap: 1px;
+        }
+        .nav-section + .nav-section { margin-top: 8px; }
+
+        /* Section label */
+        .section-label {
+          display: block;
+          padding: 8px 10px 4px;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: var(--muted, #9ba3be);
+          opacity: 0.5;
+          font-family: var(--sans, sans-serif);
+          pointer-events: none;
+          user-select: none;
+        }
+
+        /* Nav item — 40px tall to meet 44pt touch target guidance */
+        .nav-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          width: 100%;
+          height: 40px;
+          padding: 0 10px;
+          border: none;
+          border-left: 2px solid transparent;
+          border-radius: 8px;
+          background: transparent;
+          color: var(--muted, #9ba3be);
+          font-size: 13px;
+          font-weight: 500;
+          font-family: var(--sans, sans-serif);
+          cursor: pointer;
+          text-align: left;
+          transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+          outline-offset: 2px;
+        }
+        .nav-item:hover {
+          background: var(--app-card-hover, #181b27);
+          color: var(--text, #e4e8f4);
+        }
+        .nav-item:focus-visible {
+          outline: 2px solid rgba(14,165,233,0.5);
+        }
+        .nav-item.active {
+          background: rgba(14,165,233,0.10);
+          color: #0EA5E9;
+          border-left-color: #0EA5E9;
+          font-weight: 600;
+        }
+
+        .item-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 20px;
+          flex-shrink: 0;
+        }
+        .nav-item.active .item-icon {
+          filter: drop-shadow(0 0 6px rgba(14,165,233,0.4));
+        }
+
+        .item-label { flex: 1; }
+
+        .item-badge {
+          background: #0EA5E9;
+          color: #fff;
+          border-radius: 999px;
+          font-size: 10px;
+          font-weight: 700;
+          padding: 0 6px;
+          height: 18px;
+          min-width: 18px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          animation: badgePop 0.2s ease;
+        }
+        @keyframes badgePop {
+          from { transform: scale(0.7); opacity: 0; }
+          to   { transform: scale(1);   opacity: 1; }
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           USER FOOTER
+        ═══════════════════════════════════════════════════════════ */
+        .footer {
+          flex-shrink: 0;
+          position: relative;
+          padding: 10px 10px 12px;
+          border-top: 1px solid var(--app-border, #1c1f2e);
+        }
+
+        /* User row button */
+        .user-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          width: 100%;
+          padding: 8px 10px;
+          border: none;
+          border-radius: 10px;
+          background: transparent;
+          cursor: pointer;
+          text-align: left;
+          transition: background 0.15s ease;
+          font-family: var(--sans, sans-serif);
+          color: inherit;
+          outline-offset: 2px;
+        }
+        .user-row:hover { background: var(--app-card-hover, #181b27); }
+        .user-row:focus-visible { outline: 2px solid rgba(14,165,233,0.5); }
+
+        /* Avatar */
+        .avatar {
+          position: relative;
+          width: 34px;
+          height: 34px;
+          border-radius: 10px;
+          display: grid;
+          place-items: center;
+          flex-shrink: 0;
+        }
+        .avatar-initials {
+          font-size: 11px;
+          font-weight: 700;
+          color: #fff;
+          font-family: var(--sans, sans-serif);
+        }
+        .status-dot {
+          position: absolute;
+          bottom: -2px;
+          right: -2px;
+          width: 9px;
+          height: 9px;
+          border-radius: 50%;
+          background: #3dd68c;
+          border: 2px solid var(--app-sidebar, #0a0c14);
+          box-shadow: 0 0 6px rgba(61,214,140,0.5);
+        }
+
+        /* User text */
+        .user-text {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+          flex: 1;
+          gap: 1px;
+        }
+        .user-name {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--text, #e4e8f4);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          line-height: 1.3;
+        }
+        .user-handle {
+          font-size: 11px;
+          color: var(--muted, #9ba3be);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          line-height: 1.3;
+        }
+
+        /* Chevron */
+        .chevron {
+          display: flex;
+          align-items: center;
+          color: var(--muted, #9ba3be);
+          transition: transform 0.2s ease;
+          flex-shrink: 0;
+        }
+        .chevron.flipped { transform: rotate(180deg); }
+
+        /* User pop-up menu */
+        .user-menu {
+          position: absolute;
+          bottom: calc(100% + 4px);
+          left: 10px;
+          right: 10px;
+          background: var(--app-card, #13151f);
+          border: 1px solid var(--app-border, #1c1f2e);
+          border-radius: 12px;
+          padding: 4px;
+          box-shadow:
+            0 -4px 6px rgba(0,0,0,0.15),
+            0 -12px 32px rgba(0,0,0,0.4);
+          z-index: 50;
+          animation: popUp 0.15s ease;
+        }
+        @keyframes popUp {
+          from { opacity: 0; transform: translateY(6px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0) scale(1);      }
+        }
+
+        .menu-item {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          width: 100%;
+          padding: 9px 12px;
+          border: none;
+          border-radius: 8px;
+          background: transparent;
+          color: var(--text, #e4e8f4);
+          font-size: 13px;
+          font-family: var(--sans, sans-serif);
+          cursor: pointer;
+          transition: background 0.12s;
+          text-align: left;
+          outline-offset: 2px;
+        }
+        .menu-item:hover { background: var(--app-card-hover, #181b27); }
+        .menu-item:focus-visible { outline: 2px solid rgba(14,165,233,0.5); }
+        .menu-item.danger { color: #ef4444; }
+        .menu-item.danger:hover { background: rgba(239,68,68,0.10); }
+        .menu-sep {
+          height: 1px;
+          background: var(--app-border, #1c1f2e);
+          margin: 3px 10px;
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           MOBILE DRAWER
+        ═══════════════════════════════════════════════════════════ */
+        @media (max-width: 859px) {
+          .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            height: 100dvh;
+            z-index: 40;
+            transform: translateX(-100%);
+            transition: transform 220ms ease-in;
+            box-shadow: 4px 0 32px rgba(0,0,0,0.6);
+          }
+          .sidebar.open {
+            transform: translateX(0);
+            transition: transform 260ms ease-out;
+          }
+        }
+
+        @media (min-width: 860px) {
+          .sidebar { transform: none !important; }
+        }
+
+        /* Mobile scrim — injected via portal */
+        :global(.mobile-scrim) {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.5);
+          backdrop-filter: blur(2px);
+          -webkit-backdrop-filter: blur(2px);
+          z-index: 39;
+          border: none;
+          cursor: pointer;
+          animation: scrimIn 0.2s ease;
+        }
+        @keyframes scrimIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           REDUCED MOTION
+        ═══════════════════════════════════════════════════════════ */
+        @media (prefers-reduced-motion: reduce) {
+          .sidebar,
+          .nav-item,
+          .user-row,
+          .menu-item,
+          .chevron { transition: none; }
+          .user-menu,
+          .item-badge,
+          :global(.mobile-scrim) { animation: none; }
+        }
       `}</style>
-    </button>
+    </>
   );
 }
