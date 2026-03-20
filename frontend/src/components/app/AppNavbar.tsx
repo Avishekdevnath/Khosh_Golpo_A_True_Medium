@@ -1,129 +1,306 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, Mail, Plus } from "lucide-react";
+import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { Bell, LogOut, Menu, Plus, Search, Settings, UserRound } from "lucide-react";
 
 import { useNotifications } from "@/hooks/useNotifications";
-import { useMessageUnreadCount } from "@/hooks/useMessages";
 import { useAuthStore } from "@/store/authStore";
+import { avatarSeed, initials } from "@/lib/workspaceUtils";
 import { profilePathFromUsername } from "@/lib/profileRouting";
 import ThemeToggle from "@/components/shared/ThemeToggle";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
+function getSectionName(pathname: string): string {
+  if (pathname.startsWith("/threads")) return "Threads";
+  if (pathname.startsWith("/messages")) return "Messages";
+  if (pathname.startsWith("/people")) return "People";
+  if (pathname.startsWith("/notifications")) return "Notifications";
+  if (pathname.startsWith("/settings")) return "Settings";
+  if (pathname.startsWith("/admin")) return "Admin";
+  return "Home";
+}
+
 export default function AppNavbar() {
-  const { user, isAuthenticated, isAdmin } = useAuthStore();
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuthStore();
   const { unreadCount } = useNotifications();
-  const { unreadCount: messageUnreadCount } = useMessageUnreadCount();
-  const profileHref = user ? profilePathFromUsername(user.username) : "/login";
+  const [searchValue, setSearchValue] = useState("");
+
+  const sectionName = getSectionName(pathname);
+  const isThreadsSection = pathname.startsWith("/threads");
+  const isThreadDetail = /^\/threads\/[^/]+/.test(pathname) && pathname !== "/threads/new";
+  const showSearch = isThreadsSection && !isThreadDetail;
+  const showNewThread = isThreadsSection;
+
+  const displayName = user?.display_name ?? user?.username ?? "Guest";
+  const [av1, av2] = avatarSeed(user?.id ?? "guest");
+  const profilePath = user ? profilePathFromUsername(user.username) : "/login";
+
+  function handleHamburger() {
+    window.dispatchEvent(new CustomEvent("toggle-sidebar"));
+  }
+
+  async function handleLogout() {
+    await logout();
+    router.push("/login");
+  }
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border/80 bg-surface/90 backdrop-blur-md">
-      <div className="flex h-16 items-center justify-between px-4 sm:px-6">
-        <div className="flex items-center gap-3">
-          <Link href="/" className="logo text-lg">
-            <span className="logo-dot" />
-            KhoshGolpo
-          </Link>
-          <Badge
-            variant="outline"
-            className="hidden border-accent/40 bg-accent/10 text-accent md:inline-flex"
-          >
-            App Mode
-          </Badge>
+    <>
+      <header className="app-header">
+        {/* Left zone */}
+        <button type="button" className="hamburger" onClick={handleHamburger} aria-label="Toggle sidebar">
+          <Menu size={20} />
+        </button>
+        <div className="section-name-wrap">
+          {isThreadDetail ? (
+            <>
+              <Link href="/threads" className="section-link">Threads</Link>
+              <span className="breadcrumb-sep">/</span>
+              <span className="section-name">Detail</span>
+            </>
+          ) : (
+            <span className="section-name">{sectionName}</span>
+          )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            asChild
-            size="icon-sm"
-            variant="outline"
-            className="relative border-border/80 bg-surface2 text-foreground hover:bg-surface"
-          >
-            <Link href="/messages" aria-label="Messages">
-              <Mail className="h-4 w-4" />
-              {messageUnreadCount > 0 ? (
-                <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-white">
-                  {messageUnreadCount > 99 ? "99+" : messageUnreadCount}
-                </span>
-              ) : null}
+        {/* Center zone — search */}
+        {showSearch && (
+          <div className="header-search">
+            <div className="search-input-wrap">
+              <Search size={14} className="search-icon" />
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Search threads..."
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+        {!showSearch && <div className="header-search" />}
+
+        {/* Right zone */}
+        <div className="header-actions">
+          {showNewThread && (
+            <Link href="/threads/new" className="new-thread-btn">
+              <Plus size={14} />
+              <span>New Thread</span>
             </Link>
-          </Button>
-          <Button
-            asChild
-            size="icon-sm"
-            variant="outline"
-            className="relative border-border/80 bg-surface2 text-foreground hover:bg-surface"
-          >
-            <Link href="/notifications" aria-label="Notifications">
-              <Bell className="h-4 w-4" />
-              {unreadCount > 0 ? (
-                <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-white">
-                  {unreadCount > 99 ? "99+" : unreadCount}
-                </span>
-              ) : null}
-            </Link>
-          </Button>
-          <Button asChild className="hidden sm:inline-flex">
-            <Link href="/threads/new">
-              <Plus className="h-4 w-4" />
-              New Thread
-            </Link>
-          </Button>
+          )}
+
           <ThemeToggle />
+
+          <Link href="/notifications" className="icon-btn" aria-label="Notifications">
+            <Bell size={16} />
+            {unreadCount > 0 && <span className="notif-dot" />}
+          </Link>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="border-border/80 bg-surface2 text-foreground hover:bg-surface"
+              <button
+                type="button"
+                className="avatar-btn"
+                style={{ background: `linear-gradient(135deg,${av1},${av2})` }}
               >
-                Menu
-              </Button>
+                {initials(displayName)}
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-44">
               <DropdownMenuItem asChild>
-                <Link href="/people/explore">People</Link>
+                <Link href={profilePath}>
+                  <UserRound size={14} style={{ marginRight: 8 }} /> Profile
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/threads">Threads</Link>
+                <Link href="/settings">
+                  <Settings size={14} style={{ marginRight: 8 }} /> Settings
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/threads/new">Create Thread</Link>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="text-red-400">
+                <LogOut size={14} style={{ marginRight: 8 }} /> Sign out
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/notifications">Notifications</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/messages">Messages</Link>
-              </DropdownMenuItem>
-              {isAdmin() ? (
-                <DropdownMenuItem asChild>
-                  <Link href="/admin">Admin</Link>
-                </DropdownMenuItem>
-              ) : null}
-              <DropdownMenuItem asChild>
-                <Link href={profileHref}>Profile</Link>
-              </DropdownMenuItem>
-              {!isAuthenticated() ? (
-                <DropdownMenuItem asChild>
-                  <Link href="/register">Register</Link>
-                </DropdownMenuItem>
-              ) : null}
-              {!isAuthenticated() ? (
-                <DropdownMenuItem asChild>
-                  <Link href="/login">Login</Link>
-                </DropdownMenuItem>
-              ) : null}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </div>
-    </header>
+      </header>
+
+      <style jsx>{`
+        .app-header {
+          height: 60px;
+          background: var(--app-header, rgba(6, 8, 16, 0.85));
+          backdrop-filter: blur(12px);
+          border-bottom: 1px solid var(--app-border, #1c1f2e);
+          display: flex;
+          align-items: center;
+          padding: 0 20px;
+          z-index: 20;
+          position: sticky;
+          top: 0;
+          gap: 16px;
+        }
+        .section-name-wrap {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          white-space: nowrap;
+        }
+        .section-name {
+          font-family: var(--serif);
+          font-size: 16px;
+          font-weight: 700;
+          color: var(--text, #e4e8f4);
+          white-space: nowrap;
+        }
+        .section-link {
+          font-family: var(--serif);
+          font-size: 16px;
+          font-weight: 700;
+          color: var(--muted, #9ba3be);
+          text-decoration: none;
+          transition: color 0.15s;
+        }
+        .section-link:hover {
+          color: var(--text, #e4e8f4);
+        }
+        .breadcrumb-sep {
+          color: var(--muted, #9ba3be);
+          font-size: 14px;
+        }
+        .header-search {
+          flex: 1;
+          display: flex;
+          justify-content: center;
+        }
+        .search-input-wrap {
+          position: relative;
+          max-width: 320px;
+          width: 100%;
+        }
+        .search-input {
+          width: 100%;
+          height: 32px;
+          border-radius: 8px;
+          background: var(--app-input, #151821);
+          border: 1px solid var(--app-border, #1c1f2e);
+          color: var(--text, #e4e8f4);
+          font-size: 13px;
+          padding: 0 12px 0 32px;
+          font-family: var(--sans);
+          outline: none;
+          transition: border 0.2s, box-shadow 0.2s;
+        }
+        .search-input:focus {
+          border-color: #0EA5E9;
+          box-shadow: 0 0 0 2px rgba(14,165,233,0.15);
+        }
+        .header-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-left: auto;
+        }
+        .icon-btn {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          border: none;
+          background: transparent;
+          color: var(--muted, #9ba3be);
+          display: grid;
+          place-items: center;
+          cursor: pointer;
+          position: relative;
+          transition: all 0.2s;
+          text-decoration: none;
+        }
+        .icon-btn:hover {
+          color: var(--text, #e4e8f4);
+          background: var(--app-card-hover, #181b27);
+        }
+        .notif-dot {
+          position: absolute;
+          top: 4px;
+          right: 4px;
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #0EA5E9;
+          border: 2px solid var(--app-header, rgba(6,8,16,0.85));
+        }
+        .new-thread-btn {
+          height: 32px;
+          padding: 0 14px;
+          border-radius: 8px;
+          border: none;
+          background: #0EA5E9;
+          color: #fff;
+          font-size: 13px;
+          font-weight: 600;
+          font-family: var(--sans);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          transition: background 0.2s;
+          text-decoration: none;
+        }
+        .new-thread-btn:hover {
+          background: #38BDF8;
+        }
+        .avatar-btn {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          border: none;
+          display: grid;
+          place-items: center;
+          font-size: 11px;
+          font-weight: 700;
+          color: #fff;
+          cursor: pointer;
+        }
+        .hamburger {
+          display: none;
+        }
+        @media (max-width: 859px) {
+          .app-header {
+            height: 52px;
+            padding: 0 12px;
+          }
+          .hamburger {
+            display: grid;
+            place-items: center;
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: transparent;
+            color: var(--text, #e4e8f4);
+            cursor: pointer;
+            border-radius: 8px;
+          }
+          .hamburger:hover {
+            background: var(--app-card-hover, #181b27);
+          }
+          .header-search {
+            display: none;
+          }
+          .new-thread-btn :global(span) {
+            display: none;
+          }
+        }
+      `}</style>
+    </>
   );
 }

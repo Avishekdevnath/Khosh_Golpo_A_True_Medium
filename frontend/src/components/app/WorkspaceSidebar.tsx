@@ -45,6 +45,14 @@ export default function WorkspaceSidebar({
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    function handleToggleSidebar() {
+      setMobileOpen((v) => !v);
+    }
+    window.addEventListener("toggle-sidebar", handleToggleSidebar);
+    return () => window.removeEventListener("toggle-sidebar", handleToggleSidebar);
+  }, []);
+
+  useEffect(() => {
     if (!userMenuOpen) return;
     function handleClick(e: MouseEvent) {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
