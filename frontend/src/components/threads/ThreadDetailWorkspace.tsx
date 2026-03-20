@@ -74,8 +74,8 @@ type ThreadDetailWorkspaceProps = {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function statusTone(s: ThreadStatus) {
-  if (s === "open")   return { text: "#3DD68C", bg: "rgba(61,214,140,0.12)",  label: "Open" };
-  if (s === "closed") return { text: "#F5C642", bg: "rgba(245,198,66,0.12)",  label: "Closed" };
+  if (s === "open")   return { text: "#3dd68c", bg: "rgba(61,214,140,0.12)",  label: "Open" };
+  if (s === "closed") return { text: "#fbbf24", bg: "rgba(251,191,36,0.12)",  label: "Closed" };
   return                      { text: "#9BA3BE", bg: "rgba(155,163,190,0.12)", label: "Archived" };
 }
 
@@ -168,7 +168,7 @@ function PostItem({
               <span className="post-author">{displayName}</span>
               {username && <span className="post-username">@{username}</span>}
               {post.author_is_bot && (
-                <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 5px", borderRadius: 4, border: "1px solid rgba(124,115,240,0.5)", color: "#9d97f0", background: "rgba(124,115,240,0.1)", letterSpacing: "0.04em" }}>BOT</span>
+                <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 5px", borderRadius: 4, border: "1px solid rgba(129,140,248,0.5)", color: "#a5b4fc", background: "rgba(129,140,248,0.1)", letterSpacing: "0.04em" }}>BOT</span>
               )}
             </Link>
           </UserHoverCard>
@@ -221,25 +221,25 @@ function PostItem({
         .post-item { display: flex; gap: 10px; padding: 10px; border-radius: 10px; transition: background 0.15s; }
         .post-item:hover { background: rgba(21,25,39,0.6); }
         .post-av-link { display: inline-flex; text-decoration: none; border-radius: 999px; }
-        .post-av-link:focus-visible { outline: 2px solid rgba(240,131,74,0.45); outline-offset: 1px; }
+        .post-av-link:focus-visible { outline: 2px solid rgba(14,165,233,0.45); outline-offset: 1px; }
         .post-av { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; margin-top: 2px; }
         .post-body { flex: 1; min-width: 0; }
         .post-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
         .post-author-link { display: flex; align-items: center; gap: 6px; text-decoration: none; cursor: pointer; border-radius: 6px; padding: 2px 6px; transition: all 0.15s; }
-        .post-author-link:hover { background: rgba(240, 131, 74, 0.12); }
-        .post-author { font-size: 13px; font-weight: 600; color: #e4e8f4; }
-        .post-username { font-size: 11px; color: #636f8d; }
-        .post-time { font-size: 11px; color: #636f8d; }
-        .post-flag { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #f06b6b; background: rgba(240,107,107,0.12); border-radius: 5px; padding: 2px 6px; }
+        .post-author-link:hover { background: rgba(14, 165, 233, 0.12); }
+        .post-author { font-size: 13px; font-weight: 600; color: var(--text, #e4e8f4); }
+        .post-username { font-size: 11px; color: var(--muted, #9ba3be); }
+        .post-time { font-size: 11px; color: var(--muted, #9ba3be); }
+        .post-flag { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #ef4444; background: rgba(239,68,68,0.12); border-radius: 5px; padding: 2px 6px; }
         .post-actions { display: flex; gap: 6px; margin-top: 6px; }
         .post-actions button { border: none; background: transparent; color: rgba(99,111,141,0.5); font-size: 11px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; padding: 3px 6px; border-radius: 5px; transition: all 0.15s; font-family: inherit; }
-        .post-item:hover .post-actions button { color: #636f8d; }
-        .post-actions button:hover { color: #e4e8f4; background: #1a1d2a; }
-        .post-actions button.danger:hover { color: #f06b6b; background: rgba(240,107,107,0.12); }
-        .post-actions button.report:hover { color: #f0834a; background: rgba(240,131,74,0.12); }
-        .post-actions button.liked { color: #f06b6b; }
-        .post-actions button.liked:hover { color: #f06b6b; background: rgba(240,107,107,0.12); }
-        .post-children { margin-left: 8px; padding-left: 14px; border-left: 2px solid #1e2235; margin-top: 4px; }
+        .post-item:hover .post-actions button { color: var(--muted, #9ba3be); }
+        .post-actions button:hover { color: var(--text, #e4e8f4); background: #1a1d2a; }
+        .post-actions button.danger:hover { color: #ef4444; background: rgba(239,68,68,0.12); }
+        .post-actions button.report:hover { color: #0EA5E9; background: rgba(14,165,233,0.12); }
+        .post-actions button.liked { color: #ef4444; }
+        .post-actions button.liked:hover { color: #ef4444; background: rgba(239,68,68,0.12); }
+        .post-children { margin-left: 8px; padding-left: 14px; border-left: 2px solid var(--app-border, #1c1f2e); margin-top: 4px; }
       `}</style>
     </div>
   );
@@ -618,7 +618,7 @@ export default function ThreadDetailWorkspace({
                     <DropdownMenuContent
                       align="end"
                       sideOffset={6}
-                      className="w-40 border-[#252b40] bg-[#10131d] text-[#c4cbe0]"
+                      className="w-40 border-[#1c1f2e] bg-[#0f1117] text-[#e4e8f4]"
                     >
                       {canEditThread && (
                         <DropdownMenuItem onClick={openThreadEdit}>
@@ -626,7 +626,7 @@ export default function ThreadDetailWorkspace({
                         </DropdownMenuItem>
                       )}
                       {!isThreadOwner && (
-                        <DropdownMenuItem onClick={openThreadReport} className="text-[#f0834a] focus:text-[#f0834a] focus:bg-orange-500/10">
+                        <DropdownMenuItem onClick={openThreadReport} className="text-[#0EA5E9] focus:text-[#0EA5E9] focus:bg-sky-500/10">
                           <Flag size={12} /> Report thread
                         </DropdownMenuItem>
                       )}
@@ -758,7 +758,7 @@ export default function ThreadDetailWorkspace({
             </>
           ) : (
             <div className="sign-in-prompt">
-              <Link href="/login" style={{ color: "#f0834a", textDecoration: "none", fontWeight: 700 }}>Sign in</Link>
+              <Link href="/login" style={{ color: "#0EA5E9", textDecoration: "none", fontWeight: 700 }}>Sign in</Link>
               <span> to join the conversation</span>
             </div>
           )}
@@ -861,7 +861,7 @@ export default function ThreadDetailWorkspace({
           <div className="modal" onClick={e => e.stopPropagation()}
             role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
             <h3 id="delete-modal-title">Delete reply</h3>
-            <p style={{ fontSize: 13, color: "#9ba3be", margin: "0 0 16px", lineHeight: 1.6 }}>
+            <p style={{ fontSize: 13, color: "var(--muted, #9ba3be)", margin: "0 0 16px", lineHeight: 1.6 }}>
               Are you sure you want to delete this reply? This action cannot be undone.
             </p>
             <div className="modal-actions">
@@ -900,59 +900,59 @@ export default function ThreadDetailWorkspace({
         /* Top bar */
         .top-bar {
           display: flex; align-items: center; gap: 10px;
-          padding: 12px 16px; border-bottom: 1px solid #1e2235; flex-shrink: 0;
+          padding: 12px 16px; border-bottom: 1px solid var(--app-border, #1c1f2e); flex-shrink: 0;
         }
         .back-btn {
-          border: 1px solid #252b40; background: #151927; color: #9ba3be;
+          border: 1px solid var(--app-border, #1c1f2e); background: var(--app-input, #151821); color: var(--muted, #9ba3be);
           border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600;
           display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
           transition: all 0.15s; flex-shrink: 0;
         }
-        .back-btn:hover { color: #e4e8f4; border-color: #2d3450; }
+        .back-btn:hover { color: var(--text, #e4e8f4); border-color: #2d3450; }
         .top-bar-title {
-          flex: 1; font-size: 13px; font-weight: 600; color: #9ba3be;
+          flex: 1; font-size: 13px; font-weight: 600; color: var(--muted, #9ba3be);
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .status-pill { border-radius: 7px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 10px; flex-shrink: 0; }
 
         /* Thread block */
-        .thread-block { padding: 18px 20px; border-bottom: 1px solid #1e2235; flex-shrink: 0; }
+        .thread-block { padding: 18px 20px; border-bottom: 1px solid var(--app-border, #1c1f2e); flex-shrink: 0; }
         .thread-row { display: flex; gap: 14px; }
         .thread-av-link { display: inline-flex; text-decoration: none; border-radius: 999px; }
-        .thread-av-link:focus-visible { outline: 2px solid rgba(240,131,74,0.45); outline-offset: 1px; }
+        .thread-av-link:focus-visible { outline: 2px solid rgba(14,165,233,0.45); outline-offset: 1px; }
         .thread-av { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0; }
         .thread-info { flex: 1; min-width: 0; }
         .thread-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
         .thread-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .thread-author-link { display: flex; align-items: center; gap: 6px; text-decoration: none; cursor: pointer; border-radius: 6px; padding: 2px 6px; transition: all 0.15s; }
-        .thread-author-link:hover { background: rgba(240, 131, 74, 0.12); }
-        .thread-author { font-size: 13px; font-weight: 600; color: #e4e8f4; }
-        .thread-username { font-size: 11px; color: #636f8d; }
-        .thread-time { font-size: 11px; color: #636f8d; }
-        .thread-edited { font-size: 10px; color: #9ba3be; border: 1px solid #252b40; background: #161a26; border-radius: 999px; padding: 1px 7px; font-weight: 600; }
+        .thread-author-link:hover { background: rgba(14, 165, 233, 0.12); }
+        .thread-author { font-size: 13px; font-weight: 600; color: var(--text, #e4e8f4); }
+        .thread-username { font-size: 11px; color: var(--muted, #9ba3be); }
+        .thread-time { font-size: 11px; color: var(--muted, #9ba3be); }
+        .thread-edited { font-size: 10px; color: var(--muted, #9ba3be); border: 1px solid var(--app-border, #1c1f2e); background: var(--app-card-hover, #181b27); border-radius: 999px; padding: 1px 7px; font-weight: 600; }
         .thread-head-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
         .thread-menu-btn {
-          border: 1px solid #252b40; background: #151927; color: #9ba3be;
+          border: 1px solid var(--app-border, #1c1f2e); background: var(--app-input, #151821); color: var(--muted, #9ba3be);
           border-radius: 8px; width: 30px; height: 30px; display: grid; place-items: center;
           cursor: pointer; transition: all 0.15s; flex-shrink: 0;
         }
-        .thread-menu-btn:hover { color: #e4e8f4; border-color: #2d3450; background: #1a1f30; }
-        .thread-title { font-family: var(--font-dm-serif),serif; font-size: 22px; line-height: 1.25; margin: 0 0 10px; color: #e8eaf4; }
-        .thread-body { font-size: 13px; line-height: 1.75; color: #c4cbe0; white-space: pre-wrap; margin: 0 0 12px; }
+        .thread-menu-btn:hover { color: var(--text, #e4e8f4); border-color: #2d3450; background: #1a1f30; }
+        .thread-title { font-family: var(--serif),serif; font-size: 22px; line-height: 1.25; margin: 0 0 10px; color: var(--text, #e4e8f4); }
+        .thread-body { font-size: 13px; line-height: 1.75; color: var(--text, #e4e8f4); white-space: pre-wrap; margin: 0 0 12px; }
         .thread-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
         .tag {
-          border: 1px solid rgba(124,115,240,0.25); color: #7c73f0;
-          background: rgba(124,115,240,0.1); border-radius: 999px;
+          border: 1px solid rgba(129,140,248,0.25); color: #818CF8;
+          background: rgba(129,140,248,0.1); border-radius: 999px;
           font-size: 10px; font-weight: 600; padding: 2px 8px;
           cursor: pointer; transition: all 0.15s; font-family: inherit;
         }
-        .tag:hover { background: rgba(124,115,240,0.2); border-color: rgba(124,115,240,0.4); }
-        .thread-stats { display: flex; gap: 14px; color: #636f8d; font-size: 12px; align-items: center; }
+        .tag:hover { background: rgba(129,140,248,0.2); border-color: rgba(129,140,248,0.4); }
+        .thread-stats { display: flex; gap: 14px; color: var(--muted, #9ba3be); font-size: 12px; align-items: center; }
         .thread-stats span { display: inline-flex; align-items: center; gap: 5px; }
-        .thread-like { border: none; background: transparent; color: #636f8d; font-size: 12px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; padding: 3px 8px; border-radius: 6px; transition: all 0.15s; font-family: inherit; }
-        .thread-like:hover { color: #f06b6b; background: rgba(240,107,107,0.1); }
-        .thread-like.liked { color: #f06b6b; }
-        .thread-like.liked:hover { background: rgba(240,107,107,0.1); }
+        .thread-like { border: none; background: transparent; color: var(--muted, #9ba3be); font-size: 12px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; padding: 3px 8px; border-radius: 6px; transition: all 0.15s; font-family: inherit; }
+        .thread-like:hover { color: #ef4444; background: rgba(239,68,68,0.1); }
+        .thread-like.liked { color: #ef4444; }
+        .thread-like.liked:hover { background: rgba(239,68,68,0.1); }
 
         /* Replies section */
         .replies-section { flex: 1; padding: 14px 20px; }
@@ -962,12 +962,12 @@ export default function ThreadDetailWorkspace({
           text-transform: uppercase; color: #545c7a; margin-bottom: 14px;
         }
         .replies-count {
-          background: #161a26; border: 1px solid #1e2235; border-radius: 99px;
-          font-size: 10px; padding: 1px 7px; color: #636f8d;
+          background: var(--app-card-hover, #181b27); border: 1px solid var(--app-border, #1c1f2e); border-radius: 99px;
+          font-size: 10px; padding: 1px 7px; color: var(--muted, #9ba3be);
           text-transform: none; letter-spacing: 0; font-weight: 600;
         }
         .empty {
-          border: 1px dashed #2a3150; border-radius: 11px; color: #636f8d;
+          border: 1px dashed #2a3150; border-radius: 11px; color: var(--muted, #9ba3be);
           font-size: 13px; text-align: center; padding: 28px 16px;
           display: flex; flex-direction: column; align-items: center; gap: 10px;
         }
@@ -980,47 +980,47 @@ export default function ThreadDetailWorkspace({
         }
         .post-item:hover { background: rgba(21,25,39,0.6); }
         .post-av-link { display: inline-flex; text-decoration: none; border-radius: 999px; }
-        .post-av-link:focus-visible { outline: 2px solid rgba(240,131,74,0.45); outline-offset: 1px; }
+        .post-av-link:focus-visible { outline: 2px solid rgba(14,165,233,0.45); outline-offset: 1px; }
         .post-av { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; margin-top: 2px; }
         .post-body { flex: 1; min-width: 0; }
         .post-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
         .post-author-link { display: flex; align-items: center; gap: 6px; text-decoration: none; cursor: pointer; border-radius: 6px; padding: 2px 6px; transition: all 0.15s; }
-        .post-author-link:hover { background: rgba(240, 131, 74, 0.12); }
-        .post-author { font-size: 13px; font-weight: 600; color: #e4e8f4; }
-        .post-username { font-size: 11px; color: #636f8d; }
-        .post-time { font-size: 11px; color: #636f8d; }
-        .post-flag { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #f06b6b; background: rgba(240,107,107,0.12); border-radius: 5px; padding: 2px 6px; }
+        .post-author-link:hover { background: rgba(14, 165, 233, 0.12); }
+        .post-author { font-size: 13px; font-weight: 600; color: var(--text, #e4e8f4); }
+        .post-username { font-size: 11px; color: var(--muted, #9ba3be); }
+        .post-time { font-size: 11px; color: var(--muted, #9ba3be); }
+        .post-flag { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #ef4444; background: rgba(239,68,68,0.12); border-radius: 5px; padding: 2px 6px; }
         .thread-body-rt { margin: 0 0 12px; }
         .post-actions { display: flex; gap: 6px; margin-top: 6px; }
         .post-actions button { border: none; background: transparent; color: rgba(99,111,141,0.5); font-size: 11px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; padding: 3px 6px; border-radius: 5px; transition: all 0.15s; font-family: inherit; }
-        .post-item:hover .post-actions button { color: #636f8d; }
-        .post-actions button:hover { color: #e4e8f4; background: #1a1d2a; }
-        .post-actions button.danger:hover { color: #f06b6b; background: rgba(240,107,107,0.12); }
-        .post-actions button.report:hover { color: #f0834a; background: rgba(240,131,74,0.12); }
-        .post-actions button.liked { color: #f06b6b; }
-        .post-actions button.liked:hover { color: #f06b6b; background: rgba(240,107,107,0.12); }
-        .post-children { margin-left: 8px; padding-left: 14px; border-left: 2px solid #1e2235; margin-top: 4px; }
+        .post-item:hover .post-actions button { color: var(--muted, #9ba3be); }
+        .post-actions button:hover { color: var(--text, #e4e8f4); background: #1a1d2a; }
+        .post-actions button.danger:hover { color: #ef4444; background: rgba(239,68,68,0.12); }
+        .post-actions button.report:hover { color: #0EA5E9; background: rgba(14,165,233,0.12); }
+        .post-actions button.liked { color: #ef4444; }
+        .post-actions button.liked:hover { color: #ef4444; background: rgba(239,68,68,0.12); }
+        .post-children { margin-left: 8px; padding-left: 14px; border-left: 2px solid var(--app-border, #1c1f2e); margin-top: 4px; }
 
         /* Reply bar */
-        .reply-bar { border-top: 1px solid #1e2235; padding: 14px 20px 16px; flex-shrink: 0; background: #0d1018; }
-        .reply-err { border: 1px solid rgba(240,107,107,0.35); background: rgba(240,107,107,0.1); color: #fca5a5; border-radius: 8px; padding: 6px 10px; font-size: 12px; margin-bottom: 8px; }
+        .reply-bar { border-top: 1px solid var(--app-border, #1c1f2e); padding: 14px 20px 16px; flex-shrink: 0; background: var(--app-panel, #0f1117); }
+        .reply-err { border: 1px solid rgba(239,68,68,0.35); background: rgba(239,68,68,0.1); color: #fca5a5; border-radius: 8px; padding: 6px 10px; font-size: 12px; margin-bottom: 8px; }
         .reply-to-banner {
           display: flex; align-items: center; gap: 8px;
-          background: rgba(124,115,240,0.08); border: 1px solid rgba(124,115,240,0.2);
+          background: rgba(129,140,248,0.08); border: 1px solid rgba(129,140,248,0.2);
           border-radius: 8px; padding: 6px 10px; margin-bottom: 8px;
-          font-size: 12px; color: #9b8ef8;
+          font-size: 12px; color: #a5b4fc;
         }
-        .reply-to-preview { color: #636f8d; font-size: 11px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .reply-to-cancel { border: none; background: transparent; color: #636f8d; cursor: pointer; display: flex; padding: 2px; border-radius: 4px; transition: all 0.15s; flex-shrink: 0; }
-        .reply-to-cancel:hover { color: #e4e8f4; background: #1a1d2a; }
+        .reply-to-preview { color: var(--muted, #9ba3be); font-size: 11px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .reply-to-cancel { border: none; background: transparent; color: var(--muted, #9ba3be); cursor: pointer; display: flex; padding: 2px; border-radius: 4px; transition: all 0.15s; flex-shrink: 0; }
+        .reply-to-cancel:hover { color: var(--text, #e4e8f4); background: #1a1d2a; }
         .reply-row { display: flex; gap: 10px; align-items: flex-start; }
         .reply-user-av { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; margin-top: 2px; }
-        .reply-input-wrap { position: relative; flex: 1; border: 1.5px solid #252b40; border-radius: 12px; background: #151927; transition: border-color 0.15s; }
-        .reply-input-wrap:focus-within { border-color: #f0834a; }
+        .reply-input-wrap { position: relative; flex: 1; border: 1.5px solid var(--app-border, #1c1f2e); border-radius: 12px; background: var(--app-input, #151821); transition: border-color 0.15s; }
+        .reply-input-wrap:focus-within { border-color: #0EA5E9; }
         .reply-input {
           width: 100%; box-sizing: border-box;
           background: transparent; border: none; outline: none;
-          color: #e4e8f4; font-size: 13px; padding: 10px 12px;
+          color: var(--text, #e4e8f4); font-size: 13px; padding: 10px 12px;
           font-family: inherit; line-height: 1.6; resize: none;
           min-height: 64px; overflow: hidden;
         }
@@ -1030,26 +1030,26 @@ export default function ThreadDetailWorkspace({
         .reply-fmt { font-size: 10px; color: #2e3450; font-family: 'Courier New', monospace; letter-spacing: 0.02em; }
         .send-btn {
           width: 34px; height: 34px; border-radius: 9px; border: none;
-          background: #f0834a; color: #fff; display: grid; place-items: center;
+          background: #0EA5E9; color: #fff; display: grid; place-items: center;
           cursor: pointer; flex-shrink: 0; margin-top: 2px;
-          box-shadow: 0 3px 10px rgba(240,131,74,0.28); transition: opacity 0.15s, transform 0.1s;
+          box-shadow: 0 3px 10px rgba(14,165,233,0.28); transition: opacity 0.15s, transform 0.1s;
         }
         .send-btn:hover:not(:disabled) { opacity: 0.88; transform: scale(1.05); }
         .send-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
-        .sign-in-prompt { text-align: center; padding: 14px; font-size: 13px; color: #636f8d; border: 1px dashed #252b40; border-radius: 10px; }
+        .sign-in-prompt { text-align: center; padding: 14px; font-size: 13px; color: var(--muted, #9ba3be); border: 1px dashed var(--app-border, #1c1f2e); border-radius: 10px; }
         .mention-dropdown {
           position: absolute; bottom: calc(100% + 6px); left: 0; right: 0;
-          background: #10131d; border: 1px solid #1e2235; border-radius: 10px;
+          background: var(--app-panel, #0f1117); border: 1px solid var(--app-border, #1c1f2e); border-radius: 10px;
           overflow: hidden; z-index: 60; box-shadow: 0 4px 20px rgba(0,0,0,0.45);
         }
         .mention-item {
           width: 100%; display: flex; align-items: center; gap: 8px;
-          padding: 8px 12px; background: transparent; border: none; border-bottom: 1px solid #151927;
+          padding: 8px 12px; background: transparent; border: none; border-bottom: 1px solid var(--app-input, #151821);
           text-align: left; cursor: pointer; transition: background 0.1s;
         }
         .mention-item:last-child { border-bottom: none; }
-        .mention-item:hover, .mention-item.selected { background: #151927; }
-        .mention-dn { font-size: 13px; color: #e4e8f4; font-weight: 500; font-family: inherit; }
+        .mention-item:hover, .mention-item.selected { background: var(--app-input, #151821); }
+        .mention-dn { font-size: 13px; color: var(--text, #e4e8f4); font-weight: 500; font-family: inherit; }
         .mention-un { font-size: 11px; color: #5a6480; margin-left: auto; font-family: inherit; }
         .mention-hint { margin: 0; padding: 10px 12px; font-size: 12px; color: #5a6480; font-style: italic; }
 
@@ -1067,7 +1067,7 @@ export default function ThreadDetailWorkspace({
           border-bottom: 2px solid transparent; margin-bottom: -1px;
         }
         .composer-tab:hover:not(:disabled) { color: #7a849e; }
-        .composer-tab.active { color: #f0834a; border-bottom-color: #f0834a; }
+        .composer-tab.active { color: #0EA5E9; border-bottom-color: #0EA5E9; }
         .composer-tab:disabled { opacity: 0.3; cursor: not-allowed; }
         .composer-fmt { display: none; }
         .composer-preview {
@@ -1078,29 +1078,29 @@ export default function ThreadDetailWorkspace({
         .modal-label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
         .modal-label-row label { margin-bottom: 0 !important; }
         .composer-preview-modal {
-          min-height: 120px; background: #151927; border: 1.5px solid #252b40;
+          min-height: 120px; background: var(--app-input, #151821); border: 1.5px solid var(--app-border, #1c1f2e);
           border-radius: 10px; padding: 10px 12px; margin-bottom: 10px;
           width: 100%; box-sizing: border-box;
         }
 
         /* Modal */
         .modal-overlay { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); }
-        .modal { width: 90%; max-width: 480px; background: #10131d; border: 1px solid #1e2235; border-radius: 14px; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
-        .modal h3 { font-family: var(--font-dm-serif),serif; font-size: 18px; margin: 0 0 14px; }
-        .modal label { display: block; font-size: 11px; color: #9ba3be; font-weight: 700; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
-        .modal input { width: 100%; box-sizing: border-box; background: #151927; border: 1.5px solid #252b40; border-radius: 10px; color: #e4e8f4; font-size: 13px; padding: 10px 12px; outline: none; font-family: inherit; line-height: 1.5; transition: border-color 0.15s; margin-bottom: 10px; }
-        .modal input:focus { border-color: #f0834a; }
-        .modal textarea { width: 100%; box-sizing: border-box; background: #151927; border: 1.5px solid #252b40; border-radius: 10px; color: #e4e8f4; font-size: 13px; padding: 10px 12px; outline: none; font-family: inherit; line-height: 1.5; resize: vertical; transition: border-color 0.15s; }
-        .modal textarea:focus { border-color: #f0834a; }
+        .modal { width: 90%; max-width: 480px; background: var(--app-panel, #0f1117); border: 1px solid var(--app-border, #1c1f2e); border-radius: 14px; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+        .modal h3 { font-family: var(--serif),serif; font-size: 18px; margin: 0 0 14px; }
+        .modal label { display: block; font-size: 11px; color: var(--muted, #9ba3be); font-weight: 700; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+        .modal input { width: 100%; box-sizing: border-box; background: var(--app-input, #151821); border: 1.5px solid var(--app-border, #1c1f2e); border-radius: 10px; color: var(--text, #e4e8f4); font-size: 13px; padding: 10px 12px; outline: none; font-family: inherit; line-height: 1.5; transition: border-color 0.15s; margin-bottom: 10px; }
+        .modal input:focus { border-color: #0EA5E9; }
+        .modal textarea { width: 100%; box-sizing: border-box; background: var(--app-input, #151821); border: 1.5px solid var(--app-border, #1c1f2e); border-radius: 10px; color: var(--text, #e4e8f4); font-size: 13px; padding: 10px 12px; outline: none; font-family: inherit; line-height: 1.5; resize: vertical; transition: border-color 0.15s; }
+        .modal textarea:focus { border-color: #0EA5E9; }
         .modal textarea:disabled { opacity: 0.6; cursor: not-allowed; }
-        .modal-note { font-size: 11px; color: #9ba3be; margin: 8px 0 12px; line-height: 1.5; }
+        .modal-note { font-size: 11px; color: var(--muted, #9ba3be); margin: 8px 0 12px; line-height: 1.5; }
         .modal-actions { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; }
-        .btn-ghost { border: 1px solid #252b40; background: #151927; color: #9ba3be; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
-        .btn-ghost:hover { color: #e4e8f4; border-color: #2d3450; }
-        .btn-primary { border: none; background: #f0834a; color: #fff; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(240,131,74,0.3); transition: opacity 0.15s; }
+        .btn-ghost { border: 1px solid var(--app-border, #1c1f2e); background: var(--app-input, #151821); color: var(--muted, #9ba3be); border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+        .btn-ghost:hover { color: var(--text, #e4e8f4); border-color: #2d3450; }
+        .btn-primary { border: none; background: #0EA5E9; color: #fff; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(14,165,233,0.3); transition: opacity 0.15s; }
         .btn-primary:hover:not(:disabled) { opacity: 0.88; }
         .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
-        .btn-danger { border: none; background: #f06b6b; color: #fff; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(240,107,107,0.3); transition: opacity 0.15s; }
+        .btn-danger { border: none; background: #ef4444; color: #fff; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(239,68,68,0.3); transition: opacity 0.15s; }
         .btn-danger:hover { opacity: 0.88; }
 
         /* Toasts */
@@ -1113,14 +1113,14 @@ export default function ThreadDetailWorkspace({
           box-shadow: 0 8px 24px rgba(0,0,0,0.35); animation: toast-in 0.2s ease;
         }
         .toast-success { background: rgba(61,214,140,0.12); border: 1px solid rgba(61,214,140,0.3); color: #3dd68c; }
-        .toast-error { background: rgba(240,107,107,0.12); border: 1px solid rgba(240,107,107,0.3); color: #f06b6b; }
+        .toast-error { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; }
         @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
         /* ── Responsive ── */
         @media (max-width: 860px) {
           .content { min-height: calc(100vh - 56px); }
           .replies-section { flex: 1; }
-          .reply-bar { position: sticky; bottom: 0; background: #0d1018; z-index: 5; }
+          .reply-bar { position: sticky; bottom: 0; background: var(--app-panel, #0f1117); z-index: 5; }
           .post-actions { opacity: 1; }
         }
       `}</style>
