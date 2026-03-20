@@ -865,7 +865,9 @@ AppealModal stays as separate file (already extracted).
 
 ### 5.7 AdminWorkspace (already modular, reskin only)
 
-- Drop styled-jsx from orchestrator and all tabs
+- Drop styled-jsx from orchestrator and **all 8 tab files** (`OverviewTab`, `ModerationTab`, `AppealsTab`, `UsersTab`, `ContentTab`, `BotTab`, `AuditTab`, `InterestSuggestionBatchPanel`)
+- Drop styled-jsx from modal/drawer files: `BulkConfirmModal`, `UserDetailDrawer`, `AppealRejectModal`
+- Drop styled-jsx from `AdminContentDetailPage.tsx` (content detail view)
 - Replace `admin/shared/` components with design system equivalents:
   - `AdminStatCard` → `StatCard`
   - `AdminEmptyState` → `EmptyState`
@@ -884,7 +886,7 @@ components/settings/
   useSettings.ts              ← profile save, slug validation, password change handlers
 ```
 
-FeedTopicsSettings already extracted — stays as-is.
+FeedTopicsSettings already extracted — reskin (drop styled-jsx, use Tailwind + design system tokens).
 
 ### 5.9 UserProfileWorkspace (888 → 4 files)
 
@@ -929,6 +931,30 @@ Existing shared components are addressed individually:
 | `AppShell.tsx` | **Reskin** — drop styled-jsx, convert grid layout to Tailwind |
 | `AppNavbar.tsx` | **Reskin** — drop styled-jsx, use Tailwind + design system tokens |
 | `AppSidebar.tsx` | **Reskin** — drop styled-jsx, use Tailwind + design system tokens |
+| `WorkspaceSidebar.tsx` | **Delete** — replaced by AppSidebar; verify no remaining imports before removal |
+
+### 5.13 Feature Components (styled-jsx migration)
+
+These files use styled-jsx but are not part of the component library. They get reskinned in-place:
+
+| Component | Action |
+|---|---|
+| `threads/TopicChipsBar.tsx` | **Reskin** — drop styled-jsx, use Tailwind. Internally uses Select-like patterns from design system |
+| `threads/TopicPickerBanner.tsx` | **Reskin** — drop styled-jsx, use Tailwind. Uses FilterChips + Badge patterns |
+| `notifications/AppealModal.tsx` | **Reskin** — drop styled-jsx, use Modal + TextArea + FormField from design system |
+
+### 5.14 Breakpoint Strategy
+
+Existing code uses inconsistent breakpoints: `400px`, `640px`, `859px`, `860px`, `900px`, `1100px`, `1120px`. When migrating to Tailwind, standardize on Tailwind defaults with one custom breakpoint:
+
+| Breakpoint | Tailwind class | Value | Replaces |
+|---|---|---|---|
+| `sm` | `sm:` | `640px` | `640px` (same) |
+| `md` | `md:` | `768px` | — |
+| `lg` | `lg:` | `1024px` | `860px`, `859px`, `900px` (nearest standard) |
+| `xl` | `xl:` | `1280px` | `1100px`, `1120px` |
+
+**Note:** `400px` breakpoints are rare edge cases — use `max-sm:` or inline `max-[400px]:` where needed. The `859px`/`860px` sidebar collapse breakpoint consolidates to `lg:` (1024px) — sidebar hides below `lg`.
 
 ---
 
@@ -998,7 +1024,7 @@ Each page drops styled-jsx and rebuilds with Tailwind + design system components
 
 ### 6.11 Public Pages — OUT OF SCOPE
 
-Homepage, Features, Community pages use separate marketing design language. Not part of this redesign.
+Homepage, Features, Community pages use separate marketing design language. Not part of this redesign. These files retain styled-jsx: `community/page.tsx`, `features/page.tsx`, `public/sections/NavBar.tsx`, `public/Homepage.tsx`, and all `public/sections/*.tsx`.
 
 ---
 
