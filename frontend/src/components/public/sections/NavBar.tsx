@@ -377,11 +377,11 @@ export default function NavBar() {
   }
   :global(.dark) .menu-item:hover {
     background: rgba(14, 165, 233, 0.15);
-    color: #ffb380;
+    color: #38BDF8;
   }
   :global(.dark) .menu-item.active {
     background: rgba(14, 165, 233, 0.2);
-    color: #ffb380;
+    color: #38BDF8;
   }
   :global(.dark) .menu-item.danger {
     color: #ff9999;
