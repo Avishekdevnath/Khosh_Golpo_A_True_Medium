@@ -219,9 +219,9 @@ Letter spacing: `-0.02em` on headings ≥ 22px.
 - Trigger: debounce 300ms after typing, no Enter required
 - Clear button (X) appears when input has text
 - Replaces the existing in-panel search — this is a relocation, not a new feature
-- Uses existing SWR search hook (`useThreads` with `q` param)
+- Uses existing SWR search hook (`useThreads` with `search` param)
 
-**Filter dropdowns:** Use shadcn/ui `Select` component with default styling. Tokens adapt to `--app-*` palette via CSS variable inheritance. No custom dropdown implementation needed.
+**Filter dropdowns:** Use shadcn/ui `DropdownMenu` component (already installed at `@/components/ui/dropdown-menu`). Tokens adapt to `--app-*` palette via CSS variable inheritance. No custom dropdown implementation needed. (`Select` is not installed — use `DropdownMenu` instead.)
 
 **Theme toggle:** Rendered in the header right zone, between the action button and bell icon. Uses existing `ThemeToggle` component (relocated from current AppNavbar position).
 
