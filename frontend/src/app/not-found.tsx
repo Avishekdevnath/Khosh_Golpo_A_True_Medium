@@ -153,34 +153,34 @@ function drawPlayer(ctx: CanvasRenderingContext2D, py: number, phase: Phase, t: 
   // trail
   for (const tr of trail) {
     const tg = ctx.createRadialGradient(tr.x, tr.y, 0, tr.x, tr.y, tr.r);
-    tg.addColorStop(0, `rgba(240,131,74,${tr.a * 0.45})`);
-    tg.addColorStop(1, `rgba(240,131,74,0)`);
+    tg.addColorStop(0, `rgba(14,165,233,${tr.a * 0.45})`);
+    tg.addColorStop(1, `rgba(14,165,233,0)`);
     ctx.fillStyle = tg;
     ctx.beginPath(); ctx.arc(tr.x, tr.y, tr.r, 0, Math.PI * 2); ctx.fill();
   }
 
   // outer glow
   const og = ctx.createRadialGradient(PX, py, 0, PX, py, PR * 3.2);
-  og.addColorStop(0, "rgba(240,131,74,0.30)");
-  og.addColorStop(1, "rgba(240,131,74,0)");
+  og.addColorStop(0, "rgba(14,165,233,0.30)");
+  og.addColorStop(1, "rgba(14,165,233,0)");
   ctx.fillStyle = og;
   ctx.beginPath(); ctx.arc(PX, py, PR * 3.2, 0, Math.PI * 2); ctx.fill();
 
   // body
   const bg = ctx.createRadialGradient(PX - 5, py - 5, 2, PX, py, PR);
   bg.addColorStop(0, "#ffc090");
-  bg.addColorStop(1, "#f0834a");
+  bg.addColorStop(1, "#0EA5E9");
   ctx.fillStyle = bg;
   ctx.beginPath(); ctx.arc(PX, py, PR, 0, Math.PI * 2); ctx.fill();
 
   // animated pulse ring
   const pulse = Math.sin(t * 0.065) * 0.5 + 0.5;
-  ctx.strokeStyle = `rgba(240,131,74,${0.12 + pulse * 0.28})`;
+  ctx.strokeStyle = `rgba(14,165,233,${0.12 + pulse * 0.28})`;
   ctx.lineWidth = 1.8;
   ctx.beginPath(); ctx.arc(PX, py, PR + 6 + pulse * 6, 0, Math.PI * 2); ctx.stroke();
 
   // second faint ring
-  ctx.strokeStyle = `rgba(240,131,74,${0.06 + pulse * 0.10})`;
+  ctx.strokeStyle = `rgba(14,165,233,${0.06 + pulse * 0.10})`;
   ctx.lineWidth = 1;
   ctx.beginPath(); ctx.arc(PX, py, PR + 13 + pulse * 4, 0, Math.PI * 2); ctx.stroke();
 
@@ -511,7 +511,7 @@ const s: Record<string, React.CSSProperties> = {
     fontSize: "clamp(100px, 17vw, 148px)",
     fontWeight: 400,
     lineHeight: 1,
-    background: "linear-gradient(135deg, #f0834a 0%, #c86aff 55%, #7c73f0 100%)",
+    background: "linear-gradient(135deg, #0EA5E9 0%, #c86aff 55%, #7c73f0 100%)",
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent",
     backgroundClip: "text",
@@ -557,11 +557,11 @@ const s: Record<string, React.CSSProperties> = {
   },
   bestNum: {
     display: "flex", alignItems: "center", gap: 5,
-    fontSize: 14, fontWeight: 700, color: "#f0834a",
+    fontSize: 14, fontWeight: 700, color: "#0EA5E9",
     fontVariantNumeric: "tabular-nums",
   },
   bestLabel: {
-    fontSize: 9, fontWeight: 800, color: "#f0834a", opacity: 0.7,
+    fontSize: 9, fontWeight: 800, color: "#0EA5E9", opacity: 0.7,
     letterSpacing: "0.08em", textTransform: "uppercase",
     alignSelf: "center", paddingBottom: 1,
   },
@@ -598,9 +598,9 @@ const s: Record<string, React.CSSProperties> = {
   },
   navPrimary: {
     display: "inline-block", padding: "10px 24px",
-    background: "rgba(240,131,74,0.09)",
-    border: "1px solid rgba(240,131,74,0.28)",
-    borderRadius: 11, color: "#f0834a",
+    background: "rgba(14,165,233,0.09)",
+    border: "1px solid rgba(14,165,233,0.28)",
+    borderRadius: 11, color: "#0EA5E9",
     fontWeight: 600, fontSize: 13, textDecoration: "none",
   },
   navSecondary: {
