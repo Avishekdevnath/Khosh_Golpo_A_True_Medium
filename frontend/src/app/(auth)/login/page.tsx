@@ -373,7 +373,7 @@ export default function LoginPage() {
           --border: #252836;
           --text: #e8eaf0;
           --muted: #6b7080;
-          --accent: #f4845f;
+          --accent: #0EA5E9;
           --accent2: #7b6ef6;
           --green: #4ade80;
           --red: #e74c3c;
@@ -411,7 +411,7 @@ export default function LoginPage() {
           top: -150px;
           right: -100px;
           transition: transform 0.8s cubic-bezier(0.1, 0.5, 0.1, 1);
-          background: radial-gradient(circle, rgb(244 132 95 / 8%) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, transparent 70%);
         }
 
         .login-orb-2 {
@@ -503,7 +503,7 @@ export default function LoginPage() {
 
         .input-field:focus {
           border-color: var(--accent);
-          box-shadow: 0 0 0 3px rgb(244 132 95 / 10%);
+          box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.10);
         }
 
         .input-error {
@@ -570,13 +570,13 @@ export default function LoginPage() {
           align-items: center;
           justify-content: center;
           gap: 8px;
-          box-shadow: 0 4px 20px rgb(244 132 95 / 30%);
+          box-shadow: 0 4px 20px rgba(14, 165, 233, 0.30);
           transition: transform 0.2s, box-shadow 0.2s;
         }
 
         .submit-btn:hover:not(:disabled) {
           transform: translateY(-1px);
-          box-shadow: 0 6px 28px rgb(244 132 95 / 40%);
+          box-shadow: 0 6px 28px rgba(14, 165, 233, 0.40);
         }
 
         .submit-btn:disabled {

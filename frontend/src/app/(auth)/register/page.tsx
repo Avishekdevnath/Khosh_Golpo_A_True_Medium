@@ -290,7 +290,7 @@ export default function RegisterPage() {
       <style jsx>{`
         .register-page {
           --bg: #0c0e14; --surface: #13151e; --border: #252836;
-          --text: #e8eaf0; --muted: #6b7080; --accent: #f4845f;
+          --text: #e8eaf0; --muted: #6b7080; --accent: #0EA5E9;
           --accent2: #7b6ef6; --red: #e74c3c;
           --serif: var(--font-dm-serif), Georgia, serif;
           --sans: var(--font-dm-sans), sans-serif;
@@ -300,7 +300,7 @@ export default function RegisterPage() {
         .register-noise { position: fixed; inset: 0; z-index: 0; opacity: 0.35; pointer-events: none;
           background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); }
         .register-orb { position: fixed; z-index: 0; border-radius: 50%; filter: blur(100px); pointer-events: none; }
-        .register-orb-1 { width: 500px; height: 500px; top: -150px; right: -100px; transition: transform 0.8s cubic-bezier(0.1,0.5,0.1,1); background: radial-gradient(circle, rgb(244 132 95 / 8%) 0%, transparent 70%); }
+        .register-orb-1 { width: 500px; height: 500px; top: -150px; right: -100px; transition: transform 0.8s cubic-bezier(0.1,0.5,0.1,1); background: radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, transparent 70%); }
         .register-orb-2 { width: 400px; height: 400px; bottom: -150px; left: -100px; background: radial-gradient(circle, rgb(123 110 246 / 8%) 0%, transparent 70%); }
         .register-container { position: relative; z-index: 1; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 94px 20px 32px; }
         .register-box { width: 100%; max-width: 420px; border: 1px solid var(--border); border-radius: 18px; background: rgb(19 21 30 / 82%); backdrop-filter: blur(10px); padding: 20px; }
@@ -313,15 +313,15 @@ export default function RegisterPage() {
         .gender-pills { display: flex; flex-wrap: wrap; gap: 7px; }
         .gender-pill { padding: 6px 13px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--surface); color: var(--muted); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
         .gender-pill:hover { border-color: var(--accent); color: var(--text); }
-        .gender-pill-active { border-color: var(--accent); background: rgba(244,132,95,0.1); color: var(--accent); }
+        .gender-pill-active { border-color: var(--accent); background: rgba(14,165,233,0.1); color: var(--accent); }
         .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
         .no-margin { margin-bottom: 0; }
         .input-field { width: 100%; padding: 11px 14px; border-radius: 11px; border: 1.5px solid var(--border); background: var(--surface); color: var(--text); font-size: 14px; outline: none; box-sizing: border-box; }
-        .input-field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgb(244 132 95 / 10%); }
+        .input-field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.10); }
         .input-error { border-color: var(--red); }
         .text-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 12px; }
-        .submit-btn { width: 100%; padding: 12px 0; border-radius: 12px; border: none; background: var(--accent); color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; transition: transform 0.15s, box-shadow 0.15s; box-shadow: 0 4px 20px rgb(244 132 95 / 25%); }
-        .submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 28px rgb(244 132 95 / 35%); }
+        .submit-btn { width: 100%; padding: 12px 0; border-radius: 12px; border: none; background: var(--accent); color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; transition: transform 0.15s, box-shadow 0.15s; box-shadow: 0 4px 20px rgba(14, 165, 233, 0.25); }
+        .submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(14, 165, 233, 0.35); }
         .submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
         .error-text { font-size: 12px; color: var(--red); margin-top: 6px; }
         .register-footer { margin-top: 16px; font-size: 14px; color: var(--muted); }
