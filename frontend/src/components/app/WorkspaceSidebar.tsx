@@ -231,10 +231,9 @@ export default function WorkspaceSidebar({
         }
 
         .sidebar {
-          position: fixed;
-          left: 0;
+          position: sticky;
           top: 0;
-          bottom: 0;
+          height: 100vh;
           width: 240px;
           background: var(--app-sidebar, #0a0c14);
           border-right: 1px solid var(--app-border, #1c1f2e);
@@ -519,7 +518,7 @@ export default function WorkspaceSidebar({
 
         @media (min-width: 860px) {
           .sidebar {
-            position: fixed;
+            position: sticky;
           }
         }
       `}</style>

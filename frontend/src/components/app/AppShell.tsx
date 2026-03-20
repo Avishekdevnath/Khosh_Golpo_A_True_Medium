@@ -49,6 +49,9 @@ export default function AppShell({ children }: AppShellProps) {
           .app-content {
             flex: 1;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
           }
           @media (max-width: 859px) {
             .app-shell {
