@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 
 import AppNavbar from "@/components/app/AppNavbar";
 import AppSidebar from "@/components/app/AppSidebar";
-import WorkspaceSidebar from "@/components/app/WorkspaceSidebar";
 
 type AppShellProps = {
   children: ReactNode;
@@ -26,7 +25,7 @@ export default function AppShell({ children }: AppShellProps) {
   ) {
     return (
       <div className="app-shell">
-        <WorkspaceSidebar />
+        <AppSidebar />
         <div className="app-main">
           <AppNavbar />
           <main className="app-content">{children}</main>
