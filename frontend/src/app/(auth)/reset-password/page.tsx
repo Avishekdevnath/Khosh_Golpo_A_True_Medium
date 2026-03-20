@@ -209,7 +209,7 @@ function ResetPasswordForm() {
       <style jsx>{`
         .rp-page {
           --bg: #0c0e14; --surface: #13151e; --surface2: #1a1d2a; --border: #252836;
-          --text: #e8eaf0; --muted: #6b7080; --accent: #f4845f; --green: #4ade80;
+          --text: #e8eaf0; --muted: #6b7080; --accent: #0EA5E9; --green: #4ade80;
           --red: #e74c3c; --serif: var(--font-dm-serif), Georgia, serif;
           --sans: var(--font-dm-sans), sans-serif;
           position: relative; min-height: 100vh; overflow-x: clip;
@@ -218,7 +218,7 @@ function ResetPasswordForm() {
         .rp-noise { position: fixed; inset: 0; z-index: 0; opacity: 0.35; pointer-events: none;
           background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); }
         .rp-orb { position: fixed; z-index: 0; border-radius: 50%; filter: blur(100px); pointer-events: none; }
-        .rp-orb-1 { width: 500px; height: 500px; top: -150px; right: -100px; transition: transform 0.8s cubic-bezier(0.1,0.5,0.1,1); background: radial-gradient(circle, rgb(244 132 95 / 8%) 0%, transparent 70%); }
+        .rp-orb-1 { width: 500px; height: 500px; top: -150px; right: -100px; transition: transform 0.8s cubic-bezier(0.1,0.5,0.1,1); background: radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, transparent 70%); }
         .rp-orb-2 { width: 400px; height: 400px; bottom: -150px; left: -100px; animation: float 8s ease-in-out infinite; background: radial-gradient(circle, rgb(123 110 246 / 8%) 0%, transparent 70%); }
         .rp-container { position: relative; z-index: 1; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 96px 20px 20px; }
         .rp-box { width: 100%; max-width: 420px; animation: fade-in 0.6s ease; }
@@ -231,15 +231,15 @@ function ResetPasswordForm() {
         .no-margin { margin: 0; }
         .label-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
         .input-field { width: 100%; border-radius: 12px; border: 1.5px solid var(--border); background: var(--surface); color: var(--text); font: 14px var(--sans); outline: none; padding: 12px 16px; transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box; }
-        .input-field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgb(244 132 95 / 10%); }
+        .input-field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.10); }
         .input-field:disabled { opacity: 0.6; cursor: not-allowed; }
         .input-error { border-color: var(--red); }
         .error-text { margin-top: 6px; font-size: 12px; color: var(--red); }
         .error-banner { padding: 10px 14px; margin-bottom: 18px; border-radius: 10px; background: rgb(231 76 60 / 10%); border: 1px solid rgb(231 76 60 / 30%); color: #fca5a5; font-size: 13px; line-height: 1.5; }
         .text-btn { border: 0; padding: 0; background: none; color: var(--muted); text-decoration: underline; font: 13px var(--sans); cursor: pointer; transition: color 0.2s; }
         .text-btn:hover { color: var(--text); }
-        .submit-btn { width: 100%; border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: 700 14px var(--sans); padding: 13px 0; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 20px rgb(244 132 95 / 30%); transition: transform 0.2s, box-shadow 0.2s; }
-        .submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 28px rgb(244 132 95 / 40%); }
+        .submit-btn { width: 100%; border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: 700 14px var(--sans); padding: 13px 0; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 20px rgba(14, 165, 233, 0.30); transition: transform 0.2s, box-shadow 0.2s; }
+        .submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(14, 165, 233, 0.40); }
         .submit-btn:disabled { opacity: 0.8; cursor: not-allowed; }
         .success-screen { text-align: center; }
         .success-icon { width: 80px; height: 80px; margin: 0 auto 24px; border-radius: 16px; display: flex; align-items: center; justify-content: center; background: rgb(74 222 128 / 12%); animation: pulse 2s ease-in-out infinite; }
