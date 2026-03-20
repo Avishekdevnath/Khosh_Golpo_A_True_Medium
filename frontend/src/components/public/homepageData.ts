@@ -120,41 +120,41 @@ export const threads: Thread[] = [
 export const features: Feature[] = [
   {
     icon: "AI",
-    iconStyle: "background:rgba(244,132,95,0.12)",
+    iconStyle: "background:rgba(14,165,233,0.12);color:#0EA5E9",
     name: "AI Tone Coaching",
     description:
       "Before posting, AI checks whether your message may land harshly. Not censorship, just a mirror.",
   },
   {
     icon: "RT",
-    iconStyle: "background:rgba(123,110,246,0.12)",
+    iconStyle: "background:rgba(14,165,233,0.12);color:#0EA5E9",
     name: "Live Threads",
     description:
       "Replies refresh quickly so discussions stay active without constant page reloads.",
   },
   {
     icon: "MOD",
-    iconStyle: "background:rgba(74,222,128,0.12)",
+    iconStyle: "background:rgba(14,165,233,0.12);color:#0EA5E9",
     name: "Smart Moderation",
     description:
       "AI scores each post and sends only risky content to human review.",
   },
   {
     icon: "NOTI",
-    iconStyle: "background:rgba(251,191,36,0.12)",
+    iconStyle: "background:rgba(14,165,233,0.12);color:#0EA5E9",
     name: "Smart Notifications",
     description: "You get mentions and replies only, not engagement bait.",
   },
   {
     icon: "TREE",
-    iconStyle: "background:rgba(248,113,113,0.12)",
+    iconStyle: "background:rgba(14,165,233,0.12);color:#0EA5E9",
     name: "Nested Threads",
     description:
       "Conversations branch naturally so context is never lost in a linear feed.",
   },
   {
     icon: "SUM",
-    iconStyle: "background:rgba(6,182,212,0.12)",
+    iconStyle: "background:rgba(14,165,233,0.12);color:#0EA5E9",
     name: "AI Summaries",
     description:
       "Long thread? Get concise takeaways fast so you can catch up in seconds.",
