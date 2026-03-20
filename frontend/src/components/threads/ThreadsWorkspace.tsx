@@ -2281,21 +2281,15 @@ export default function ThreadsWorkspace() {
       </WorkspaceShell>
 
       <style jsx>{`
-        /* ── Root ── */
-        .root {
-          height: 100vh;
-          display: grid;
-          /* grid-template-columns set via inline style for resizable panels */
-          grid-template-rows: 1fr;
-          align-items: stretch;
-          gap: 0;
-          background: var(--app-bg, #060810);
-          color: var(--text, #e4e8f4);
-          font-family: var(--sans), sans-serif;
+        /* (root and sidebar styles handled by AppShell / WorkspaceShell) */
+
+        /* ── Panels (grid children) ── */
+        .ws-panel {
+          display: flex;
+          flex-direction: column;
+          min-height: 0;
           overflow: hidden;
-          -webkit-font-smoothing: antialiased;
         }
-        /* (sidebar override and drag-handle styles removed) */
 
         /* ── List panel ── */
         .list-panel { min-width: 0; }
