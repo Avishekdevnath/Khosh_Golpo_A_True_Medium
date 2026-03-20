@@ -19,6 +19,14 @@ export default function NavBar() {
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const isActive = (route: string) => pathname?.startsWith(route);
+
+  useEffect(() => {
+    const nav = document.getElementById("nav");
+    const onScroll = () => nav?.classList.toggle("scrolled", window.scrollY > 40);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   const profileName = user?.display_name ?? user?.username ?? "User";
   const profilePath = user ? profilePathFromUsername(user.username) : "/login";
   const [av1, av2] = avatarSeed(user?.id ?? "guest");

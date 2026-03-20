@@ -14,14 +14,6 @@ import Voices from "@/components/public/sections/Voices";
 
 export default function Homepage() {
   useEffect(() => {
-    const nav = document.getElementById("nav");
-    const onScroll = () => {
-      nav?.classList.toggle("scrolled", window.scrollY > 40);
-    };
-
-    onScroll();
-    window.addEventListener("scroll", onScroll);
-
     const revealNodes = Array.from(
       document.querySelectorAll<HTMLElement>(".reveal"),
     );
@@ -40,7 +32,6 @@ export default function Homepage() {
     revealNodes.forEach((node) => observer.observe(node));
 
     return () => {
-      window.removeEventListener("scroll", onScroll);
       observer.disconnect();
     };
   }, []);
