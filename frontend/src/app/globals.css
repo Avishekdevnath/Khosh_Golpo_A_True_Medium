@@ -1034,6 +1034,60 @@ footer {
   transition-delay: 0.3s;
 }
 
+/* ─── In-App Scoped Tokens (Phase 1) ─── */
+.app-shell {
+  --app-bg: #f4f6f9;
+  --app-sidebar: #ffffff;
+  --app-header: rgba(255, 255, 255, 0.88);
+  --app-panel: #ffffff;
+  --app-card: #ffffff;
+  --app-card-hover: #f8fafc;
+  --app-card-active: #f0f7ff;
+  --app-input: #f1f5f9;
+  --app-border: #e2e8f0;
+  --app-border-subtle: rgba(226, 232, 240, 0.5);
+
+  --status-online: #3dd68c;
+  --status-warning: #fbbf24;
+  --status-danger: #ef4444;
+  --status-info: #0EA5E9;
+
+  --tag-tech: #818CF8;
+  --tag-design: #38BDF8;
+  --tag-career: #3dd68c;
+  --tag-ml: #f87171;
+  --tag-discuss: #fbbf24;
+}
+
+/* Dark mode in-app tokens */
+.dark .app-shell {
+  --app-bg: #060810;
+  --app-sidebar: #0a0c14;
+  --app-header: rgba(6, 8, 16, 0.85);
+  --app-panel: #0f1117;
+  --app-card: #13151f;
+  --app-card-hover: #181b27;
+  --app-card-active: #141824;
+  --app-input: #151821;
+  --app-border: #1c1f2e;
+  --app-border-subtle: rgba(20, 23, 34, 0.25);
+}
+
+/* In-app custom scrollbar */
+.app-shell ::-webkit-scrollbar {
+  width: 4px;
+}
+.app-shell ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.app-shell ::-webkit-scrollbar-thumb {
+  background: var(--app-border);
+  border-radius: 4px;
+}
+.app-shell ::-webkit-scrollbar-thumb:hover {
+  background: rgba(155, 163, 190, 0.4);
+}
+
 @media (max-width: 1024px) {
   .features-grid,
   .voices-grid {
