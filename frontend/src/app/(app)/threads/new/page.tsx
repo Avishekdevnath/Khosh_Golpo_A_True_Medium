@@ -244,7 +244,7 @@ export default function NewThreadPage() {
           --border: #252836;
           --text: #e8eaf0;
           --muted: #6b7080;
-          --accent: #f4845f;
+          --accent: #0EA5E9;
           --accent2: #7b6ef6;
           --yellow: #fbbf24;
           --red: #e74c3c;
