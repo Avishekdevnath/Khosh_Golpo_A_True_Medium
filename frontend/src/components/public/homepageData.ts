@@ -63,7 +63,7 @@ export const threads: Thread[] = [
     time: "1 hr ago",
     tag: "Design",
     tagClass: "tag-design",
-    avatarStyle: "background:linear-gradient(135deg,#F4845F,#F59E0B)",
+    avatarStyle: "background:linear-gradient(135deg,#0EA5E9,#06B6D4)",
     title: "Tailwind v4 completely changed how I think about design tokens",
     preview:
       "The new CSS-first configuration is a game changer. Here is what I learned after migrating a large codebase.",
@@ -174,7 +174,7 @@ export const voices: Voice[] = [
     author: "Sofia L.",
     initials: "SL",
     role: "Product Designer - Istanbul",
-    avatarStyle: "background:linear-gradient(135deg,#F4845F,#F59E0B)",
+    avatarStyle: "background:linear-gradient(135deg,#0EA5E9,#06B6D4)",
     quote:
       "Other communities are noisy or fleeting. Here, long conversations can breathe and stay useful.",
   },

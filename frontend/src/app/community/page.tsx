@@ -19,7 +19,7 @@ const voices = [
     name: "Sofia L.",
     role: "Product Designer - Istanbul",
     initials: "SL",
-    avatar: "linear-gradient(135deg, #F4845F, #F59E0B)",
+    avatar: "linear-gradient(135deg, #0EA5E9, #06B6D4)",
   },
   {
     quote:
