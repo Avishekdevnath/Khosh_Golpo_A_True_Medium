@@ -14,6 +14,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useMessageUnreadCount } from "@/hooks/useMessages";
 import { profilePathFromUsername } from "@/lib/profileRouting";
 import { avatarSeed, initials } from "@/lib/workspaceUtils";
+import { cn } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -112,25 +113,65 @@ export default function AppSidebar() {
     <>
       {/* ── Sidebar ──────────────────────────────────────────────────── */}
       <aside
-        className={`sidebar${mobileOpen ? " open" : ""}`}
+        className={cn(
+          // Base layout
+          "flex flex-col w-[240px] h-screen sticky top-0 shrink-0 overflow-hidden z-30",
+          // Visuals
+          "bg-card border-r border-border",
+          // Mobile: fixed drawer, hidden off-screen by default
+          "max-[859px]:fixed max-[859px]:left-0 max-[859px]:top-0 max-[859px]:bottom-0 max-[859px]:h-dvh max-[859px]:z-40",
+          "max-[859px]:translate-x-[-100%] max-[859px]:transition-transform max-[859px]:duration-[220ms] max-[859px]:ease-in",
+          "max-[859px]:shadow-[4px_0_32px_rgba(0,0,0,0.6)]",
+          // Mobile open state
+          mobileOpen && "max-[859px]:translate-x-0 max-[859px]:duration-[260ms] max-[859px]:ease-out",
+          // Desktop: never transform
+          "min-[860px]:translate-x-0",
+        )}
         aria-label="Primary navigation"
       >
         {/* Logo ───────────────────────────────────────────────────── */}
-        <button className="logo" type="button" onClick={() => go("/")} aria-label="KhoshGolpo home">
-          <span className="logo-icon" aria-hidden="true">K</span>
-          <span className="logo-name">KhoshGolpo</span>
+        <button
+          className={[
+            "flex items-center gap-2.5 px-4 h-14 shrink-0 w-full text-left",
+            "border-0 border-b border-border bg-transparent cursor-pointer",
+            "transition-colors duration-150 hover:bg-[rgba(14,165,233,0.04)]",
+          ].join(" ")}
+          type="button"
+          onClick={() => go("/")}
+          aria-label="KhoshGolpo home"
+        >
+          <span
+            className="w-[30px] h-[30px] rounded-lg bg-gradient-to-br from-[#0EA5E9] to-[#0284C7] text-white font-serif font-bold text-[15px] grid place-items-center shrink-0 shadow-[0_2px_8px_rgba(14,165,233,0.35)]"
+            aria-hidden="true"
+          >
+            K
+          </span>
+          <span className="flex-1 font-serif text-[15px] font-bold text-foreground tracking-tight">
+            KhoshGolpo
+          </span>
           {totalBadge > 0 && (
-            <span className="logo-badge" aria-label={`${totalBadge} unread`}>
+            <span
+              className="bg-primary text-white rounded-full text-[10px] font-bold px-1.5 h-[18px] min-w-[18px] inline-flex items-center justify-center"
+              aria-label={`${totalBadge} unread`}
+            >
               {totalBadge > 99 ? "99+" : totalBadge}
             </span>
           )}
         </button>
 
         {/* Nav body ──────────────────────────────────────────────── */}
-        <nav className="nav" role="navigation">
+        <nav
+          className="flex-1 overflow-y-auto py-3 min-h-0 flex flex-col gap-1 [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded"
+          role="navigation"
+        >
           {NAV_SECTIONS.map(section => (
-            <div key={section.label} className="nav-section">
-              <span className="section-label" aria-hidden="true">{section.label}</span>
+            <div key={section.label} className="flex flex-col px-2 gap-px mt-2 first:mt-0">
+              <span
+                className="block px-2.5 pt-2 pb-1 text-[10px] font-bold tracking-[0.1em] uppercase text-muted-foreground opacity-50 font-sans pointer-events-none select-none"
+                aria-hidden="true"
+              >
+                {section.label}
+              </span>
               {section.items.map(({ label, href, Icon, badgeKey }) => {
                 const count = badgeKey ? badges[badgeKey] : 0;
                 const active = isActive(href);
@@ -138,17 +179,34 @@ export default function AppSidebar() {
                   <button
                     key={href}
                     type="button"
-                    className={`nav-item${active ? " active" : ""}`}
+                    className={cn(
+                      "flex items-center gap-2.5 w-full h-10 px-2.5 rounded-lg",
+                      "border-0 border-l-2 border-l-transparent text-[13px] font-medium font-sans",
+                      "cursor-pointer text-left transition-[background,color,border-color] duration-150 outline-offset-2",
+                      "text-muted-foreground",
+                      "hover:bg-card-hover hover:text-foreground",
+                      "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[rgba(14,165,233,0.5)]",
+                      active && "bg-[rgba(14,165,233,0.10)] text-primary border-l-primary font-semibold",
+                    )}
                     onClick={() => go(href)}
                     aria-label={count > 0 ? `${label}, ${count} unread` : label}
                     aria-current={active ? "page" : undefined}
                   >
-                    <span className="item-icon" aria-hidden="true">
+                    <span
+                      className={cn(
+                        "flex items-center justify-center w-5 shrink-0",
+                        active && "[filter:drop-shadow(0_0_6px_rgba(14,165,233,0.4))]",
+                      )}
+                      aria-hidden="true"
+                    >
                       <Icon size={16} strokeWidth={active ? 2.2 : 1.8} />
                     </span>
-                    <span className="item-label">{label}</span>
+                    <span className="flex-1">{label}</span>
                     {count > 0 && (
-                      <span className="item-badge" aria-hidden="true">
+                      <span
+                        className="bg-primary text-white rounded-full text-[10px] font-bold px-1.5 h-[18px] min-w-[18px] inline-flex items-center justify-center animate-[badgePop_0.2s_ease]"
+                        aria-hidden="true"
+                      >
                         {count > 99 ? "99+" : count}
                       </span>
                     )}
@@ -160,30 +218,53 @@ export default function AppSidebar() {
 
           {/* Admin section */}
           {isAdmin && (
-            <div className="nav-section">
-              <span className="section-label" aria-hidden="true">Admin</span>
+            <div className="flex flex-col px-2 gap-px mt-2">
+              <span
+                className="block px-2.5 pt-2 pb-1 text-[10px] font-bold tracking-[0.1em] uppercase text-muted-foreground opacity-50 font-sans pointer-events-none select-none"
+                aria-hidden="true"
+              >
+                Admin
+              </span>
               <button
                 type="button"
-                className={`nav-item${isActive("/admin") ? " active" : ""}`}
+                className={cn(
+                  "flex items-center gap-2.5 w-full h-10 px-2.5 rounded-lg",
+                  "border-0 border-l-2 border-l-transparent text-[13px] font-medium font-sans",
+                  "cursor-pointer text-left transition-[background,color,border-color] duration-150 outline-offset-2",
+                  "text-muted-foreground",
+                  "hover:bg-card-hover hover:text-foreground",
+                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[rgba(14,165,233,0.5)]",
+                  isActive("/admin") && "bg-[rgba(14,165,233,0.10)] text-primary border-l-primary font-semibold",
+                )}
                 onClick={() => go("/admin")}
                 aria-current={isActive("/admin") ? "page" : undefined}
               >
-                <span className="item-icon" aria-hidden="true">
+                <span
+                  className={cn(
+                    "flex items-center justify-center w-5 shrink-0",
+                    isActive("/admin") && "[filter:drop-shadow(0_0_6px_rgba(14,165,233,0.4))]",
+                  )}
+                  aria-hidden="true"
+                >
                   <BarChart3 size={16} strokeWidth={isActive("/admin") ? 2.2 : 1.8} />
                 </span>
-                <span className="item-label">Dashboard</span>
+                <span className="flex-1">Dashboard</span>
               </button>
             </div>
           )}
         </nav>
 
         {/* User footer ───────────────────────────────────────────── */}
-        <div className="footer" ref={menuRef}>
+        <div className="shrink-0 relative p-[10px_10px_12px] border-t border-border" ref={menuRef}>
           {/* Pop-up menu */}
           {menuOpen && user && (
-            <div className="user-menu" role="menu" aria-label="User options">
+            <div
+              className="absolute bottom-[calc(100%+4px)] left-2.5 right-2.5 bg-card border border-border rounded-xl p-1 shadow-[0_-4px_6px_rgba(0,0,0,0.15),0_-12px_32px_rgba(0,0,0,0.4)] z-50 animate-[popUp_0.15s_ease]"
+              role="menu"
+              aria-label="User options"
+            >
               <button
-                className="menu-item"
+                className="flex items-center gap-2 w-full px-3 py-2 rounded-lg border-0 bg-transparent text-foreground text-[13px] font-sans cursor-pointer text-left transition-colors duration-[120ms] hover:bg-card-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-[rgba(14,165,233,0.5)] outline-offset-2"
                 type="button"
                 role="menuitem"
                 onClick={() => { setMenuOpen(false); go(profileHref); }}
@@ -192,7 +273,7 @@ export default function AppSidebar() {
                 <span>View profile</span>
               </button>
               <button
-                className="menu-item"
+                className="flex items-center gap-2 w-full px-3 py-2 rounded-lg border-0 bg-transparent text-foreground text-[13px] font-sans cursor-pointer text-left transition-colors duration-[120ms] hover:bg-card-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-[rgba(14,165,233,0.5)] outline-offset-2"
                 type="button"
                 role="menuitem"
                 onClick={() => { setMenuOpen(false); go("/settings"); }}
@@ -200,9 +281,9 @@ export default function AppSidebar() {
                 <Settings size={14} strokeWidth={1.8} />
                 <span>Settings</span>
               </button>
-              <div className="menu-sep" role="separator" />
+              <div className="h-px bg-border my-[3px] mx-2.5" role="separator" />
               <button
-                className="menu-item danger"
+                className="flex items-center gap-2 w-full px-3 py-2 rounded-lg border-0 bg-transparent text-red-500 text-[13px] font-sans cursor-pointer text-left transition-colors duration-[120ms] hover:bg-[rgba(239,68,68,0.10)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[rgba(14,165,233,0.5)] outline-offset-2"
                 type="button"
                 role="menuitem"
                 onClick={async () => {
@@ -219,7 +300,7 @@ export default function AppSidebar() {
 
           {/* User row */}
           <button
-            className="user-row"
+            className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-[10px] border-0 bg-transparent cursor-pointer text-left font-sans text-inherit transition-colors duration-150 hover:bg-card-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-[rgba(14,165,233,0.5)] outline-offset-2"
             type="button"
             onClick={() => user && setMenuOpen(v => !v)}
             aria-label={user ? `${name} — open user menu` : "User options"}
@@ -227,24 +308,38 @@ export default function AppSidebar() {
           >
             {/* Avatar */}
             <span
-              className="avatar"
+              className="relative w-[34px] h-[34px] rounded-[10px] grid place-items-center shrink-0"
               style={{ background: `linear-gradient(135deg,${c1},${c2})` }}
               aria-hidden="true"
             >
-              <span className="avatar-initials">{initials(name)}</span>
-              {user && <span className="status-dot" aria-hidden="true" />}
+              <span className="text-[11px] font-bold text-white font-sans">{initials(name)}</span>
+              {user && (
+                <span
+                  className="absolute -bottom-0.5 -right-0.5 w-[9px] h-[9px] rounded-full bg-success border-2 border-card shadow-[0_0_6px_rgba(61,214,140,0.5)]"
+                  aria-hidden="true"
+                />
+              )}
             </span>
 
             {/* Text */}
-            <span className="user-text">
-              <span className="user-name">{name}</span>
-              {handle && <span className="user-handle">{handle}</span>}
+            <span className="flex flex-col min-w-0 flex-1 gap-px">
+              <span className="text-[13px] font-semibold text-foreground whitespace-nowrap overflow-hidden text-ellipsis leading-[1.3]">
+                {name}
+              </span>
+              {handle && (
+                <span className="text-[11px] text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis leading-[1.3]">
+                  {handle}
+                </span>
+              )}
             </span>
 
             {/* Chevron */}
             {user && (
               <span
-                className={`chevron${menuOpen ? " flipped" : ""}`}
+                className={cn(
+                  "flex items-center text-muted-foreground shrink-0 transition-transform duration-200",
+                  menuOpen && "rotate-180",
+                )}
                 aria-hidden="true"
               >
                 <ChevronDown size={13} strokeWidth={2} />
@@ -259,403 +354,24 @@ export default function AppSidebar() {
         createPortal(
           <button
             type="button"
-            className="mobile-scrim"
             aria-label="Close navigation"
             onClick={() => setMobileOpen(false)}
             tabIndex={-1}
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.5)",
+              backdropFilter: "blur(2px)",
+              WebkitBackdropFilter: "blur(2px)",
+              zIndex: 39,
+              border: "none",
+              cursor: "pointer",
+              animation: "scrimIn 0.2s ease",
+            }}
           />,
           document.body
         )
       }
-
-      <style jsx>{`
-        /* ═══════════════════════════════════════════════════════════
-           SIDEBAR SHELL
-        ═══════════════════════════════════════════════════════════ */
-        .sidebar {
-          /* Layout */
-          display: flex;
-          flex-direction: column;
-          width: 240px;
-          height: 100vh;
-          position: sticky;
-          top: 0;
-          flex-shrink: 0;
-          overflow: hidden;
-
-          /* Visuals */
-          background: var(--app-sidebar, #0a0c14);
-          border-right: 1px solid var(--app-border, #1c1f2e);
-          z-index: 30;
-        }
-
-        /* ═══════════════════════════════════════════════════════════
-           LOGO ROW
-        ═══════════════════════════════════════════════════════════ */
-        .logo {
-          /* Layout */
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 0 16px;
-          height: 56px;
-          flex-shrink: 0;
-
-          /* Visuals */
-          background: transparent;
-          border: none;
-          border-bottom: 1px solid var(--app-border, #1c1f2e);
-          cursor: pointer;
-          text-align: left;
-          width: 100%;
-          transition: background 0.15s ease;
-        }
-        .logo:hover { background: rgba(14,165,233,0.04); }
-
-        .logo-icon {
-          /* 30px square, sky-blue, Sora font */
-          width: 30px;
-          height: 30px;
-          border-radius: 8px;
-          background: linear-gradient(135deg, #0EA5E9, #0284C7);
-          color: #fff;
-          font-family: var(--serif, sans-serif);
-          font-weight: 700;
-          font-size: 15px;
-          display: grid;
-          place-items: center;
-          flex-shrink: 0;
-          box-shadow: 0 2px 8px rgba(14,165,233,0.35);
-        }
-        .logo-name {
-          flex: 1;
-          font-family: var(--serif, sans-serif);
-          font-size: 15px;
-          font-weight: 700;
-          color: var(--text, #e4e8f4);
-          letter-spacing: -0.01em;
-        }
-        .logo-badge {
-          background: #0EA5E9;
-          color: #fff;
-          border-radius: 999px;
-          font-size: 10px;
-          font-weight: 700;
-          padding: 0 6px;
-          height: 18px;
-          min-width: 18px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        /* ═══════════════════════════════════════════════════════════
-           NAV BODY
-        ═══════════════════════════════════════════════════════════ */
-        .nav {
-          flex: 1;
-          overflow-y: auto;
-          padding: 12px 0 8px;
-          min-height: 0;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-        .nav::-webkit-scrollbar { width: 3px; }
-        .nav::-webkit-scrollbar-thumb {
-          background: var(--app-border, #1c1f2e);
-          border-radius: 4px;
-        }
-
-        /* Section block */
-        .nav-section {
-          display: flex;
-          flex-direction: column;
-          padding: 0 8px;
-          gap: 1px;
-        }
-        .nav-section + .nav-section { margin-top: 8px; }
-
-        /* Section label */
-        .section-label {
-          display: block;
-          padding: 8px 10px 4px;
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          color: var(--muted, #9ba3be);
-          opacity: 0.5;
-          font-family: var(--sans, sans-serif);
-          pointer-events: none;
-          user-select: none;
-        }
-
-        /* Nav item — 40px tall to meet 44pt touch target guidance */
-        .nav-item {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          width: 100%;
-          height: 40px;
-          padding: 0 10px;
-          border: none;
-          border-left: 2px solid transparent;
-          border-radius: 8px;
-          background: transparent;
-          color: var(--muted, #9ba3be);
-          font-size: 13px;
-          font-weight: 500;
-          font-family: var(--sans, sans-serif);
-          cursor: pointer;
-          text-align: left;
-          transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-          outline-offset: 2px;
-        }
-        .nav-item:hover {
-          background: var(--app-card-hover, #181b27);
-          color: var(--text, #e4e8f4);
-        }
-        .nav-item:focus-visible {
-          outline: 2px solid rgba(14,165,233,0.5);
-        }
-        .nav-item.active {
-          background: rgba(14,165,233,0.10);
-          color: #0EA5E9;
-          border-left-color: #0EA5E9;
-          font-weight: 600;
-        }
-
-        .item-icon {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 20px;
-          flex-shrink: 0;
-        }
-        .nav-item.active .item-icon {
-          filter: drop-shadow(0 0 6px rgba(14,165,233,0.4));
-        }
-
-        .item-label { flex: 1; }
-
-        .item-badge {
-          background: #0EA5E9;
-          color: #fff;
-          border-radius: 999px;
-          font-size: 10px;
-          font-weight: 700;
-          padding: 0 6px;
-          height: 18px;
-          min-width: 18px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          animation: badgePop 0.2s ease;
-        }
-        @keyframes badgePop {
-          from { transform: scale(0.7); opacity: 0; }
-          to   { transform: scale(1);   opacity: 1; }
-        }
-
-        /* ═══════════════════════════════════════════════════════════
-           USER FOOTER
-        ═══════════════════════════════════════════════════════════ */
-        .footer {
-          flex-shrink: 0;
-          position: relative;
-          padding: 10px 10px 12px;
-          border-top: 1px solid var(--app-border, #1c1f2e);
-        }
-
-        /* User row button */
-        .user-row {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          width: 100%;
-          padding: 8px 10px;
-          border: none;
-          border-radius: 10px;
-          background: transparent;
-          cursor: pointer;
-          text-align: left;
-          transition: background 0.15s ease;
-          font-family: var(--sans, sans-serif);
-          color: inherit;
-          outline-offset: 2px;
-        }
-        .user-row:hover { background: var(--app-card-hover, #181b27); }
-        .user-row:focus-visible { outline: 2px solid rgba(14,165,233,0.5); }
-
-        /* Avatar */
-        .avatar {
-          position: relative;
-          width: 34px;
-          height: 34px;
-          border-radius: 10px;
-          display: grid;
-          place-items: center;
-          flex-shrink: 0;
-        }
-        .avatar-initials {
-          font-size: 11px;
-          font-weight: 700;
-          color: #fff;
-          font-family: var(--sans, sans-serif);
-        }
-        .status-dot {
-          position: absolute;
-          bottom: -2px;
-          right: -2px;
-          width: 9px;
-          height: 9px;
-          border-radius: 50%;
-          background: #3dd68c;
-          border: 2px solid var(--app-sidebar, #0a0c14);
-          box-shadow: 0 0 6px rgba(61,214,140,0.5);
-        }
-
-        /* User text */
-        .user-text {
-          display: flex;
-          flex-direction: column;
-          min-width: 0;
-          flex: 1;
-          gap: 1px;
-        }
-        .user-name {
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--text, #e4e8f4);
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          line-height: 1.3;
-        }
-        .user-handle {
-          font-size: 11px;
-          color: var(--muted, #9ba3be);
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          line-height: 1.3;
-        }
-
-        /* Chevron */
-        .chevron {
-          display: flex;
-          align-items: center;
-          color: var(--muted, #9ba3be);
-          transition: transform 0.2s ease;
-          flex-shrink: 0;
-        }
-        .chevron.flipped { transform: rotate(180deg); }
-
-        /* User pop-up menu */
-        .user-menu {
-          position: absolute;
-          bottom: calc(100% + 4px);
-          left: 10px;
-          right: 10px;
-          background: var(--app-card, #13151f);
-          border: 1px solid var(--app-border, #1c1f2e);
-          border-radius: 12px;
-          padding: 4px;
-          box-shadow:
-            0 -4px 6px rgba(0,0,0,0.15),
-            0 -12px 32px rgba(0,0,0,0.4);
-          z-index: 50;
-          animation: popUp 0.15s ease;
-        }
-        @keyframes popUp {
-          from { opacity: 0; transform: translateY(6px) scale(0.97); }
-          to   { opacity: 1; transform: translateY(0) scale(1);      }
-        }
-
-        .menu-item {
-          display: flex;
-          align-items: center;
-          gap: 9px;
-          width: 100%;
-          padding: 9px 12px;
-          border: none;
-          border-radius: 8px;
-          background: transparent;
-          color: var(--text, #e4e8f4);
-          font-size: 13px;
-          font-family: var(--sans, sans-serif);
-          cursor: pointer;
-          transition: background 0.12s;
-          text-align: left;
-          outline-offset: 2px;
-        }
-        .menu-item:hover { background: var(--app-card-hover, #181b27); }
-        .menu-item:focus-visible { outline: 2px solid rgba(14,165,233,0.5); }
-        .menu-item.danger { color: #ef4444; }
-        .menu-item.danger:hover { background: rgba(239,68,68,0.10); }
-        .menu-sep {
-          height: 1px;
-          background: var(--app-border, #1c1f2e);
-          margin: 3px 10px;
-        }
-
-        /* ═══════════════════════════════════════════════════════════
-           MOBILE DRAWER
-        ═══════════════════════════════════════════════════════════ */
-        @media (max-width: 859px) {
-          .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            height: 100dvh;
-            z-index: 40;
-            transform: translateX(-100%);
-            transition: transform 220ms ease-in;
-            box-shadow: 4px 0 32px rgba(0,0,0,0.6);
-          }
-          .sidebar.open {
-            transform: translateX(0);
-            transition: transform 260ms ease-out;
-          }
-        }
-
-        @media (min-width: 860px) {
-          .sidebar { transform: none !important; }
-        }
-
-        /* Mobile scrim — injected via portal */
-        :global(.mobile-scrim) {
-          position: fixed;
-          inset: 0;
-          background: rgba(0,0,0,0.5);
-          backdrop-filter: blur(2px);
-          -webkit-backdrop-filter: blur(2px);
-          z-index: 39;
-          border: none;
-          cursor: pointer;
-          animation: scrimIn 0.2s ease;
-        }
-        @keyframes scrimIn {
-          from { opacity: 0; }
-          to   { opacity: 1; }
-        }
-
-        /* ═══════════════════════════════════════════════════════════
-           REDUCED MOTION
-        ═══════════════════════════════════════════════════════════ */
-        @media (prefers-reduced-motion: reduce) {
-          .sidebar,
-          .nav-item,
-          .user-row,
-          .menu-item,
-          .chevron { transition: none; }
-          .user-menu,
-          .item-badge,
-          :global(.mobile-scrim) { animation: none; }
-        }
-      `}</style>
     </>
   );
 }
