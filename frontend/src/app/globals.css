@@ -1155,6 +1155,7 @@ footer {
   --color-info: var(--info);
   --color-accent-muted: var(--accent-muted);
   --color-border-subtle: var(--border-subtle);
+  --color-accent-glow: var(--accent-glow);
   --color-accent2: var(--accent2);
 }
 
@@ -1212,9 +1213,6 @@ footer {
   --info: #818CF8;
   --accent-glow: rgba(14,165,233,0.4);
   --accent-muted: rgba(14,165,233,0.10);
-  --duration-fast: 150ms;
-  --duration-normal: 220ms;
-  --duration-slow: 300ms;
 }
 
 @layer base {
