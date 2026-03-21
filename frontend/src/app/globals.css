@@ -1201,13 +1201,13 @@ footer {
   --chart-5: #f06b6b;
 
   /* ─── Sidebar tokens ─── */
-  --sidebar: #10131d;
+  --sidebar: #111520;
   --sidebar-foreground: #e8eaf2;
   --sidebar-primary: #0EA5E9;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #151927;
   --sidebar-accent-foreground: #e8eaf2;
-  --sidebar-border: #1e2235;
+  --sidebar-border: rgba(255,255,255,0.08);
   --sidebar-ring: #7c73f0;
 
   /* ─── Design System Tokens ─── */
