@@ -176,12 +176,12 @@ export default function ProfileHeader({
 
         {/* Stats row — Medium-style inline */}
         <div className="flex items-center gap-1 text-[13px] text-text-secondary flex-wrap">
-          <button onClick={onOpenFollowers} className="font-sans border-none bg-transparent p-0 cursor-pointer hover:underline">
+          <button onClick={onOpenFollowers} className="font-sans border-none bg-transparent p-0 cursor-pointer hover:underline min-h-[44px] focus-visible:outline-none focus-visible:underline">
             <strong className="text-foreground font-semibold">{followersCount}</strong>{" "}
             <span className="text-text-tertiary">followers</span>
           </button>
           <span className="text-text-tertiary mx-1">·</span>
-          <button onClick={onOpenFollowing} className="font-sans border-none bg-transparent p-0 cursor-pointer hover:underline">
+          <button onClick={onOpenFollowing} className="font-sans border-none bg-transparent p-0 cursor-pointer hover:underline min-h-[44px] focus-visible:outline-none focus-visible:underline">
             <strong className="text-foreground font-semibold">{followingCount}</strong>{" "}
             <span className="text-text-tertiary">following</span>
           </button>
