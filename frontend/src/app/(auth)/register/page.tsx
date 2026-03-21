@@ -6,6 +6,10 @@ import { type FormEvent, useEffect, useRef, useState } from "react";
 
 import NavBar from "@/components/public/sections/NavBar";
 import { useAuth } from "@/hooks";
+import { FormField } from "@/components/ui/form-field";
+import { PasswordInput } from "@/components/ui/password-input";
+import { Input } from "@/components/ui/input";
+import { ShieldCheck, Copy, Check } from "lucide-react";
 
 type FormErrors = {
   firstName?: string;
@@ -15,25 +19,6 @@ type FormErrors = {
   password?: string;
   confirmPassword?: string;
 };
-
-const icons = {
-  user: "M12 12a5 5 0 100-10 5 5 0 000 10zM3 21a9 9 0 0118 0",
-  mail: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
-  lock: "M12 1c-3.866 0-7 3.134-7 7v3H3a2 2 0 00-2 2v8a2 2 0 002 2h18a2 2 0 002-2v-8a2 2 0 00-2-2h-2V8c0-3.866-3.134-7-7-7z",
-  arrow: "M5 12h14M12 5l7 7-7 7",
-  shield: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
-  copy: "M8 4H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2M8 4v4h8V4M8 4a2 2 0 012-2h0a2 2 0 012 2",
-  check: "M20 6L9 17l-5-5",
-} as const;
-
-function Icon({ path, size = 14, color = "currentColor" }: { path: string; size?: number; color?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-      stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d={path} />
-    </svg>
-  );
-}
 
 function emailIsValid(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -51,8 +36,6 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [favAnimal, setFavAnimal] = useState("");
   const [favPerson, setFavPerson] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
@@ -120,77 +103,115 @@ export default function RegisterPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  return (
-    <main className="register-page">
-      <NavBar />
-      <div className="register-noise" aria-hidden="true" />
-      <div ref={orbRef} className="register-orb register-orb-1" aria-hidden="true" />
-      <div className="register-orb register-orb-2" aria-hidden="true" />
+  const genderOptions = ["Male", "Female", "Non-binary", "Prefer not to say"] as const;
 
-      <section className="register-container">
+  return (
+    <main className="relative min-h-screen overflow-x-hidden bg-app-bg text-foreground">
+      <NavBar />
+
+      {/* Background orbs */}
+      <div className="pointer-events-none fixed inset-0 z-0 opacity-35" aria-hidden="true" />
+      <div
+        ref={orbRef}
+        className="pointer-events-none fixed z-0 h-[500px] w-[500px] -top-[150px] -right-[100px] rounded-full blur-[100px] transition-transform duration-[800ms] ease-[cubic-bezier(0.1,0.5,0.1,1)]"
+        style={{ background: "radial-gradient(circle, rgba(14,165,233,0.08) 0%, transparent 70%)" }}
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none fixed z-0 h-[400px] w-[400px] -bottom-[150px] -left-[100px] rounded-full blur-[100px]"
+        style={{ background: "radial-gradient(circle, rgba(123,110,246,0.08) 0%, transparent 70%)" }}
+        aria-hidden="true"
+      />
+
+      <section className="relative z-10 flex min-h-screen items-center justify-center px-5 pb-8 pt-24 sm:pt-28">
         {recoveryCode ? (
-          <div className="register-box recovery-box">
-            <div className="recovery-icon" aria-hidden="true">
-              <Icon path={icons.shield} size={36} color="#7c73f0" />
+          <div className="w-full max-w-[420px] rounded-[18px] border border-app-border bg-app-panel/82 p-6 text-center backdrop-blur-[10px]">
+            <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-[20px] bg-accent2/12">
+              <ShieldCheck className="h-9 w-9 text-accent2" />
             </div>
-            <h1>Save your recovery code</h1>
-            <p className="subtitle">
+            <h1 className="mb-2 font-serif text-[clamp(28px,5vw,40px)] leading-[1.1]">Save your recovery code</h1>
+            <p className="mb-5 text-sm text-text-secondary">
               This is shown <strong>only once</strong>. Store it somewhere safe —
               you will need it to recover your account if you forget your password.
             </p>
 
-            <div className="code-block">
-              <span className="code-text">{recoveryCode}</span>
-              <button type="button" className="copy-btn" onClick={copyCode} aria-label="Copy code">
-                <Icon path={copied ? icons.check : icons.copy} size={15} color={copied ? "#3dd68c" : "currentColor"} />
+            <div className="mb-3 flex items-center justify-between gap-2.5 rounded-xl border border-accent2/30 bg-app-bg p-4">
+              <span className="font-mono text-xl font-bold tracking-[0.08em] text-[#c4bdff]">
+                {recoveryCode}
+              </span>
+              <button
+                type="button"
+                className="flex rounded-md p-1.5 text-accent2 transition-colors hover:bg-accent2/15"
+                onClick={copyCode}
+                aria-label="Copy code"
+              >
+                {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
               </button>
             </div>
 
-            <p className="code-hint">
+            <p className="mb-6 text-xs leading-relaxed text-text-secondary">
               Your favourite animal and person name also work as backup — any one of the three unlocks your account.
             </p>
 
-            <button type="button" className="submit-btn" onClick={() => router.push("/threads")}>
+            <button
+              type="button"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-3 text-sm font-bold text-white shadow-[0_4px_20px_rgba(14,165,233,0.30)] transition-all hover:-translate-y-px hover:shadow-[0_6px_28px_rgba(14,165,233,0.40)]"
+              onClick={() => router.push("/threads")}
+            >
               I&apos;ve saved it — continue
-              <Icon path={icons.arrow} color="#fff" />
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </button>
           </div>
         ) : (
-          <div className="register-box">
-            <h1>Create account</h1>
-            <p className="subtitle">Join KhoshGolpo and start thoughtful conversations.</p>
+          <div className="w-full max-w-[420px] rounded-[18px] border border-app-border bg-app-panel/82 p-5 backdrop-blur-[10px] sm:p-6">
+            <h1 className="mb-2 font-serif text-[clamp(32px,5vw,46px)] leading-[1]">Create account</h1>
+            <p className="mb-5 text-sm text-text-secondary">Join KhoshGolpo and start thoughtful conversations.</p>
 
-            <form onSubmit={onSubmit} noValidate>
-              <div className="name-row">
-                <div className="form-group" style={{ flex: 1 }}>
-                  <label htmlFor="register-first-name" className="form-label">
-                    <Icon path={icons.user} />First name
-                  </label>
-                  <input id="register-first-name" type="text" placeholder="First"
-                    className={`input-field ${errors.firstName ? "input-error" : ""}`}
-                    value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-                  {errors.firstName ? <p className="error-text">{errors.firstName}</p> : null}
-                </div>
-                <div className="form-group" style={{ flex: 1 }}>
-                  <label htmlFor="register-last-name" className="form-label">
-                    Last name
-                  </label>
-                  <input id="register-last-name" type="text" placeholder="Last"
-                    className={`input-field ${errors.lastName ? "input-error" : ""}`}
-                    value={lastName} onChange={(e) => setLastName(e.target.value)} />
-                  {errors.lastName ? <p className="error-text">{errors.lastName}</p> : null}
-                </div>
+            <form onSubmit={onSubmit} noValidate className="space-y-3">
+              {/* Name row */}
+              <div className="flex gap-2.5">
+                <FormField label="First name" htmlFor="register-first-name" error={errors.firstName} className="flex-1">
+                  <Input
+                    id="register-first-name"
+                    type="text"
+                    placeholder="First"
+                    className="bg-app-input border-app-border focus-visible:border-accent"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
+                </FormField>
+                <FormField label="Last name" htmlFor="register-last-name" error={errors.lastName} className="flex-1">
+                  <Input
+                    id="register-last-name"
+                    type="text"
+                    placeholder="Last"
+                    className="bg-app-input border-app-border focus-visible:border-accent"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
+                </FormField>
               </div>
 
-              <div className="form-group">
-                <span className="form-label">Gender <span className="optional-badge" style={{ marginLeft: 4 }}>optional</span></span>
-                <div className="gender-pills">
-                  {["Male", "Female", "Non-binary", "Prefer not to say"].map(opt => (
+              {/* Gender */}
+              <div className="flex flex-col gap-1.5">
+                <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                  Gender
+                  <span className="rounded px-1.5 py-px text-[10px] font-bold uppercase tracking-wider bg-accent2/15 text-accent2">
+                    optional
+                  </span>
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {genderOptions.map((opt) => (
                     <button
                       key={opt}
                       type="button"
-                      className={`gender-pill${gender === opt ? " gender-pill-active" : ""}`}
-                      onClick={() => setGender(prev => prev === opt ? "" : opt)}
+                      className={[
+                        "rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
+                        gender === opt
+                          ? "border-accent bg-accent/10 text-accent"
+                          : "border-app-border bg-app-input text-text-secondary hover:border-accent hover:text-foreground",
+                      ].join(" ")}
+                      onClick={() => setGender((prev) => (prev === opt ? "" : opt))}
                     >
                       {opt}
                     </button>
@@ -198,146 +219,107 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="register-username" className="form-label">
-                  <Icon path={icons.user} />Username
-                </label>
-                <input id="register-username" type="text" placeholder="your_username"
-                  className={`input-field ${errors.username ? "input-error" : ""}`}
-                  value={username} onChange={(e) => setUsername(e.target.value)} />
-                {errors.username ? <p className="error-text">{errors.username}</p> : null}
-              </div>
+              <FormField label="Username" htmlFor="register-username" error={errors.username}>
+                <Input
+                  id="register-username"
+                  type="text"
+                  placeholder="your_username"
+                  className="bg-app-input border-app-border focus-visible:border-accent"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+              </FormField>
 
-              <div className="form-group">
-                <label htmlFor="register-email" className="form-label">
-                  <Icon path={icons.mail} />Email
-                </label>
-                <input id="register-email" type="email" placeholder="you@example.com"
-                  className={`input-field ${errors.email ? "input-error" : ""}`}
-                  value={email} onChange={(e) => setEmail(e.target.value)} />
-                {errors.email ? <p className="error-text">{errors.email}</p> : null}
-              </div>
+              <FormField label="Email" htmlFor="register-email" error={errors.email}>
+                <Input
+                  id="register-email"
+                  type="email"
+                  placeholder="you@example.com"
+                  className="bg-app-input border-app-border focus-visible:border-accent"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </FormField>
 
-              <div className="form-group">
-                <div className="label-row">
-                  <label htmlFor="register-password" className="form-label no-margin">
-                    <Icon path={icons.lock} />Password
-                  </label>
-                  <button type="button" className="text-btn" onClick={() => setShowPassword((p) => !p)}>
-                    {showPassword ? "Hide" : "Show"}
-                  </button>
-                </div>
-                <input id="register-password" type={showPassword ? "text" : "password"}
+              <FormField label="Password" htmlFor="register-password" error={errors.password}>
+                <PasswordInput
+                  id="register-password"
                   placeholder="Create password"
-                  className={`input-field ${errors.password ? "input-error" : ""}`}
-                  value={password} onChange={(e) => setPassword(e.target.value)} />
-                {errors.password ? <p className="error-text">{errors.password}</p> : null}
-              </div>
+                  className="bg-app-input border-app-border focus-visible:border-accent"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </FormField>
 
-              <div className="form-group">
-                <div className="label-row">
-                  <label htmlFor="register-confirm-password" className="form-label no-margin">
-                    <Icon path={icons.lock} />Confirm password
-                  </label>
-                  <button type="button" className="text-btn" onClick={() => setShowConfirmPassword((p) => !p)}>
-                    {showConfirmPassword ? "Hide" : "Show"}
-                  </button>
-                </div>
-                <input id="register-confirm-password" type={showConfirmPassword ? "text" : "password"}
+              <FormField label="Confirm password" htmlFor="register-confirm-password" error={errors.confirmPassword}>
+                <PasswordInput
+                  id="register-confirm-password"
                   placeholder="Repeat password"
-                  className={`input-field ${errors.confirmPassword ? "input-error" : ""}`}
-                  value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-                {errors.confirmPassword ? <p className="error-text">{errors.confirmPassword}</p> : null}
-              </div>
+                  className="bg-app-input border-app-border focus-visible:border-accent"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+              </FormField>
 
-              {/* ── Recovery setup ── */}
-              <div className="recovery-section">
-                <div className="recovery-header">
-                  <Icon path={icons.shield} size={13} color="#7c73f0" />
-                  <span>Account recovery <span className="optional-badge">optional</span></span>
+              {/* Account recovery section */}
+              <div className="rounded-xl border border-accent2/20 bg-accent2/4 p-3.5">
+                <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-[#a89cf7]">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  Account recovery
+                  <span className="rounded px-1.5 py-px text-[10px] font-bold uppercase tracking-wider bg-accent2/15 text-accent2">
+                    optional
+                  </span>
                 </div>
-                <p className="recovery-desc">
+                <p className="mb-2.5 text-xs text-text-secondary">
                   Set at least one so you can recover your account without email.
                 </p>
-                <div className="form-group" style={{ marginBottom: 10 }}>
-                  <label htmlFor="register-animal" className="form-label">Favourite animal</label>
-                  <input id="register-animal" type="text" placeholder="e.g. elephant"
-                    className="input-field" value={favAnimal}
-                    onChange={(e) => setFavAnimal(e.target.value)} autoComplete="off" />
-                </div>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label htmlFor="register-person" className="form-label">Favourite person&apos;s name</label>
-                  <input id="register-person" type="text" placeholder="e.g. grandmother"
-                    className="input-field" value={favPerson}
-                    onChange={(e) => setFavPerson(e.target.value)} autoComplete="off" />
+                <div className="space-y-2">
+                  <FormField label="Favourite animal" htmlFor="register-animal">
+                    <Input
+                      id="register-animal"
+                      type="text"
+                      placeholder="e.g. elephant"
+                      className="bg-app-input border-app-border focus-visible:border-accent"
+                      value={favAnimal}
+                      onChange={(e) => setFavAnimal(e.target.value)}
+                      autoComplete="off"
+                    />
+                  </FormField>
+                  <FormField label="Favourite person's name" htmlFor="register-person">
+                    <Input
+                      id="register-person"
+                      type="text"
+                      placeholder="e.g. grandmother"
+                      className="bg-app-input border-app-border focus-visible:border-accent"
+                      value={favPerson}
+                      onChange={(e) => setFavPerson(e.target.value)}
+                      autoComplete="off"
+                    />
+                  </FormField>
                 </div>
               </div>
 
-              <button type="submit" className="submit-btn" disabled={isLoading}>
+              <button
+                type="submit"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-3 text-sm font-bold text-white shadow-[0_4px_20px_rgba(14,165,233,0.25)] transition-all hover:-translate-y-px hover:shadow-[0_6px_28px_rgba(14,165,233,0.35)] disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={isLoading}
+              >
                 {isLoading ? "Creating..." : "Create account"}
-                <Icon path={icons.arrow} color="#ffffff" />
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
               </button>
-              {error ? <p className="error-text">{error}</p> : null}
+
+              {error ? <p className="text-xs text-destructive">{error}</p> : null}
             </form>
 
-            <p className="register-footer">
-              Already have an account? <Link href="/login">Sign in</Link>
+            <p className="mt-4 text-sm text-text-secondary">
+              Already have an account?{" "}
+              <Link href="/login" className="font-semibold text-accent underline-offset-4 hover:underline">
+                Sign in
+              </Link>
             </p>
           </div>
         )}
       </section>
-
-      <style jsx>{`
-        .register-page {
-          --bg: #0c0e14; --surface: #13151e; --border: #252836;
-          --text: #e8eaf0; --muted: #6b7080; --accent: #0EA5E9;
-          --accent2: #7b6ef6; --red: #e74c3c;
-          --serif: var(--font-dm-serif), Georgia, serif;
-          --sans: var(--font-dm-sans), sans-serif;
-          position: relative; min-height: 100vh; overflow-x: clip;
-          background: var(--bg); color: var(--text); font-family: var(--sans);
-        }
-        .register-noise { position: fixed; inset: 0; z-index: 0; opacity: 0.35; pointer-events: none;
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); }
-        .register-orb { position: fixed; z-index: 0; border-radius: 50%; filter: blur(100px); pointer-events: none; }
-        .register-orb-1 { width: 500px; height: 500px; top: -150px; right: -100px; transition: transform 0.8s cubic-bezier(0.1,0.5,0.1,1); background: radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, transparent 70%); }
-        .register-orb-2 { width: 400px; height: 400px; bottom: -150px; left: -100px; background: radial-gradient(circle, rgb(123 110 246 / 8%) 0%, transparent 70%); }
-        .register-container { position: relative; z-index: 1; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 94px 20px 32px; }
-        .register-box { width: 100%; max-width: 420px; border: 1px solid var(--border); border-radius: 18px; background: rgb(19 21 30 / 82%); backdrop-filter: blur(10px); padding: 20px; }
-        h1 { font-family: var(--serif); font-size: clamp(32px, 5vw, 46px); line-height: 1; margin-bottom: 8px; }
-        .subtitle { font-size: 15px; color: var(--muted); margin-bottom: 22px; }
-        .name-row { display: flex; gap: 10px; margin-bottom: 0; }
-        .name-row .form-group { margin-bottom: 13px; }
-        .form-group { margin-bottom: 13px; }
-        .form-label { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
-        .gender-pills { display: flex; flex-wrap: wrap; gap: 7px; }
-        .gender-pill { padding: 6px 13px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--surface); color: var(--muted); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
-        .gender-pill:hover { border-color: var(--accent); color: var(--text); }
-        .gender-pill-active { border-color: var(--accent); background: rgba(14,165,233,0.1); color: var(--accent); }
-        .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-        .no-margin { margin-bottom: 0; }
-        .input-field { width: 100%; padding: 11px 14px; border-radius: 11px; border: 1.5px solid var(--border); background: var(--surface); color: var(--text); font-size: 14px; outline: none; box-sizing: border-box; }
-        .input-field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.10); }
-        .input-error { border-color: var(--red); }
-        .text-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 12px; }
-        .submit-btn { width: 100%; padding: 12px 0; border-radius: 12px; border: none; background: var(--accent); color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; transition: transform 0.15s, box-shadow 0.15s; box-shadow: 0 4px 20px rgba(14, 165, 233, 0.25); }
-        .submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(14, 165, 233, 0.35); }
-        .submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
-        .error-text { font-size: 12px; color: var(--red); margin-top: 6px; }
-        .register-footer { margin-top: 16px; font-size: 14px; color: var(--muted); }
-        .register-footer a { color: var(--accent); text-decoration: none; font-weight: 600; }
-        .recovery-section { border: 1px solid rgba(123,110,246,0.2); border-radius: 12px; padding: 14px; margin-bottom: 14px; background: rgba(123,110,246,0.04); }
-        .recovery-header { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; color: #a89cf7; margin-bottom: 6px; }
-        .optional-badge { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; background: rgba(123,110,246,0.15); color: #a89cf7; border-radius: 4px; padding: 1px 5px; }
-        .recovery-desc { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
-        .recovery-box { text-align: center; }
-        .recovery-icon { width: 80px; height: 80px; margin: 0 auto 20px; border-radius: 20px; display: flex; align-items: center; justify-content: center; background: rgba(124,115,240,0.12); }
-        .code-block { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #0d0f18; border: 1px solid rgba(124,115,240,0.3); border-radius: 12px; padding: 14px 16px; margin: 20px 0 12px; }
-        .code-text { font-family: monospace; font-size: 20px; font-weight: 700; letter-spacing: 0.08em; color: #c4bdff; }
-        .copy-btn { background: none; border: none; cursor: pointer; padding: 4px; color: #7c73f0; border-radius: 6px; display: flex; transition: background 0.15s; }
-        .copy-btn:hover { background: rgba(124,115,240,0.15); }
-        .code-hint { font-size: 13px; color: var(--muted); margin-bottom: 24px; line-height: 1.5; }
-      `}</style>
     </main>
   );
 }
