@@ -18,6 +18,7 @@ class UserUpdate(BaseModel):
     first_name: str | None = Field(default=None, max_length=50)
     last_name: str | None = Field(default=None, max_length=50)
     gender: str | None = Field(default=None, max_length=30)
+    is_private: bool | None = None
 
 
 class UserOut(BaseModel):
@@ -29,6 +30,7 @@ class UserOut(BaseModel):
     role: UserRole
     is_active: bool
     is_bot: bool = False
+    is_private: bool = False
     first_name: str | None = None
     last_name: str | None = None
     gender: str | None = None
