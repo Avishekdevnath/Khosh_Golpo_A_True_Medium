@@ -51,58 +51,81 @@ export default function PeopleCard({ person, onRelationshipChange }: PeopleCardP
   const bioText = personState.bio?.trim();
 
   return (
-    <article className="card">
+    <article className="grid gap-2.5 rounded-2xl border border-app-border bg-app-bg px-4 py-3.5 transition-colors duration-150 hover:border-[#252d48] hover:bg-[#101525]">
+
       {/* Row 1: identity */}
-      <div className="row-top">
-        <Link href={profileHref} className="profile-link">
-          <div className="avatar" style={{ background: `linear-gradient(135deg, ${av1}, ${av2})` }}>
+      <div className="flex min-w-0 items-center gap-2.5">
+        <Link href={profileHref} className="group flex min-w-0 flex-1 items-center gap-2.5 no-underline">
+          {/* Avatar */}
+          <div
+            className="grid h-[42px] w-[42px] shrink-0 place-items-center rounded-xl text-sm font-bold text-white"
+            style={{ background: `linear-gradient(135deg, ${av1}, ${av2})` }}
+          >
             {initials(personState.display_name || personState.username)}
           </div>
-          <div className="identity">
-            <div className="name-row">
-              <span className="name">{personState.display_name}</span>
+
+          {/* Identity text */}
+          <div className="grid min-w-0 gap-px">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="truncate text-sm font-bold text-[#dde4f5] transition-colors duration-150 group-hover:text-white">
+                {personState.display_name}
+              </span>
               {personState.role !== "member" && (
-                <span className="role">{personState.role}</span>
+                <span className="rounded-full border border-purple-500/28 bg-purple-500/12 px-1.5 py-px text-[9px] font-bold uppercase tracking-wide text-accent-purple">
+                  {personState.role}
+                </span>
               )}
             </div>
-            <span className="username">@{personState.username}</span>
+            <span className="text-xs text-[#5e6a8a]">@{personState.username}</span>
           </div>
         </Link>
       </div>
 
+      {/* Reason pill */}
       {personState.reason.label && (
-        <div className="reason-row">
-          <span className="reason" title={personState.reason.label}>{personState.reason.label}</span>
+        <div className="flex min-w-0 items-center">
+          <span
+            className="inline-flex max-w-full items-center truncate rounded-full border border-orange-500/20 bg-orange-500/[0.06] px-2.5 py-1 text-[10px] font-bold leading-tight text-[#d99874]"
+            title={personState.reason.label}
+          >
+            {personState.reason.label}
+          </span>
         </div>
       )}
 
       {/* Row 2: bio */}
       {bioText && (
-        <p className="bio">{bioText}</p>
+        <p className="m-0 line-clamp-2 text-[12.5px] leading-relaxed text-muted-foreground">
+          {bioText}
+        </p>
       )}
 
       {/* Row 3: meta + signals */}
-      <div className="meta-row">
-        <span className="meta-item">
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="inline-flex items-center gap-1 text-[11px] text-[#505870]">
           <Users size={11} />
           {followersCount}
         </span>
         {personState.follows_you && (
-          <span className="signal follows-you">Follows you</span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-orange-500/20 bg-orange-500/[0.06] px-1.5 py-0.5 text-[10px] font-semibold text-[#d4a76a]">
+            Follows you
+          </span>
         )}
         {personState.shared_interest_count > 0 && (
-          <span className="signal shared-interest">
+          <span className="inline-flex items-center gap-1 rounded-full border border-purple-500/20 bg-purple-500/[0.06] px-1.5 py-0.5 text-[10px] font-semibold text-[#a9a3f5]">
             <Sparkles size={10} />
             {personState.shared_interest_count} shared
           </span>
         )}
         {personState.shared_interest_count === 0 && personState.mutual_follow_count > 0 && (
-          <span className="signal mutuals">{personState.mutual_follow_count} mutual</span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-green-400/18 bg-green-400/[0.05] px-1.5 py-0.5 text-[10px] font-semibold text-[#72ceaa]">
+            {personState.mutual_follow_count} mutual
+          </span>
         )}
       </div>
 
       {/* Row 4: actions */}
-      <div className="actions">
+      <div className="flex gap-2 [&>*]:flex-1 [&_button]:h-8 [&_button]:min-h-8 [&_button]:justify-center [&_button]:px-2.5 [&_button]:py-1.5 [&_button]:text-xs">
         <FollowButton
           userId={personState.id}
           initialFollowing={personState.is_following}
@@ -123,172 +146,6 @@ export default function PeopleCard({ person, onRelationshipChange }: PeopleCardP
           }}
         />
       </div>
-
-      <style jsx>{`
-        .card {
-          display: grid;
-          gap: 10px;
-          padding: 14px 16px;
-          border-radius: 16px;
-          border: 1px solid rgba(30, 34, 53, 0.9);
-          background: #0d1120;
-          transition: border-color 0.15s, background 0.15s;
-        }
-        .card:hover {
-          border-color: #252d48;
-          background: #101525;
-        }
-
-        /* Row 1 */
-        .row-top {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          min-width: 0;
-        }
-        .profile-link {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          text-decoration: none;
-          min-width: 0;
-          flex: 1;
-        }
-        .avatar {
-          display: grid;
-          place-items: center;
-          width: 42px;
-          height: 42px;
-          border-radius: 12px;
-          color: #fff;
-          font-size: 14px;
-          font-weight: 700;
-          flex-shrink: 0;
-        }
-        .identity {
-          min-width: 0;
-          display: grid;
-          gap: 1px;
-        }
-        .name-row {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          flex-wrap: wrap;
-        }
-        .name {
-          color: #dde4f5;
-          font-size: 14px;
-          font-weight: 700;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          transition: color 0.15s;
-        }
-        .profile-link:hover .name { color: #fff; }
-        .role {
-          border: 1px solid rgba(124, 115, 240, 0.28);
-          background: rgba(124, 115, 240, 0.12);
-          color: #c9c1ff;
-          padding: 1px 6px;
-          border-radius: 999px;
-          font-size: 9px;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-        }
-        .username {
-          color: #5e6a8a;
-          font-size: 12px;
-        }
-        .reason-row {
-          display: flex;
-          align-items: center;
-          min-width: 0;
-        }
-        .reason {
-          display: inline-flex;
-          align-items: center;
-          max-width: 100%;
-          border: 1px solid rgba(240, 131, 74, 0.2);
-          background: rgba(240, 131, 74, 0.06);
-          color: #d99874;
-          padding: 4px 9px;
-          border-radius: 999px;
-          font-size: 10px;
-          font-weight: 700;
-          line-height: 1.2;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        /* Row 2: bio */
-        .bio {
-          margin: 0;
-          color: #8a96b5;
-          font-size: 12.5px;
-          line-height: 1.5;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-
-        /* Row 3: meta + signals */
-        .meta-row {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
-          gap: 6px;
-        }
-        .meta-item {
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          color: #505870;
-          font-size: 11px;
-        }
-        .signal {
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          border-radius: 999px;
-          padding: 2px 7px;
-          font-size: 10px;
-          font-weight: 600;
-          border: 1px solid;
-        }
-        .follows-you {
-          color: #d4a76a;
-          border-color: rgba(240, 131, 74, 0.2);
-          background: rgba(240, 131, 74, 0.06);
-        }
-        .shared-interest {
-          color: #a9a3f5;
-          border-color: rgba(124, 115, 240, 0.2);
-          background: rgba(124, 115, 240, 0.06);
-        }
-        .mutuals {
-          color: #72ceaa;
-          border-color: rgba(61, 214, 140, 0.18);
-          background: rgba(61, 214, 140, 0.05);
-        }
-
-        /* Row 4: actions */
-        .actions {
-          display: flex;
-          gap: 8px;
-        }
-        .actions :global(button) {
-          flex: 1;
-          justify-content: center;
-          font-size: 12px !important;
-          padding: 6px 10px !important;
-          min-height: 32px !important;
-          height: 32px !important;
-        }
-      `}</style>
     </article>
   );
 }
