@@ -60,13 +60,13 @@ function Avatar({ src, name, size, status, className }: AvatarProps) {
   return (
     <span
       role="img"
-      aria-label={name}
+      aria-label={status ? `${name} (${status})` : name}
       className={cn(avatarVariants({ size }), className)}
     >
       {src && !imgError ? (
         <img
           src={src}
-          alt={name}
+          alt=""
           className="size-full object-cover"
           onError={() => setImgError(true)}
         />
@@ -74,7 +74,7 @@ function Avatar({ src, name, size, status, className }: AvatarProps) {
         <span>{getInitials(name)}</span>
       )}
       {status && (
-        <span className={cn(statusDot({ status, size }))} aria-label={`${status}`} />
+        <span className={cn(statusDot({ status, size }))} />
       )}
     </span>
   )
