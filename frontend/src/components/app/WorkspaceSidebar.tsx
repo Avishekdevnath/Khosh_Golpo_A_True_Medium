@@ -12,6 +12,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useMessageUnreadCount } from "@/hooks/useMessages";
 import { profilePathFromUsername } from "@/lib/profileRouting";
 import { avatarSeed, initials } from "@/lib/workspaceUtils";
+import { cn } from "@/lib/utils";
 
 type WorkspaceSidebarProps = {
   channels?: Channel[];
@@ -110,6 +111,19 @@ export default function WorkspaceSidebar({
 
   const allChannelActive = activeChannelSlug === "all";
 
+  // Shared nav-item class builder
+  const navItemCls = (active: boolean) =>
+    cn(
+      "border-0 border-l-2 border-l-transparent bg-transparent rounded-lg",
+      "h-9 mx-2 px-3 flex items-center gap-2.5",
+      "text-[13px] font-medium font-sans cursor-pointer transition-all duration-150",
+      "text-muted-foreground",
+      "hover:text-foreground hover:bg-card-hover",
+      active && "text-primary bg-[rgba(14,165,233,0.10)] border-l-primary",
+    );
+
+  const badgeCls = "ml-auto bg-primary text-white rounded-full text-[10px] font-semibold px-1.5 h-[18px] min-w-[18px] inline-flex items-center justify-center text-center";
+
   function renderNavItems(items: typeof mainItems) {
     return items.map(item => {
       const Icon = item.icon;
@@ -117,12 +131,12 @@ export default function WorkspaceSidebar({
         <button
           key={item.label}
           type="button"
-          className={`nav-item ${isActive(item.href) ? "active" : ""}`}
+          className={navItemCls(isActive(item.href))}
           onClick={() => navigate(item.href)}
         >
           <Icon size={18} />
           <span>{item.label}</span>
-          {item.badge && <span className="badge">{item.badge}</span>}
+          {item.badge && <span className={badgeCls}>{item.badge}</span>}
         </button>
       );
     });
@@ -130,51 +144,105 @@ export default function WorkspaceSidebar({
 
   return (
     <>
-      {mobileOpen && <button type="button" className="mob-backdrop" aria-label="Close menu" onClick={() => setMobileOpen(false)} />}
+      {/* Mobile backdrop */}
+      {mobileOpen && (
+        <button
+          type="button"
+          className="hidden max-[859px]:block fixed inset-0 border-0 bg-black/40 z-[39]"
+          aria-label="Close menu"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
 
-      <aside className={`sidebar ${mobileOpen ? "open" : ""}`}>
-        <button className="brand" type="button" onClick={() => navigate("/")}>
-          <span className="brand-icon">K</span>
-          <span className="brand-name">KhoshGolpo</span>
+      <aside
+        className={cn(
+          // Base layout
+          "sticky top-0 h-screen w-[240px] bg-card border-r border-border z-30 p-0 flex flex-col overflow-hidden",
+          // Mobile drawer
+          "max-[859px]:fixed max-[859px]:left-0 max-[859px]:top-0 max-[859px]:bottom-0 max-[859px]:w-[240px] max-[859px]:z-40",
+          "max-[859px]:-translate-x-full max-[859px]:transition-transform max-[859px]:duration-[180ms] max-[859px]:ease-in",
+          mobileOpen && "max-[859px]:translate-x-0 max-[859px]:duration-[250ms] max-[859px]:ease-out",
+          // Desktop: sticky
+          "min-[860px]:sticky min-[860px]:translate-x-0",
+        )}
+      >
+        {/* Brand */}
+        <button
+          className="border-0 bg-transparent text-foreground flex items-center gap-2.5 px-4 h-[52px] cursor-pointer text-left shrink-0"
+          type="button"
+          onClick={() => navigate("/")}
+        >
+          <span className="w-7 h-7 rounded-lg bg-primary grid place-items-center text-white font-serif font-bold text-[15px] shrink-0">
+            K
+          </span>
+          <span className="font-serif text-base font-bold">KhoshGolpo</span>
         </button>
 
-        <div className="sec-label">MAIN</div>
-        <div className="main-nav">
+        {/* MAIN */}
+        <div className="text-[11px] tracking-[0.06em] uppercase text-muted-foreground px-4 pt-6 pb-2 font-bold shrink-0">
+          MAIN
+        </div>
+        <div className="grid gap-0.5 mb-1 shrink-0">
           {renderNavItems(mainItems)}
         </div>
 
-        <div className="sec-label">YOU</div>
-        <div className="main-nav">
+        {/* YOU */}
+        <div className="text-[11px] tracking-[0.06em] uppercase text-muted-foreground px-4 pt-6 pb-2 font-bold shrink-0">
+          YOU
+        </div>
+        <div className="grid gap-0.5 mb-1 shrink-0">
           {renderNavItems(youItems)}
         </div>
 
+        {/* ADMIN */}
         {adminItems.length > 0 && (
           <>
-            <div className="sec-label">ADMIN</div>
-            <div className="main-nav">
+            <div className="text-[11px] tracking-[0.06em] uppercase text-muted-foreground px-4 pt-6 pb-2 font-bold shrink-0">
+              ADMIN
+            </div>
+            <div className="grid gap-0.5 mb-1 shrink-0">
               {renderNavItems(adminItems)}
             </div>
           </>
         )}
 
+        {/* Extra section */}
         {extraSection && (
           <>
-            <div className="sec-label" style={{ marginTop: 4 }}>{extraSectionTitle ?? "Sections"}</div>
-            <div className={`extra-section kg-scroll kg-scroll--sm kg-scroll--subtle ${hideChannels ? "fill" : ""}`}>{extraSection}</div>
+            <div className="text-[11px] tracking-[0.06em] uppercase text-muted-foreground px-4 pt-6 pb-2 font-bold shrink-0" style={{ marginTop: 4 }}>
+              {extraSectionTitle ?? "Sections"}
+            </div>
+            <div
+              className={cn(
+                "grid gap-0.5 mb-3 max-h-[42vh] overflow-y-auto min-h-0",
+                hideChannels && "flex-1 max-h-none mb-0 content-start",
+              )}
+            >
+              {extraSection}
+            </div>
           </>
         )}
 
+        {/* Channels */}
         {!hideChannels && (
           <>
-            <div className="sec-label" style={{ marginTop: 4 }}>Channels</div>
-            <div className="channels kg-scroll kg-scroll--sm kg-scroll--subtle">
+            <div className="text-[11px] tracking-[0.06em] uppercase text-muted-foreground px-4 pt-6 pb-2 font-bold shrink-0" style={{ marginTop: 4 }}>
+              Channels
+            </div>
+            <div className="flex-1 overflow-y-auto grid gap-0.5 pr-0.5 min-h-0 content-start">
               {showAllChannelsOption && onChannelSelect && (
                 <button
                   type="button"
-                  className={`channel ${allChannelActive ? "active" : ""}`}
+                  className={cn(
+                    "border-0 border-l-2 border-l-transparent bg-transparent rounded-[7px]",
+                    "py-[7px] px-2.5 flex items-center gap-2 text-[12px] text-left cursor-pointer",
+                    "font-sans transition-all duration-150 text-muted-foreground",
+                    "hover:text-foreground hover:bg-secondary",
+                    allChannelActive && "text-[#818CF8] border-l-[#818CF8] bg-[rgba(129,140,248,0.12)]",
+                  )}
                   onClick={() => handleChannelClick("all")}
                 >
-                  <span className="dot" style={{ background: "#818CF8" }} />
+                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "#818CF8" }} />
                   <span>#all channels</span>
                 </button>
               )}
@@ -182,10 +250,16 @@ export default function WorkspaceSidebar({
                 <button
                   key={ch.slug}
                   type="button"
-                  className={`channel ${activeChannelSlug === ch.slug ? "active" : ""}`}
+                  className={cn(
+                    "border-0 border-l-2 border-l-transparent bg-transparent rounded-[7px]",
+                    "py-[7px] px-2.5 flex items-center gap-2 text-[12px] text-left cursor-pointer",
+                    "font-sans transition-all duration-150 text-muted-foreground",
+                    "hover:text-foreground hover:bg-secondary",
+                    activeChannelSlug === ch.slug && "text-[#818CF8] border-l-[#818CF8] bg-[rgba(129,140,248,0.12)]",
+                  )}
                   onClick={() => handleChannelClick(ch.slug)}
                 >
-                  <span className="dot" style={{ background: ch.color }} />
+                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: ch.color }} />
                   <span>#{ch.name.toLowerCase()}</span>
                 </button>
               ))}
@@ -193,335 +267,71 @@ export default function WorkspaceSidebar({
           </>
         )}
 
-        <div className="sb-user-wrap" ref={userMenuRef}>
+        {/* User footer */}
+        <div className="relative mt-auto pt-3 px-4 pb-3 border-t border-border shrink-0" ref={userMenuRef}>
+          {/* User menu popup */}
           {userMenuOpen && user && (
-            <div className="user-menu">
-              <button type="button" className="menu-item" onClick={() => { setUserMenuOpen(false); navigate(profilePath); }}>
+            <div className="absolute bottom-full left-0 right-0 mb-1.5 bg-secondary border border-border rounded-[10px] p-1 shadow-[0_8px_24px_rgba(0,0,0,0.45)] z-10 animate-[menuSlide_0.12s_ease]">
+              <button
+                type="button"
+                className="w-full border-0 bg-transparent text-foreground flex items-center gap-2 px-2.5 py-2 rounded-[7px] text-[13px] cursor-pointer transition-all duration-[120ms] font-sans hover:bg-border"
+                onClick={() => { setUserMenuOpen(false); navigate(profilePath); }}
+              >
                 <UserRound size={14} /> Profile
               </button>
-              <button type="button" className="menu-item" onClick={() => { setUserMenuOpen(false); navigate("/settings"); }}>
+              <button
+                type="button"
+                className="w-full border-0 bg-transparent text-foreground flex items-center gap-2 px-2.5 py-2 rounded-[7px] text-[13px] cursor-pointer transition-all duration-[120ms] font-sans hover:bg-border"
+                onClick={() => { setUserMenuOpen(false); navigate("/settings"); }}
+              >
                 <Settings size={14} /> Settings
               </button>
-              <div className="menu-sep" />
-              <button type="button" className="menu-item logout" onClick={async () => { setUserMenuOpen(false); await logout(); router.push("/login"); }}>
+              <div className="h-px bg-border my-0.5 mx-1.5" />
+              <button
+                type="button"
+                className="w-full border-0 bg-transparent text-red-500 flex items-center gap-2 px-2.5 py-2 rounded-[7px] text-[13px] cursor-pointer transition-all duration-[120ms] font-sans hover:bg-[rgba(239,68,68,0.12)] hover:text-red-500"
+                onClick={async () => { setUserMenuOpen(false); await logout(); router.push("/login"); }}
+              >
                 <LogOut size={14} /> Log out
               </button>
             </div>
           )}
-          <button type="button" className="sb-user" onClick={() => user && setUserMenuOpen(v => !v)}>
-            <div className="sb-avatar" style={{ background: `linear-gradient(135deg,${av1},${av2})` }}>
+
+          {/* User row */}
+          <button
+            type="button"
+            className="flex items-center gap-2.5 w-full border-0 bg-transparent px-1 py-1 rounded-lg cursor-pointer transition-colors duration-150 font-sans text-inherit text-left hover:bg-card-hover"
+            onClick={() => user && setUserMenuOpen(v => !v)}
+          >
+            <div
+              className="w-8 h-8 rounded-full grid place-items-center text-[11px] font-bold text-white shrink-0 relative"
+              style={{ background: `linear-gradient(135deg,${av1},${av2})` }}
+            >
               {initials(sidebarName)}
             </div>
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div className="sb-name">{sidebarName}</div>
-              <div className="sb-status">
+              <div className="text-[13px] font-semibold whitespace-nowrap overflow-hidden text-ellipsis">
+                {sidebarName}
+              </div>
+              <div className="text-[11px] text-muted-foreground flex items-center">
                 {user
-                  ? <><span className="online-dot" />Online</>
+                  ? <><span className="w-2 h-2 rounded-full bg-success border-2 border-white mr-[5px] shrink-0" />Online</>
                   : <Link href="/login" style={{ color: "#0EA5E9", textDecoration: "none", fontWeight: 600 }}>Sign in</Link>}
               </div>
             </div>
-            {user && <ChevronUp size={14} className="sb-chevron" style={{ color: "var(--muted, #9ba3be)", transform: userMenuOpen ? "rotate(0)" : "rotate(180deg)", transition: "transform 0.15s" }} />}
+            {user && (
+              <ChevronUp
+                size={14}
+                style={{
+                  color: "var(--muted, #9ba3be)",
+                  transform: userMenuOpen ? "rotate(0)" : "rotate(180deg)",
+                  transition: "transform 0.15s",
+                }}
+              />
+            )}
           </button>
         </div>
       </aside>
-
-      <style jsx>{`
-        .mob-backdrop {
-          display: none;
-        }
-
-        .sidebar {
-          position: sticky;
-          top: 0;
-          height: 100vh;
-          width: 240px;
-          background: var(--app-sidebar, #0a0c14);
-          border-right: 1px solid var(--app-border, #1c1f2e);
-          z-index: 30;
-          padding: 0;
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
-        }
-        .brand {
-          border: none;
-          background: transparent;
-          color: var(--text, #e4e8f4);
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 16px;
-          height: 52px;
-          cursor: pointer;
-          text-align: left;
-          flex-shrink: 0;
-        }
-        .brand-icon {
-          width: 28px;
-          height: 28px;
-          border-radius: 8px;
-          background: #0EA5E9;
-          display: grid;
-          place-items: center;
-          color: #fff;
-          font-family: var(--serif), serif;
-          font-weight: 700;
-          font-size: 15px;
-          flex-shrink: 0;
-        }
-        .brand-name { font-family: var(--serif), serif; font-size: 16px; font-weight: 700; }
-        .sec-label {
-          font-size: 11px;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-          color: var(--muted, #9ba3be);
-          padding: 24px 16px 8px 16px;
-          font-weight: 700;
-          flex-shrink: 0;
-        }
-        .main-nav { display: grid; gap: 2px; margin-bottom: 4px; flex-shrink: 0; }
-        .nav-item {
-          border: none;
-          border-left: 2px solid transparent;
-          background: transparent;
-          color: var(--muted, #9ba3be);
-          border-radius: 8px;
-          height: 36px;
-          margin: 0 8px;
-          padding: 0 12px;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          font-size: 13px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.15s;
-          font-family: var(--sans), sans-serif;
-        }
-        .nav-item:hover { color: var(--text, #e4e8f4); background: var(--app-card-hover, #181b27); }
-        .nav-item.active { color: #0EA5E9; background: rgba(14,165,233,0.10); border-left-color: #0EA5E9; }
-        .badge {
-          margin-left: auto;
-          background: #0EA5E9;
-          color: #fff;
-          border-radius: 999px;
-          font-size: 10px;
-          font-weight: 600;
-          padding: 1px 6px;
-          min-width: 18px;
-          height: 18px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          text-align: center;
-        }
-        .channels {
-          flex: 1;
-          overflow-y: auto;
-          display: grid;
-          gap: 2px;
-          padding-right: 2px;
-          min-height: 0;
-          align-content: start;
-        }
-        .extra-section {
-          display: grid;
-          gap: 2px;
-          margin-bottom: 12px;
-          max-height: 42vh;
-          overflow-y: auto;
-          min-height: 0;
-        }
-        .extra-section.fill {
-          flex: 1;
-          max-height: none;
-          margin-bottom: 0;
-          align-content: start;
-        }
-        .extra-section :global(.extra-item) {
-          border: none;
-          border-left: 2px solid transparent;
-          background: transparent;
-          color: var(--muted, #9ba3be);
-          border-radius: 8px;
-          height: 36px;
-          margin: 0 8px;
-          padding: 0 12px;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          width: calc(100% - 16px);
-          font-size: 13px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.15s;
-          font-family: var(--sans), sans-serif;
-          text-align: left;
-        }
-        .extra-section :global(.extra-item:hover) {
-          color: var(--text, #e4e8f4);
-          background: var(--app-card-hover, #181b27);
-        }
-        .extra-section :global(.extra-item.active) {
-          color: #0EA5E9;
-          border-left-color: #0EA5E9;
-          background: rgba(14,165,233,0.10);
-        }
-        .extra-section :global(.extra-badge) {
-          margin-left: auto;
-          background: #1d2334;
-          color: var(--muted, #9ba3be);
-          border-radius: 999px;
-          font-size: 10px;
-          font-weight: 700;
-          padding: 1px 6px;
-          min-width: 18px;
-          text-align: center;
-        }
-        .extra-section :global(.extra-badge.warn) {
-          color: #fca5a5;
-          background: rgba(239,68,68,0.15);
-        }
-        .channel {
-          border: none;
-          border-left: 2px solid transparent;
-          background: transparent;
-          color: var(--muted, #9ba3be);
-          border-radius: 7px;
-          padding: 7px 10px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 12px;
-          text-align: left;
-          cursor: pointer;
-          transition: all 0.15s;
-          font-family: var(--sans), sans-serif;
-        }
-        .channel:hover { color: var(--text, #e4e8f4); background: var(--app-input, #151821); }
-        .channel.active { color: #818CF8; border-left-color: #818CF8; background: rgba(129,140,248,0.12); }
-        .dot { width: 6px; height: 6px; border-radius: 999px; flex-shrink: 0; }
-        .sb-user-wrap {
-          position: relative;
-          margin-top: auto;
-          padding: 12px 16px;
-          border-top: 1px solid var(--app-border, #1c1f2e);
-          flex-shrink: 0;
-        }
-        .sb-user {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          width: 100%;
-          border: none;
-          background: transparent;
-          padding: 4px 4px;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: background 0.15s;
-          font-family: var(--sans), sans-serif;
-          color: inherit;
-          text-align: left;
-        }
-        .sb-user:hover { background: var(--app-card-hover, #181b27); }
-        .user-menu {
-          position: absolute;
-          bottom: 100%;
-          left: 0;
-          right: 0;
-          margin-bottom: 6px;
-          background: var(--app-input, #151821);
-          border: 1px solid var(--app-border, #1c1f2e);
-          border-radius: 10px;
-          padding: 4px;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.45);
-          z-index: 10;
-          animation: menuSlide 0.12s ease;
-        }
-        @keyframes menuSlide {
-          from { opacity: 0; transform: translateY(4px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .menu-item {
-          width: 100%;
-          border: none;
-          background: transparent;
-          color: var(--text, #e4e8f4);
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px 10px;
-          border-radius: 7px;
-          font-size: 13px;
-          cursor: pointer;
-          transition: all 0.12s;
-          font-family: var(--sans), sans-serif;
-        }
-        .menu-item:hover { background: var(--app-border, #1c1f2e); color: var(--text, #e4e8f4); }
-        .menu-item.logout { color: #ef4444; }
-        .menu-item.logout:hover { background: rgba(239,68,68,0.12); color: #ef4444; }
-        .menu-sep { height: 1px; background: var(--app-border, #1c1f2e); margin: 2px 6px; }
-        .sb-avatar {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          display: grid;
-          place-items: center;
-          font-size: 11px;
-          font-weight: 700;
-          color: #fff;
-          flex-shrink: 0;
-          position: relative;
-        }
-        .sb-name {
-          font-size: 13px;
-          font-weight: 600;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .sb-status { font-size: 11px; color: var(--muted, #9ba3be); display: flex; align-items: center; }
-        .online-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: #3dd68c;
-          border: 2px solid #fff;
-          margin-right: 5px;
-          flex-shrink: 0;
-        }
-
-        @media (max-width: 859px) {
-          .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 240px;
-            transform: translateX(-100%);
-            transition: transform 180ms ease-in;
-            z-index: 40;
-          }
-          .sidebar.open {
-            transform: translateX(0);
-            transition: transform 250ms ease-out;
-          }
-          .mob-backdrop {
-            display: block;
-            position: fixed;
-            inset: 0;
-            border: none;
-            background: rgba(0,0,0,0.4);
-            z-index: 39;
-          }
-        }
-
-        @media (min-width: 860px) {
-          .sidebar {
-            position: sticky;
-          }
-        }
-      `}</style>
     </>
   );
 }
