@@ -55,252 +55,132 @@ export default function AppNavbar() {
   }
 
   return (
-    <>
-      <header className="app-header">
-        {/* Left zone */}
-        <button type="button" className="hamburger" onClick={handleHamburger} aria-label="Toggle sidebar">
-          <Menu size={20} />
-        </button>
-        <div className="section-name-wrap">
-          {isThreadDetail ? (
-            <>
-              <Link href="/threads" className="section-link">Threads</Link>
-              <span className="breadcrumb-sep">/</span>
-              <span className="section-name">Detail</span>
-            </>
-          ) : (
-            <span className="section-name">{sectionName}</span>
-          )}
-        </div>
+    <header
+      className={[
+        "flex items-center gap-4 px-5 z-20 sticky top-0",
+        "h-[60px] max-[859px]:h-[52px] max-[859px]:px-3",
+        "bg-[rgba(6,8,16,0.85)] dark:bg-[rgba(6,8,16,0.85)]",
+        "backdrop-blur-[12px]",
+        "border-b border-border",
+      ].join(" ")}
+    >
+      {/* Hamburger — hidden on desktop, shown on mobile */}
+      <button
+        type="button"
+        onClick={handleHamburger}
+        aria-label="Toggle sidebar"
+        className="hidden max-[859px]:grid place-items-center w-9 h-9 border-0 bg-transparent text-foreground cursor-pointer rounded-lg hover:bg-card-hover transition-colors"
+      >
+        <Menu size={20} />
+      </button>
 
-        {/* Center zone — search */}
-        {showSearch && (
-          <div className="header-search">
-            <div className="search-input-wrap">
-              <Search size={14} className="search-icon" />
-              <input
-                type="text"
-                className="search-input"
-                placeholder="Search threads..."
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-              />
-            </div>
-          </div>
-        )}
-        {!showSearch && <div className="header-search" />}
-
-        {/* Right zone */}
-        <div className="header-actions">
-          {showNewThread && (
-            <Link href="/threads/new" className="new-thread-btn">
-              <Plus size={14} />
-              <span>New Thread</span>
+      {/* Section name / breadcrumb */}
+      <div className="flex items-center gap-2 whitespace-nowrap">
+        {isThreadDetail ? (
+          <>
+            <Link
+              href="/threads"
+              className="font-serif text-base font-bold text-muted-foreground no-underline transition-colors hover:text-foreground"
+            >
+              Threads
             </Link>
-          )}
+            <span className="text-muted-foreground text-sm">/</span>
+            <span className="font-serif text-base font-bold text-foreground whitespace-nowrap">Detail</span>
+          </>
+        ) : (
+          <span className="font-serif text-base font-bold text-foreground whitespace-nowrap">{sectionName}</span>
+        )}
+      </div>
 
-          <ThemeToggle />
-
-          <Link href="/notifications" className="icon-btn" aria-label="Notifications">
-            <Bell size={16} />
-            {unreadCount > 0 && <span className="notif-dot" />}
-          </Link>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="avatar-btn"
-                style={{ background: `linear-gradient(135deg,${av1},${av2})` }}
-              >
-                {initials(displayName)}
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem asChild>
-                <Link href={profilePath}>
-                  <UserRound size={14} style={{ marginRight: 8 }} /> Profile
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/settings">
-                  <Settings size={14} style={{ marginRight: 8 }} /> Settings
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-red-400">
-                <LogOut size={14} style={{ marginRight: 8 }} /> Sign out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+      {/* Center zone — search */}
+      {showSearch ? (
+        <div className="flex-1 flex justify-center max-[859px]:hidden">
+          <div className="relative w-full max-w-[320px]">
+            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search threads..."
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              className={[
+                "w-full h-8 rounded-lg text-[13px] font-sans",
+                "bg-secondary border border-border text-foreground",
+                "pl-8 pr-3",
+                "outline-none transition-[border,box-shadow] duration-200",
+                "focus:border-primary focus:shadow-[0_0_0_2px_rgba(14,165,233,0.15)]",
+              ].join(" ")}
+            />
+          </div>
         </div>
-      </header>
+      ) : (
+        <div className="flex-1" />
+      )}
 
-      <style jsx>{`
-        .app-header {
-          height: 60px;
-          background: var(--app-header, rgba(6, 8, 16, 0.85));
-          backdrop-filter: blur(12px);
-          border-bottom: 1px solid var(--app-border, #1c1f2e);
-          display: flex;
-          align-items: center;
-          padding: 0 20px;
-          z-index: 20;
-          position: sticky;
-          top: 0;
-          gap: 16px;
-        }
-        .section-name-wrap {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          white-space: nowrap;
-        }
-        .section-name {
-          font-family: var(--serif);
-          font-size: 16px;
-          font-weight: 700;
-          color: var(--text, #e4e8f4);
-          white-space: nowrap;
-        }
-        .section-link {
-          font-family: var(--serif);
-          font-size: 16px;
-          font-weight: 700;
-          color: var(--muted, #9ba3be);
-          text-decoration: none;
-          transition: color 0.15s;
-        }
-        .section-link:hover {
-          color: var(--text, #e4e8f4);
-        }
-        .breadcrumb-sep {
-          color: var(--muted, #9ba3be);
-          font-size: 14px;
-        }
-        .header-search {
-          flex: 1;
-          display: flex;
-          justify-content: center;
-        }
-        .search-input-wrap {
-          position: relative;
-          max-width: 320px;
-          width: 100%;
-        }
-        .search-input {
-          width: 100%;
-          height: 32px;
-          border-radius: 8px;
-          background: var(--app-input, #151821);
-          border: 1px solid var(--app-border, #1c1f2e);
-          color: var(--text, #e4e8f4);
-          font-size: 13px;
-          padding: 0 12px 0 32px;
-          font-family: var(--sans);
-          outline: none;
-          transition: border 0.2s, box-shadow 0.2s;
-        }
-        .search-input:focus {
-          border-color: #0EA5E9;
-          box-shadow: 0 0 0 2px rgba(14,165,233,0.15);
-        }
-        .header-actions {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-left: auto;
-        }
-        .icon-btn {
-          width: 32px;
-          height: 32px;
-          border-radius: 8px;
-          border: none;
-          background: transparent;
-          color: var(--muted, #9ba3be);
-          display: grid;
-          place-items: center;
-          cursor: pointer;
-          position: relative;
-          transition: all 0.2s;
-          text-decoration: none;
-        }
-        .icon-btn:hover {
-          color: var(--text, #e4e8f4);
-          background: var(--app-card-hover, #181b27);
-        }
-        .notif-dot {
-          position: absolute;
-          top: 4px;
-          right: 4px;
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: #0EA5E9;
-          border: 2px solid var(--app-header, rgba(6,8,16,0.85));
-        }
-        .new-thread-btn {
-          height: 32px;
-          padding: 0 14px;
-          border-radius: 8px;
-          border: none;
-          background: #0EA5E9;
-          color: #fff;
-          font-size: 13px;
-          font-weight: 600;
-          font-family: var(--sans);
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          transition: background 0.2s;
-          text-decoration: none;
-        }
-        .new-thread-btn:hover {
-          background: #38BDF8;
-        }
-        .avatar-btn {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          border: none;
-          display: grid;
-          place-items: center;
-          font-size: 11px;
-          font-weight: 700;
-          color: #fff;
-          cursor: pointer;
-        }
-        .hamburger {
-          display: none;
-        }
-        @media (max-width: 859px) {
-          .app-header {
-            height: 52px;
-            padding: 0 12px;
-          }
-          .hamburger {
-            display: grid;
-            place-items: center;
-            width: 36px;
-            height: 36px;
-            border: none;
-            background: transparent;
-            color: var(--text, #e4e8f4);
-            cursor: pointer;
-            border-radius: 8px;
-          }
-          .hamburger:hover {
-            background: var(--app-card-hover, #181b27);
-          }
-          .header-search {
-            display: none;
-          }
-          .new-thread-btn :global(span) {
-            display: none;
-          }
-        }
-      `}</style>
-    </>
+      {/* Right zone */}
+      <div className="flex items-center gap-2 ml-auto">
+        {showNewThread && (
+          <Link
+            href="/threads/new"
+            className={[
+              "h-8 px-[14px] rounded-lg no-underline",
+              "bg-primary text-white text-[13px] font-semibold font-sans",
+              "flex items-center gap-1.5 transition-colors duration-200",
+              "hover:bg-[#38BDF8]",
+            ].join(" ")}
+          >
+            <Plus size={14} />
+            <span className="max-[859px]:hidden">New Thread</span>
+          </Link>
+        )}
+
+        <ThemeToggle />
+
+        <Link
+          href="/notifications"
+          aria-label="Notifications"
+          className={[
+            "w-8 h-8 rounded-lg grid place-items-center no-underline relative",
+            "text-muted-foreground transition-all duration-200",
+            "hover:text-foreground hover:bg-card-hover",
+          ].join(" ")}
+        >
+          <Bell size={16} />
+          {unreadCount > 0 && (
+            <span
+              className="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary border-2 border-[rgba(6,8,16,0.85)]"
+              aria-hidden="true"
+            />
+          )}
+        </Link>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="w-8 h-8 rounded-full border-0 grid place-items-center text-[11px] font-bold text-white cursor-pointer"
+              style={{ background: `linear-gradient(135deg,${av1},${av2})` }}
+            >
+              {initials(displayName)}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-44">
+            <DropdownMenuItem asChild>
+              <Link href={profilePath}>
+                <UserRound size={14} style={{ marginRight: 8 }} /> Profile
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/settings">
+                <Settings size={14} style={{ marginRight: 8 }} /> Settings
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="text-red-400">
+              <LogOut size={14} style={{ marginRight: 8 }} /> Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </header>
   );
 }
