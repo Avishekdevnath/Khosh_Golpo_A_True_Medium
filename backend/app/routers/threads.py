@@ -9,6 +9,9 @@ from app.models.notification import Notification, NotificationType
 from app.models.thread import Thread
 from app.models.thread import ThreadStatus
 from app.models.user import User, UserRole
+from app.models.saved_thread import SavedThread
+from app.models.read_history import ReadHistory
+from app.models.common import utc_now
 from app.schemas.post import PostCreate, PostOut, PostTreeListResponse, PostTreeNode
 from app.schemas.thread import ThreadCreate, ThreadListResponse, ThreadOut, ThreadUpdate, ReportRequest
 from app.models.audit_log import AuditSeverity
@@ -407,6 +410,34 @@ async def toggle_thread_like(
     return {"liked": liked, "like_count": len(thread.likes)}
 
 
+@router.post("/{thread_id}/mark-read", status_code=status.HTTP_200_OK)
+async def mark_thread_read(
+    thread_id: str,
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    try:
+        tid = PydanticObjectId(thread_id)
+    except Exception:
+        return {"ok": True}  # fire-and-forget: never error the client
+
+    now = utc_now()
+    await ReadHistory.get_motor_collection().update_one(
+        {"user_id": current_user.id, "thread_id": tid},
+        {"$set": {"read_at": now}},
+        upsert=True,
+    )
+
+    # Best-effort cap: keep only 100 most recent per user
+    recent = await ReadHistory.find(
+        {"user_id": current_user.id}
+    ).sort("-read_at").skip(100).to_list()
+    if recent:
+        ids_to_delete = [r.id for r in recent]
+        await ReadHistory.find({"_id": {"$in": ids_to_delete}}).delete()
+
+    return {"ok": True}
+
+
 @router.post("/{thread_id}/posts/{post_id}/like", status_code=status.HTTP_200_OK)
 async def toggle_post_like(
     thread_id: str,
@@ -428,6 +459,43 @@ async def toggle_post_like(
         liked = True
     await post.save()
     return {"liked": liked, "like_count": len(post.likes)}
+
+
+@router.post("/{thread_id}/save", status_code=status.HTTP_200_OK)
+async def save_thread(
+    thread_id: str,
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    try:
+        tid = PydanticObjectId(thread_id)
+    except Exception:
+        raise HTTPException(status_code=422, detail="Invalid thread ID")
+
+    thread = await Thread.find_one({"_id": tid, "is_deleted": False})
+    if thread is None:
+        raise HTTPException(status_code=404, detail="Thread not found")
+
+    existing = await SavedThread.find_one({"user_id": current_user.id, "thread_id": tid})
+    if existing is None:
+        await SavedThread(user_id=current_user.id, thread_id=tid).insert()
+
+    return {"saved": True}
+
+
+@router.delete("/{thread_id}/save", status_code=status.HTTP_204_NO_CONTENT)
+async def unsave_thread(
+    thread_id: str,
+    current_user: User = Depends(get_current_user),
+) -> None:
+    try:
+        tid = PydanticObjectId(thread_id)
+    except Exception:
+        raise HTTPException(status_code=422, detail="Invalid thread ID")
+
+    existing = await SavedThread.find_one({"user_id": current_user.id, "thread_id": tid})
+    if existing is None:
+        raise HTTPException(status_code=404, detail="Not saved")
+    await existing.delete()
 
 
 @router.get("/{thread_id}/posts")
