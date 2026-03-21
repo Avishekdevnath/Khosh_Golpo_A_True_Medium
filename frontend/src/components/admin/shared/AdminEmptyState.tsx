@@ -8,30 +8,9 @@ type AdminEmptyStateProps = {
 
 export default function AdminEmptyState({ icon: Icon, text, color = "#636f8d" }: AdminEmptyStateProps) {
   return (
-    <>
-      <div className="empty-state">
-        <Icon size={32} style={{ color }} />
-        <p>{text}</p>
-      </div>
-      <style jsx>{`
-        .empty-state {
-          text-align: center;
-          padding: 48px 16px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 12px;
-          border: 1px dashed #2b3656;
-          border-radius: 14px;
-          background: rgba(16, 22, 36, 0.48);
-        }
-        .empty-state p {
-          color: #94a0c2;
-          font-size: 14px;
-          margin: 0;
-          max-width: 460px;
-        }
-      `}</style>
-    </>
+    <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-app-border bg-app-bg/50 px-4 py-12 text-center">
+      <Icon size={32} style={{ color }} />
+      <p className="m-0 max-w-[460px] text-sm text-muted-foreground">{text}</p>
+    </div>
   );
 }

@@ -26,6 +26,19 @@ function absoluteTime(value: string): string {
   return d.toLocaleString();
 }
 
+const statusChipCls: Record<string, string> = {
+  pending: "border-accent-orange/35 bg-accent-orange/16 text-orange-200",
+  approved: "border-accent-green/35 bg-accent-green/16 text-green-300",
+  rejected: "border-accent-red/35 bg-accent-red/16 text-red-300",
+};
+
+const tinyBtn = (variant: "neutral" | "ok" | "warn") => {
+  const base = "inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-[11px] cursor-pointer font-[inherit] disabled:opacity-50 disabled:cursor-not-allowed";
+  if (variant === "ok") return `${base} border-accent-green/35 bg-accent-green/16 text-green-300`;
+  if (variant === "warn") return `${base} border-accent-red/35 bg-accent-red/16 text-red-300`;
+  return `${base} border-accent-purple/28 bg-accent-purple/16 text-purple-200`;
+};
+
 export default function AppealsTab({
   appeals,
   total,
@@ -40,11 +53,16 @@ export default function AppealsTab({
   onViewThread,
 }: AppealsTabProps) {
   return (
-    <div className="appeals-shell">
-      <div className="toolbar">
+    <div className="flex h-full min-h-0 flex-col gap-2.5">
+      {/* Toolbar */}
+      <div className="shrink-0 pb-2">
         <AdminSectionHeader title="Moderation Appeals" countLabel={`${total} appeals • ${pendingCount} pending`} />
-        <div className="filter-row">
-          <select className="admin-select" value={statusFilter} onChange={e => onStatusChange(e.target.value as "" | AppealStatus)}>
+        <div className="flex flex-wrap gap-2">
+          <select
+            className="rounded-[10px] border border-app-border bg-app-input px-2.5 py-2 text-xs text-foreground font-[inherit] outline-none"
+            value={statusFilter}
+            onChange={e => onStatusChange(e.target.value as "" | AppealStatus)}
+          >
             <option value="">All statuses</option>
             <option value="pending">Pending</option>
             <option value="approved">Approved</option>
@@ -54,92 +72,85 @@ export default function AppealsTab({
       </div>
 
       <ScrollArea
-        className="results"
+        className="min-h-[120px]"
         size="lg"
         tone="strong"
         style={{ flex: 1, minHeight: 0, overflowY: "scroll", paddingRight: 6 }}
       >
         {loading ? (
-          <div className="center-msg">Loading appeals...</div>
+          <div className="py-8 text-center text-sm text-muted-foreground">Loading appeals...</div>
         ) : appeals.length === 0 ? (
           <AdminEmptyState icon={Check} text="No appeals found for this filter." color="#8ca6ff" />
         ) : (
-          <div className="appeal-list">
+          <div className="flex flex-col gap-3">
             {appeals.map(item => {
               const resolveKey = `resolve:${item.id}`;
               const pendingAction = actionLoading === resolveKey;
               const isPending = item.status === "pending";
               const author = item.appellant_display_name ?? item.appellant_username ?? item.appellant_id.slice(-6);
-              const statusLabel = item.status.toUpperCase();
-              const statusClass = item.status;
               const threadTarget = item.thread_id ?? (item.content_type === "thread" ? item.content_id : null);
               const targetLabel = `${item.content_type} ${item.content_id.slice(-8)}`;
 
               return (
-                <div key={item.id} className="appeal-card">
-                  <div className="appeal-head">
-                    <div className="appeal-title-wrap">
-                      <h3 className="appeal-title">{targetLabel}</h3>
-                      <div className="appeal-meta">
-                        <span className={`status-chip ${statusClass}`}>{statusLabel}</span>
-                        <span className="meta-author">by {author}</span>
-                        <span className="meta-time" title={absoluteTime(item.created_at)}>{relativeTime(item.created_at)}</span>
-                      </div>
+                <div key={item.id} className="flex flex-col gap-2.5 rounded-[14px] border border-app-border bg-app-panel px-4 py-3.5">
+                  {/* Head */}
+                  <div>
+                    <h3 className="m-0 mb-1.5 break-words text-sm text-foreground">{targetLabel}</h3>
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                      <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${statusChipCls[item.status] ?? ""}`}>
+                        {item.status.toUpperCase()}
+                      </span>
+                      <span>by {author}</span>
+                      <span title={absoluteTime(item.created_at)}>{relativeTime(item.created_at)}</span>
                     </div>
                   </div>
 
-                  <div className="row">
-                    <p className="label">Appeal reason</p>
-                    <p className="text">{item.reason}</p>
+                  {/* Reason */}
+                  <div className="flex flex-col gap-1">
+                    <p className="m-0 text-[10px] uppercase tracking-wider text-muted-foreground">Appeal reason</p>
+                    <p className="m-0 break-words whitespace-pre-wrap text-[13px] leading-snug text-foreground">{item.reason}</p>
                   </div>
 
+                  {/* Original notice */}
                   {item.notification_message && (
-                    <div className="row">
-                      <p className="label">Original moderation notice</p>
-                      <p className="text muted">{item.notification_message}</p>
+                    <div className="flex flex-col gap-1">
+                      <p className="m-0 text-[10px] uppercase tracking-wider text-muted-foreground">Original moderation notice</p>
+                      <p className="m-0 break-words whitespace-pre-wrap text-[13px] leading-snug text-muted-foreground">{item.notification_message}</p>
                     </div>
                   )}
 
+                  {/* Resolution */}
                   {!isPending && (
-                    <div className="row">
-                      <p className="label">Resolution</p>
-                      <p className="text">
+                    <div className="flex flex-col gap-1">
+                      <p className="m-0 text-[10px] uppercase tracking-wider text-muted-foreground">Resolution</p>
+                      <p className="m-0 text-[13px] leading-snug text-foreground">
                         {item.status === "approved" ? "Approved" : "Rejected"}
                         {item.resolved_at ? ` • ${relativeTime(item.resolved_at)}` : ""}
                         {item.resolved_by_display_name || item.resolved_by_username ? ` by ${item.resolved_by_display_name ?? item.resolved_by_username}` : ""}
                       </p>
-                      {item.admin_note && <p className="text muted">{item.admin_note}</p>}
+                      {item.admin_note && <p className="m-0 text-[13px] leading-snug text-muted-foreground">{item.admin_note}</p>}
                     </div>
                   )}
 
-                  <div className="appeal-actions">
-                    <button type="button" className="tiny-btn neutral" onClick={() => onViewContent(item)}>
+                  {/* Actions */}
+                  <div className="mt-0.5 flex flex-wrap gap-1.5">
+                    <button type="button" className={tinyBtn("neutral")} onClick={() => onViewContent(item)}>
                       <Gavel size={12} /> Open content
                     </button>
-                    <button type="button" className="tiny-btn neutral" onClick={() => onViewProfile(item.appellant_id)}>
+                    <button type="button" className={tinyBtn("neutral")} onClick={() => onViewProfile(item.appellant_id)}>
                       <User size={12} /> User
                     </button>
                     {threadTarget && (
-                      <button type="button" className="tiny-btn neutral" onClick={() => onViewThread(threadTarget)}>
+                      <button type="button" className={tinyBtn("neutral")} onClick={() => onViewThread(threadTarget)}>
                         <ExternalLink size={12} /> Thread
                       </button>
                     )}
                     {isPending && (
                       <>
-                        <button
-                          type="button"
-                          className="tiny-btn ok"
-                          disabled={pendingAction}
-                          onClick={() => onResolve(item, "approve")}
-                        >
+                        <button type="button" className={tinyBtn("ok")} disabled={pendingAction} onClick={() => onResolve(item, "approve")}>
                           <ShieldCheck size={12} /> {pendingAction ? "Processing..." : "Approve"}
                         </button>
-                        <button
-                          type="button"
-                          className="tiny-btn warn"
-                          disabled={pendingAction}
-                          onClick={() => onResolve(item, "reject")}
-                        >
+                        <button type="button" className={tinyBtn("warn")} disabled={pendingAction} onClick={() => onResolve(item, "reject")}>
                           <ShieldX size={12} /> {pendingAction ? "Processing..." : "Reject"}
                         </button>
                       </>
@@ -151,166 +162,6 @@ export default function AppealsTab({
           </div>
         )}
       </ScrollArea>
-
-      <style jsx>{`
-        .appeals-shell {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          height: 100%;
-          min-height: 0;
-        }
-        .toolbar {
-          flex-shrink: 0;
-          padding-bottom: 8px;
-          background: linear-gradient(180deg, #101626 0%, rgba(16, 22, 38, 0.95) 70%, rgba(16, 22, 38, 0));
-        }
-        .filter-row {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-        .admin-select {
-          border: 1px solid #2d3957;
-          background: #131c2f;
-          color: #e4e8f4;
-          border-radius: 10px;
-          padding: 9px 10px;
-          font-size: 12px;
-          font-family: inherit;
-        }
-        .results {
-          min-height: 120px;
-        }
-        .center-msg {
-          text-align: center;
-          color: #636f8d;
-          padding: 32px 0;
-        }
-        .appeal-list {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-        .appeal-card {
-          border: 1px solid #2a3553;
-          background: linear-gradient(180deg, #121a2c, #101626);
-          border-radius: 14px;
-          padding: 14px 16px;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-        .appeal-head {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 10px;
-        }
-        .appeal-title-wrap {
-          min-width: 0;
-          flex: 1;
-        }
-        .appeal-title {
-          margin: 0 0 6px;
-          color: #ebf1ff;
-          font-size: 14px;
-          line-height: 1.25;
-          word-break: break-word;
-        }
-        .appeal-meta {
-          display: flex;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 8px;
-          color: #8f9abe;
-          font-size: 12px;
-        }
-        .status-chip {
-          border-radius: 999px;
-          padding: 2px 8px;
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 0.05em;
-          text-transform: uppercase;
-        }
-        .status-chip.pending {
-          color: #f6c5ab;
-          border: 1px solid rgba(240, 131, 74, 0.35);
-          background: rgba(240, 131, 74, 0.16);
-        }
-        .status-chip.approved {
-          color: #8ce6ba;
-          border: 1px solid rgba(61, 214, 140, 0.35);
-          background: rgba(61, 214, 140, 0.16);
-        }
-        .status-chip.rejected {
-          color: #f6b0b0;
-          border: 1px solid rgba(240, 107, 107, 0.35);
-          background: rgba(240, 107, 107, 0.16);
-        }
-        .row {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-        .label {
-          margin: 0;
-          font-size: 10px;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-          color: #7b86a7;
-        }
-        .text {
-          margin: 0;
-          font-size: 13px;
-          color: #d6def7;
-          line-height: 1.45;
-          white-space: pre-wrap;
-          word-break: break-word;
-        }
-        .text.muted {
-          color: #aeb8d7;
-        }
-        .appeal-actions {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 6px;
-          margin-top: 2px;
-        }
-        .tiny-btn {
-          border: 1px solid #2f3a58;
-          background: #182135;
-          color: #c3cde7;
-          border-radius: 8px;
-          padding: 6px 9px;
-          font-size: 11px;
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          cursor: pointer;
-          font-family: inherit;
-        }
-        .tiny-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        .tiny-btn.neutral {
-          color: #c3d4ff;
-          border-color: rgba(107, 138, 253, 0.28);
-          background: rgba(107, 138, 253, 0.16);
-        }
-        .tiny-btn.ok {
-          color: #8ce6ba;
-          border-color: rgba(61, 214, 140, 0.35);
-          background: rgba(61, 214, 140, 0.16);
-        }
-        .tiny-btn.warn {
-          color: #f6b0b0;
-          border-color: rgba(240, 107, 107, 0.35);
-          background: rgba(240, 107, 107, 0.16);
-        }
-      `}</style>
     </div>
   );
 }
