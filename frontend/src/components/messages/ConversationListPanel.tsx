@@ -49,7 +49,7 @@ export default function ConversationListPanel({
     <section
       className={[
         "ws-panel flex flex-col min-w-0 min-h-0",
-        conversationId ? "hidden md:flex" : "flex",
+        conversationId ? "max-[860px]:hidden flex" : "flex",
       ].join(" ")}
       style={{ width }}
     >
