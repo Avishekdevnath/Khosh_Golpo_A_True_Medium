@@ -17,6 +17,7 @@ interface FilterChipsProps {
   multiple?: boolean
   variant?: "pill" | "underline"
   className?: string
+  "aria-label"?: string
 }
 
 function FilterChips({
@@ -26,6 +27,7 @@ function FilterChips({
   multiple = false,
   variant = "pill",
   className,
+  "aria-label": ariaLabel,
 }: FilterChipsProps) {
   const selected = Array.isArray(value) ? value : [value]
 
@@ -48,6 +50,7 @@ function FilterChips({
         className
       )}
       role="group"
+      aria-label={ariaLabel}
     >
       {items.map(item => {
         const isActive = selected.includes(item.value)

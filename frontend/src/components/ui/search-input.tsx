@@ -59,7 +59,11 @@ function SearchInput({
       {value && (
         <button
           type="button"
-          onClick={() => { onChange(""); onSearch?.("") }}
+          onClick={() => {
+            if (timerRef.current) clearTimeout(timerRef.current)
+            onChange("")
+            onSearch?.("")
+          }}
           className="shrink-0 rounded-sm p-0.5 text-text-tertiary hover:text-text-primary transition-colors"
           aria-label="Clear search"
         >
