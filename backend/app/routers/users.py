@@ -390,14 +390,12 @@ async def get_saved_threads(
     limit: int = Query(default=10, ge=1, le=40),
     current_user: User = Depends(get_current_user),
 ) -> ThreadListResponse:
-    saved = await SavedThread.find(
+    total = await SavedThread.find({"user_id": current_user.id}).count()
+    page_saved = await SavedThread.find(
         {"user_id": current_user.id}
-    ).sort("-saved_at").to_list()
+    ).sort("-saved_at").skip((page - 1) * limit).limit(limit).to_list()
 
-    total = len(saved)
-    page_saved = saved[(page - 1) * limit : page * limit]
     thread_ids = [s.thread_id for s in page_saved]
-
     threads = await Thread.find(
         {"_id": {"$in": thread_ids}, "is_deleted": False}
     ).to_list()
@@ -419,14 +417,12 @@ async def get_read_history(
     limit: int = Query(default=10, ge=1, le=40),
     current_user: User = Depends(get_current_user),
 ) -> ThreadListResponse:
-    history = await ReadHistory.find(
+    total = await ReadHistory.find({"user_id": current_user.id}).count()
+    page_history = await ReadHistory.find(
         {"user_id": current_user.id}
-    ).sort("-read_at").to_list()
+    ).sort("-read_at").skip((page - 1) * limit).limit(limit).to_list()
 
-    total = len(history)
-    page_history = history[(page - 1) * limit : page * limit]
     thread_ids = [h.thread_id for h in page_history]
-
     threads = await Thread.find(
         {"_id": {"$in": thread_ids}, "is_deleted": False}
     ).to_list()

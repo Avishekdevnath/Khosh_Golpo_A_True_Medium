@@ -475,10 +475,12 @@ async def save_thread(
     if thread is None:
         raise HTTPException(status_code=404, detail="Thread not found")
 
-    existing = await SavedThread.find_one({"user_id": current_user.id, "thread_id": tid})
-    if existing is None:
-        await SavedThread(user_id=current_user.id, thread_id=tid).insert()
-
+    # Upsert — atomic idempotency; unique index on (user_id, thread_id) prevents duplicates
+    await SavedThread.get_motor_collection().update_one(
+        {"user_id": current_user.id, "thread_id": tid},
+        {"$setOnInsert": {"user_id": current_user.id, "thread_id": tid, "saved_at": utc_now()}},
+        upsert=True,
+    )
     return {"saved": True}
 
 
