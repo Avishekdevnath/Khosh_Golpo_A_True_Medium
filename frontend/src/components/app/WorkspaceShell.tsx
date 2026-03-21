@@ -16,18 +16,11 @@ export default function WorkspaceShell({
   contentColumns = "1fr",
 }: WorkspaceShellProps) {
   return (
-    <div className="ws-root" style={{ gridTemplateColumns: contentColumns }}>
+    <div
+      className="grid flex-1 min-h-0 overflow-hidden font-sans items-stretch"
+      style={{ gridTemplateColumns: contentColumns }}
+    >
       {children}
-      <style jsx>{`
-        .ws-root {
-          display: grid;
-          flex: 1;
-          min-height: 0;
-          overflow: hidden;
-          font-family: var(--sans);
-          align-items: stretch;
-        }
-      `}</style>
     </div>
   );
 }
