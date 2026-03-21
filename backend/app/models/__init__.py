@@ -10,6 +10,8 @@ from app.models.feed_interest_job import FeedInterestSuggestionJob
 from app.models.message import Message
 from app.models.notification import Notification
 from app.models.post import Post
+from app.models.read_history import ReadHistory
+from app.models.saved_thread import SavedThread
 from app.models.thread import Thread
 from app.models.user import User
 
@@ -29,6 +31,8 @@ DOCUMENT_MODELS = [
     FeedConfig,
     FeedInterestSuggestionJob,
     BotConfig,
+    SavedThread,
+    ReadHistory,
 ]
 
 __all__ = [
@@ -45,6 +49,8 @@ __all__ = [
     "Message",
     "Notification",
     "Post",
+    "ReadHistory",
+    "SavedThread",
     "Thread",
     "User",
     "DOCUMENT_MODELS",
