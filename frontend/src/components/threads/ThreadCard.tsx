@@ -97,7 +97,7 @@ function ThreadCard({ thread, variant = "list", selected, onSelect, className }:
             {thread.created_at && (
               <span className="flex items-center gap-1 ml-auto">
                 <Clock className="size-3" />
-                {new Date(thread.created_at).toLocaleDateString()}
+                {new Date(thread.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
               </span>
             )}
           </div>
