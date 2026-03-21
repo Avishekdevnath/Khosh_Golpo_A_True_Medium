@@ -24,40 +24,12 @@ export default function AppShell({ children }: AppShellProps) {
     pathname.startsWith("/settings")
   ) {
     return (
-      <div className="app-shell">
+      <div className="grid grid-cols-[240px_1fr] max-[859px]:grid-cols-1 min-h-screen bg-background text-foreground font-sans">
         <AppSidebar />
-        <div className="app-main">
+        <div className="flex flex-col min-h-screen overflow-hidden">
           <AppNavbar />
-          <main className="app-content">{children}</main>
+          <main className="flex-1 overflow-hidden flex flex-col min-h-0">{children}</main>
         </div>
-        <style jsx>{`
-          .app-shell {
-            display: grid;
-            grid-template-columns: 240px 1fr;
-            min-height: 100vh;
-            background: var(--app-bg);
-            color: var(--text, #e4e8f4);
-            font-family: var(--sans);
-          }
-          .app-main {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            overflow: hidden;
-          }
-          .app-content {
-            flex: 1;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-          }
-          @media (max-width: 859px) {
-            .app-shell {
-              grid-template-columns: 1fr;
-            }
-          }
-        `}</style>
       </div>
     );
   }
