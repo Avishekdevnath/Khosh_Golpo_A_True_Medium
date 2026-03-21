@@ -438,6 +438,59 @@ async def get_read_history(
     )
 
 
+@router.get("/{user_id}/replies")
+async def get_user_replies(
+    user_id: str,
+    page: int = Query(default=1, ge=1),
+    limit: int = Query(default=10, ge=1, le=40),
+    viewer: User | None = Depends(get_optional_current_user),
+) -> ThreadListResponse:
+    from app.models.post import Post
+
+    profile_user = await _find_user(user_id)
+    if profile_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Privacy gate — non-connections see 403 on private profiles
+    if profile_user.is_private:
+        is_owner = viewer is not None and viewer.id == profile_user.id
+        is_admin = viewer is not None and viewer.role.value == "admin"
+        is_connected = False
+        if viewer is not None and not is_owner and not is_admin:
+            is_connected = await _is_connected(viewer.id, profile_user.id)
+        if not is_owner and not is_admin and not is_connected:
+            raise HTTPException(status_code=403, detail="This profile is private")
+
+    # Find distinct thread_ids where user has posted (replies)
+    posts = await Post.find(
+        {"author_id": profile_user.id}
+    ).sort("-created_at").to_list()
+
+    seen: set = set()
+    unique_thread_ids = []
+    for p in posts:
+        if p.thread_id not in seen:
+            seen.add(p.thread_id)
+            unique_thread_ids.append(p.thread_id)
+
+    total = len(unique_thread_ids)
+    page_ids = unique_thread_ids[(page - 1) * limit : page * limit]
+
+    threads = await Thread.find(
+        {"_id": {"$in": page_ids}, "is_deleted": False}
+    ).to_list()
+
+    thread_map = {t.id: t for t in threads}
+    ordered = [thread_map[tid] for tid in page_ids if tid in thread_map]
+
+    return ThreadListResponse(
+        data=[_to_thread_out(t) for t in ordered],
+        page=page,
+        limit=limit,
+        total=total,
+    )
+
+
 @router.get("/{user_id}")
 async def get_user_profile(
     user_id: str,
