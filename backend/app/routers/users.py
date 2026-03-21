@@ -70,6 +70,9 @@ async def update_me(
     if payload.gender is not None:
         changes["gender"] = True
         current_user.gender = payload.gender.strip() or None
+    if payload.is_private is not None:
+        changes["is_private"] = payload.is_private
+        current_user.is_private = payload.is_private
 
     # Auto-derive display_name from first + last when either changes
     if payload.first_name is not None or payload.last_name is not None:
@@ -155,6 +158,44 @@ async def search_people(
         sort=sort,
         relationship=relationship,
     )
+
+
+@router.get("/people/all")
+async def list_all_people(
+    page: int = Query(default=1, ge=1),
+    limit: int = Query(default=20, ge=1, le=40),
+) -> dict:
+    """Public endpoint — all active, non-bot profiles sorted newest first."""
+    users = await User.find({"is_active": {"$ne": False}}).sort("-created_at").to_list()
+    total = len(users)
+    start = (page - 1) * limit
+    page_users = users[start : start + limit]
+    data = [
+        {
+            "id": str(u.id),
+            "username": u.username,
+            "display_name": u.display_name,
+            "bio": u.bio,
+            "role": u.role.value if hasattr(u.role, "value") else str(u.role),
+            "created_at": u.created_at.isoformat() if u.created_at else None,
+            "followers_count": 0,
+            "mutual_follow_count": 0,
+            "shared_interest_count": 0,
+            "is_following": False,
+            "follows_you": False,
+            "is_connected": False,
+            "has_pending_request": False,
+            "is_requester": False,
+            "pending_request_id": None,
+            "can_message": False,
+            "blocked_by_me": False,
+            "blocked_you": False,
+            "profile_slug": getattr(u, "profile_slug", None),
+            "reason": {"kind": "public", "label": ""},
+        }
+        for u in page_users
+    ]
+    return {"data": data, "page": page, "limit": limit, "total": total}
 
 
 @router.get("/people/explore")
@@ -921,6 +962,7 @@ def _to_user_out(user: User) -> UserOut:
         role=user.role,
         is_active=user.is_active,
         is_bot=user.is_bot,
+        is_private=user.is_private,
         first_name=user.first_name,
         last_name=user.last_name,
         gender=user.gender,

@@ -51,6 +51,7 @@ class User(Document):
     profile_slug_changed_at: datetime | None = None
 
     is_bot: bool = False
+    is_private: bool = False
     avatar_url: str | None = None
 
     # Security fields
