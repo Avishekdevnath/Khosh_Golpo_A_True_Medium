@@ -5,6 +5,10 @@ import { ArrowLeft, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { apiPost } from "@/lib/api";
+import { FormField } from "@/components/ui/form-field";
+import { TextArea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 type ToneCheckResponse = {
   score: number;
@@ -95,122 +99,193 @@ export default function NewThreadPage() {
   }
 
   return (
-    <main className="create-page">
-      <div className="orb orb-1" />
-      <div className="orb orb-2" />
+    <main className="relative min-h-screen overflow-hidden bg-app-bg text-foreground">
+      {/* Background orbs */}
+      <div
+        className="pointer-events-none fixed z-0 h-[500px] w-[500px] -top-[150px] -right-[100px] rounded-full blur-[100px]"
+        style={{ background: "radial-gradient(circle, rgba(14,165,233,0.08) 0%, transparent 70%)" }}
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none fixed z-0 h-[400px] w-[400px] -bottom-[150px] -left-[100px] rounded-full blur-[100px]"
+        style={{ background: "radial-gradient(circle, rgba(129,140,248,0.08) 0%, transparent 70%)" }}
+        aria-hidden="true"
+      />
 
-      <nav>
-        <div className="nav-left">
-          <button className="logo" type="button" onClick={() => router.push("/")}>
-            <span className="logo-box">K</span>
-            <span className="logo-text">KhoshGolpo</span>
+      {/* Nav */}
+      <nav className="sticky top-0 z-10 flex items-center justify-between border-b border-app-border bg-app-bg/85 px-6 py-4 backdrop-blur-[16px]">
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            className="flex items-center gap-2.5 border-0 bg-transparent p-0 cursor-pointer"
+            onClick={() => router.push("/")}
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-accent font-serif text-lg font-bold text-white">
+              K
+            </span>
+            <span className="font-serif text-xl text-foreground">KhoshGolpo</span>
           </button>
         </div>
-        <button type="button" className="back-btn" onClick={handleBackNavigation}>
+        <button
+          type="button"
+          className="inline-flex items-center gap-2 rounded-[10px] border border-app-border bg-app-panel px-3 py-2 text-xs text-text-secondary transition-colors hover:border-app-border/70 hover:bg-app-card-hover hover:text-foreground"
+          onClick={handleBackNavigation}
+        >
           <ArrowLeft size={16} />
           Back to Threads
         </button>
       </nav>
 
-      <div className="wrapper">
-        <div className="container">
-          <header className="page-header">
-            <h1 className="page-title">Create New Thread</h1>
-            <p className="page-subtitle">Start a focused discussion with context and warmth.</p>
+      {/* Scrollable content */}
+      <div className="relative z-[1] h-[calc(100vh-65px)] overflow-y-auto">
+        <div className="mx-auto max-w-[900px] px-6 py-10 sm:px-6 md:px-6">
+          {/* Page header */}
+          <header className="mb-9">
+            <h1 className="mb-2 font-serif text-[38px] leading-[1.1] sm:text-[42px]">Create New Thread</h1>
+            <p className="text-base font-light text-text-secondary">Start a focused discussion with context and warmth.</p>
           </header>
 
-          <section className="form-section">
-            <div className="form-group">
-              <label className="form-label">Title</label>
-              <input
-                type="text"
-                placeholder="What do you want to discuss?"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-            </div>
+          {/* Form card */}
+          <section className="rounded-2xl border border-app-border bg-app-panel p-6 sm:p-8">
+            <div className="space-y-6">
+              {/* Title */}
+              <FormField label="Title" htmlFor="thread-title">
+                <Input
+                  id="thread-title"
+                  type="text"
+                  placeholder="What do you want to discuss?"
+                  className="bg-app-card-hover border-app-border focus-visible:border-accent"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </FormField>
 
-            <div className="form-group">
-              <label className="form-label">Tags (comma separated)</label>
-              <input
-                type="text"
-                placeholder="fastapi, backend, career"
-                value={tagsInput}
-                onChange={(e) => setTagsInput(e.target.value)}
-              />
-              {parsedTags.length > 0 ? (
-                <div className="tags-section">
-                  {parsedTags.map((tag) => (
-                    <span key={tag} className="tag-badge">
-                      #{tag}
-                    </span>
-                  ))}
+              {/* Tags */}
+              <div className="flex flex-col gap-1.5">
+                <FormField label="Tags" htmlFor="thread-tags" hint="Comma-separated, up to 8 tags">
+                  <Input
+                    id="thread-tags"
+                    type="text"
+                    placeholder="fastapi, backend, career"
+                    className="bg-app-card-hover border-app-border focus-visible:border-accent"
+                    value={tagsInput}
+                    onChange={(e) => setTagsInput(e.target.value)}
+                  />
+                </FormField>
+                {parsedTags.length > 0 ? (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {parsedTags.map((tag) => (
+                      <Badge key={tag} variant="info" size="md">
+                        #{tag}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+
+              {/* Body */}
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="thread-body"
+                  className="text-xs font-semibold uppercase tracking-wider text-text-secondary"
+                >
+                  Body
+                </label>
+                <TextArea
+                  id="thread-body"
+                  variant="autogrow"
+                  maxLength={2400}
+                  maxHeight={400}
+                  placeholder="Share context, constraints, and what feedback you want..."
+                  className="min-h-[170px] bg-app-card-hover border-app-border focus-visible:border-accent leading-[1.7]"
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                />
+                {/* Tone chip row */}
+                <div className="flex items-center justify-between text-xs text-text-secondary">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Sparkles size={13} />
+                    {toneResult
+                      ? `Tone ${toneResult.score.toFixed(2)}${toneResult.warning ? " — warning" : " — clear"}`
+                      : "No tone check yet"}
+                  </span>
+                  <span className={bodyCount > 1800 ? "text-warning" : ""}>
+                    {bodyCount}/2400
+                  </span>
+                </div>
+              </div>
+
+              {/* Error */}
+              {errorMessage ? (
+                <div className="rounded-[10px] border border-destructive/35 bg-destructive/10 px-3 py-2.5 text-xs text-red-300">
+                  {errorMessage}
                 </div>
               ) : null}
-            </div>
 
-            <div className="form-group">
-              <label className="form-label">Body</label>
-              <textarea
-                placeholder="Share context, constraints, and what feedback you want..."
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-              />
-              <div className="char-counter">
-                <span className="tone-chip">
-                  <Sparkles size={13} />
-                  {toneResult ? `Tone ${toneResult.score.toFixed(2)}${toneResult.warning ? " - warning" : " - clear"}` : "No tone check yet"}
-                </span>
-                <span className={`char-count ${bodyCount > 1800 ? "warning" : ""}`}>{bodyCount}/2400</span>
+              {/* Actions */}
+              <div className="flex flex-col gap-2.5 border-t border-app-border pt-6 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-[10px] border border-app-border bg-app-card-hover px-4 py-2.5 text-sm font-bold text-foreground transition-colors hover:border-app-border/80 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto w-full"
+                  disabled={!body.trim() || isSubmitting}
+                  onClick={async () => {
+                    try {
+                      setErrorMessage(null);
+                      await runToneCheck();
+                    } catch (error) {
+                      const message = error instanceof Error ? error.message : "Tone check failed";
+                      setErrorMessage(message);
+                    }
+                  }}
+                >
+                  Tone Check Preview
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-[10px] bg-accent px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto w-full"
+                  disabled={isSubmitting}
+                  onClick={() => createThread(false)}
+                >
+                  {isSubmitting ? "Creating..." : "Create Thread"}
+                </button>
               </div>
-            </div>
-
-            {errorMessage ? <div className="error">{errorMessage}</div> : null}
-
-            <div className="form-actions">
-              <button
-                type="button"
-                className="btn btn-ghost"
-                disabled={!body.trim() || isSubmitting}
-                onClick={async () => {
-                  try {
-                    setErrorMessage(null);
-                    await runToneCheck();
-                  } catch (error) {
-                    const message = error instanceof Error ? error.message : "Tone check failed";
-                    setErrorMessage(message);
-                  }
-                }}
-              >
-                Tone Check Preview
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                disabled={isSubmitting}
-                onClick={() => createThread(false)}
-              >
-                {isSubmitting ? "Creating..." : "Create Thread"}
-              </button>
             </div>
           </section>
         </div>
       </div>
 
+      {/* Tone warning modal */}
       {showToneModal ? (
-        <div className="modal-overlay" role="dialog" aria-modal="true">
-          <div className="modal">
-            <h3>Tone Warning</h3>
-            <p className="modal-subtitle">Your draft may read as harsh. You can edit first or post anyway.</p>
-            <div className="modal-box">Score: {toneResult ? toneResult.score.toFixed(2) : "-"}</div>
-            {toneResult?.reason ? <div className="modal-box">Reason: {toneResult.reason}</div> : null}
-            {toneResult?.suggestion ? (
-              <div className="modal-box suggestion">Suggestion: {toneResult.suggestion}</div>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(7,8,13,0.7)] p-5"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="tone-modal-title"
+        >
+          <div className="w-full max-w-[540px] rounded-2xl border border-app-border bg-app-panel p-5">
+            <h3 id="tone-modal-title" className="mb-2 font-serif text-[28px]">Tone Warning</h3>
+            <p className="mb-3.5 text-sm text-text-secondary">
+              Your draft may read as harsh. You can edit first or post anyway.
+            </p>
+
+            <div className="mb-2 rounded-[10px] border border-app-border bg-app-card-hover px-3 py-2.5 text-xs">
+              Score: {toneResult ? toneResult.score.toFixed(2) : "-"}
+            </div>
+            {toneResult?.reason ? (
+              <div className="mb-2 rounded-[10px] border border-app-border bg-app-card-hover px-3 py-2.5 text-xs">
+                Reason: {toneResult.reason}
+              </div>
             ) : null}
-            <div className="modal-actions">
+            {toneResult?.suggestion ? (
+              <div className="mb-2 rounded-[10px] border border-accent/40 bg-accent/12 px-3 py-2.5 text-xs text-[#7dd3fc]">
+                Suggestion: {toneResult.suggestion}
+              </div>
+            ) : null}
+
+            <div className="mt-3.5 flex justify-end gap-2.5">
               <button
                 type="button"
-                className="btn btn-ghost"
+                className="inline-flex items-center justify-center rounded-[10px] border border-app-border bg-app-card-hover px-4 py-2.5 text-sm font-bold text-foreground transition-colors hover:border-app-border/80"
                 onClick={() => {
                   setShowToneModal(false);
                   setToneApproved(false);
@@ -220,7 +295,7 @@ export default function NewThreadPage() {
               </button>
               <button
                 type="button"
-                className="btn btn-primary"
+                className="inline-flex items-center justify-center rounded-[10px] bg-accent px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-accent/90"
                 onClick={async () => {
                   if (toneApproved) return;
                   setToneApproved(true);
@@ -235,319 +310,6 @@ export default function NewThreadPage() {
           </div>
         </div>
       ) : null}
-
-      <style jsx>{`
-        .create-page {
-          --bg: var(--app-bg, #060810);
-          --surface: var(--app-card, #13151f);
-          --surface2: var(--app-card-hover, #181b27);
-          --border: var(--app-border, #1c1f2e);
-          --text: var(--text, #e4e8f4);
-          --muted: var(--muted, #9ba3be);
-          --accent: #0EA5E9;
-          --accent2: #818CF8;
-          --yellow: #fbbf24;
-          --red: #e74c3c;
-          --serif: var(--serif), Georgia, serif;
-          --sans: var(--sans), sans-serif;
-
-          min-height: 100vh;
-          background: var(--bg);
-          color: var(--text);
-          overflow: hidden;
-          position: relative;
-          font-family: var(--sans);
-        }
-        .create-page::before {
-          content: "";
-          position: fixed;
-          inset: 0;
-          z-index: 0;
-          opacity: 0.35;
-          pointer-events: none;
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-        }
-        .orb {
-          position: fixed;
-          border-radius: 50%;
-          filter: blur(100px);
-          pointer-events: none;
-          z-index: 0;
-        }
-        .orb-1 {
-          width: 500px;
-          height: 500px;
-          background: radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, transparent 70%);
-          top: -150px;
-          right: -100px;
-        }
-        .orb-2 {
-          width: 400px;
-          height: 400px;
-          background: radial-gradient(circle, rgba(129, 140, 248, 0.08) 0%, transparent 70%);
-          bottom: -150px;
-          left: -100px;
-        }
-        nav {
-          position: sticky;
-          top: 0;
-          z-index: 10;
-          padding: 16px 24px;
-          background: rgba(6, 8, 16, 0.85);
-          backdrop-filter: blur(16px);
-          border-bottom: 1px solid var(--border);
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-        .nav-left {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-        .logo {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          background: none;
-          border: none;
-          cursor: pointer;
-        }
-        .logo-box {
-          width: 32px;
-          height: 32px;
-          background: var(--accent);
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-family: var(--serif);
-          font-size: 18px;
-          color: #fff;
-          font-weight: bold;
-        }
-        .logo-text {
-          font-family: var(--serif);
-          font-size: 20px;
-          color: var(--text);
-        }
-        .back-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          color: #c8cfdf;
-          text-decoration: none;
-          font-size: 13px;
-          border: 1px solid var(--border);
-          background: var(--surface);
-          border-radius: 10px;
-          padding: 8px 12px;
-          transition: border-color 0.2s, color 0.2s, background 0.2s;
-        }
-        .back-btn:hover {
-          color: var(--text);
-          border-color: #3a4157;
-          background: var(--surface2);
-        }
-        .wrapper {
-          position: relative;
-          z-index: 1;
-          height: calc(100vh - 65px);
-          overflow-y: auto;
-        }
-        .container {
-          max-width: 900px;
-          margin: 0 auto;
-          padding: 40px 24px;
-        }
-        .page-header {
-          margin-bottom: 36px;
-        }
-        .page-title {
-          font-family: var(--serif);
-          font-size: 38px;
-          line-height: 1.1;
-          margin-bottom: 8px;
-        }
-        .page-subtitle {
-          font-size: 16px;
-          color: var(--muted);
-          font-weight: 300;
-        }
-        .form-section {
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: 16px;
-          padding: 30px;
-        }
-        .form-group {
-          margin-bottom: 24px;
-        }
-        .form-label {
-          font-size: 13px;
-          font-weight: 600;
-          letter-spacing: 0.05em;
-          text-transform: uppercase;
-          color: var(--muted);
-          margin-bottom: 10px;
-          display: block;
-        }
-        input,
-        textarea {
-          width: 100%;
-          padding: 12px 16px;
-          border-radius: 12px;
-          background: var(--surface2);
-          border: 1.5px solid var(--border);
-          color: var(--text);
-          font-family: inherit;
-          font-size: 14px;
-          outline: none;
-        }
-        textarea {
-          min-height: 170px;
-          line-height: 1.7;
-          resize: vertical;
-        }
-        input:focus,
-        textarea:focus {
-          border-color: var(--accent);
-          box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
-        }
-        .tags-section {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-          margin-top: 10px;
-        }
-        .tag-badge {
-          display: inline-flex;
-          align-items: center;
-          padding: 6px 10px;
-          background: var(--accent2);
-          color: #fff;
-          border-radius: 20px;
-          font-size: 12px;
-          font-weight: 600;
-        }
-        .char-counter {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-top: 8px;
-          font-size: 12px;
-          color: var(--muted);
-        }
-        .tone-chip {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-        }
-        .char-count.warning {
-          color: var(--yellow);
-        }
-        .error {
-          border: 1px solid rgba(231, 76, 60, 0.35);
-          background: rgba(231, 76, 60, 0.1);
-          color: #fca5a5;
-          border-radius: 10px;
-          padding: 10px 12px;
-          font-size: 13px;
-          margin-bottom: 12px;
-        }
-        .form-actions {
-          margin-top: 26px;
-          padding-top: 22px;
-          border-top: 1px solid var(--border);
-          display: flex;
-          justify-content: flex-end;
-          gap: 10px;
-        }
-        .btn {
-          border: none;
-          border-radius: 10px;
-          padding: 11px 18px;
-          font-size: 14px;
-          font-weight: 700;
-          cursor: pointer;
-        }
-        .btn-ghost {
-          background: var(--surface2);
-          border: 1px solid var(--border);
-          color: var(--text);
-        }
-        .btn-primary {
-          background: var(--accent);
-          color: #fff;
-        }
-        .btn:disabled {
-          opacity: 0.7;
-          cursor: not-allowed;
-        }
-        .modal-overlay {
-          position: fixed;
-          inset: 0;
-          z-index: 50;
-          background: rgba(7, 8, 13, 0.7);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-        }
-        .modal {
-          width: min(540px, 100%);
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: 14px;
-          padding: 20px;
-        }
-        .modal h3 {
-          font-family: var(--serif);
-          font-size: 28px;
-          margin-bottom: 8px;
-        }
-        .modal-subtitle {
-          color: var(--muted);
-          font-size: 14px;
-          margin-bottom: 14px;
-        }
-        .modal-box {
-          border: 1px solid var(--border);
-          background: var(--surface2);
-          border-radius: 10px;
-          padding: 10px 12px;
-          font-size: 13px;
-          margin-bottom: 8px;
-        }
-        .modal-box.suggestion {
-          border-color: rgba(14, 165, 233, 0.4);
-          background: rgba(14, 165, 233, 0.12);
-          color: #7dd3fc;
-        }
-        .modal-actions {
-          margin-top: 14px;
-          display: flex;
-          justify-content: flex-end;
-          gap: 10px;
-        }
-        @media (max-width: 768px) {
-          .container {
-            padding: 26px 14px;
-          }
-          .form-section {
-            padding: 20px;
-          }
-          .page-title {
-            font-size: 30px;
-          }
-          .form-actions {
-            flex-direction: column;
-          }
-          .btn {
-            width: 100%;
-          }
-        }
-      `}</style>
     </main>
   );
 }

@@ -8,6 +8,9 @@ import NavBar from "@/components/public/sections/NavBar";
 import { useAuth } from "@/hooks";
 import { apiPost } from "@/lib/api";
 import { useAuthStore } from "@/store";
+import { FormField } from "@/components/ui/form-field";
+import { PasswordInput } from "@/components/ui/password-input";
+import { Input } from "@/components/ui/input";
 
 type Step = "login" | "forgot" | "verify";
 type FormErrors = {
@@ -18,31 +21,6 @@ type VerifyIdentityResponse = {
   identity_token?: string;
   needs_questions?: boolean;
 };
-
-const icons = {
-  mail: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
-  lock: "M12 1c-3.866 0-7 3.134-7 7v3H3a2 2 0 00-2 2v8a2 2 0 002 2h18a2 2 0 002-2v-8a2 2 0 00-2-2h-2V8c0-3.866-3.134-7-7-7z",
-  arrow: "M5 12h14M12 5l7 7-7 7",
-  check: "M20 6L9 17l-5-5",
-} as const;
-
-function Icon({ path, size = 14, color = "currentColor" }: { path: string; size?: number; color?: string }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={color}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d={path} />
-    </svg>
-  );
-}
 
 function emailIsValid(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -58,7 +36,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
   // Forgot flow state
@@ -142,10 +119,8 @@ export default function LoginPage() {
         identifier: forgotIdentifier.trim().toLowerCase(),
       });
       if (res.identity_token) {
-        // No security questions set — identifier alone was enough
         router.push(`/reset-password?token=${res.identity_token}`);
       } else {
-        // Has security questions — ask them
         setStep("verify");
       }
     } catch {
@@ -182,76 +157,65 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="login-page">
+    <main className="relative min-h-screen overflow-x-hidden bg-app-bg text-foreground">
       <NavBar />
 
-      <div className="login-noise" aria-hidden="true" />
-      <div ref={orbRef} className="login-orb login-orb-1" aria-hidden="true" />
-      <div className="login-orb login-orb-2" aria-hidden="true" />
+      {/* Background orbs */}
+      <div className="pointer-events-none fixed inset-0 z-0 opacity-35" aria-hidden="true" />
+      <div
+        ref={orbRef}
+        className="pointer-events-none fixed z-0 h-[500px] w-[500px] -top-[150px] -right-[100px] rounded-full blur-[100px] transition-transform duration-[800ms] ease-[cubic-bezier(0.1,0.5,0.1,1)]"
+        style={{ background: "radial-gradient(circle, rgba(14,165,233,0.08) 0%, transparent 70%)" }}
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none fixed z-0 h-[400px] w-[400px] -bottom-[150px] -left-[100px] rounded-full blur-[100px] animate-[float_8s_ease-in-out_infinite]"
+        style={{ background: "radial-gradient(circle, rgba(123,110,246,0.08) 0%, transparent 70%)" }}
+        aria-hidden="true"
+      />
 
-      <section className="login-container">
+      <section className="relative z-10 flex min-h-screen items-center justify-center px-5 pb-5 pt-24 sm:pt-28">
         {step === "login" ? (
-          <div className="login-box">
-            <h1>Welcome back</h1>
-            <p className="subtitle">Continue your conversations and pick up where you left off.</p>
+          <div className="w-full max-w-[420px] animate-[fadeSlideUp_0.6s_ease]">
+            <h1 className="mb-2 font-serif text-[32px] leading-[1.1] sm:text-[36px]">Welcome back</h1>
+            <p className="mb-6 text-sm font-light text-text-secondary">
+              Continue your conversations and pick up where you left off.
+            </p>
 
-            <form onSubmit={handleLoginSubmit} noValidate>
-              <div className="form-group">
-                <label htmlFor="login-email" className="form-label">
-                  <Icon path={icons.mail} />
-                  Email
-                </label>
-                <input
+            <form onSubmit={handleLoginSubmit} noValidate className="space-y-4">
+              <FormField label="Email" htmlFor="login-email" error={errors.email}>
+                <Input
                   id="login-email"
                   type="email"
                   placeholder="you@example.com"
-                  className={`input-field ${errors.email ? "input-error" : ""}`}
+                  className="bg-app-input border-app-border focus-visible:border-accent"
                   value={email}
                   onChange={(event) => {
                     setEmail(event.target.value);
-                    if (errors.email) {
-                      setErrors((previous) => ({ ...previous, email: undefined }));
-                    }
+                    if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
                   }}
                 />
-                {errors.email ? <p className="error-text">{errors.email}</p> : null}
-              </div>
+              </FormField>
 
-              <div className="form-group">
-                <div className="label-row">
-                  <label htmlFor="login-password" className="form-label no-margin">
-                    <Icon path={icons.lock} />
-                    Password
-                  </label>
-                  <button
-                    type="button"
-                    className="text-btn"
-                    onClick={() => setShowPassword((current) => !current)}
-                  >
-                    {showPassword ? "Hide" : "Show"}
-                  </button>
-                </div>
-                <input
+              <FormField label="Password" htmlFor="login-password" error={errors.password}>
+                <PasswordInput
                   id="login-password"
-                  type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
-                  className={`input-field ${errors.password ? "input-error" : ""}`}
+                  className="bg-app-input border-app-border focus-visible:border-accent"
                   value={password}
                   onChange={(event) => {
                     setPassword(event.target.value);
-                    if (errors.password) {
-                      setErrors((previous) => ({ ...previous, password: undefined }));
-                    }
+                    if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
                   }}
                 />
-                {errors.password ? <p className="error-text">{errors.password}</p> : null}
-              </div>
+              </FormField>
 
-              <div className="form-footer">
-                <label htmlFor="remember-me" className="checkbox-wrapper">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <label htmlFor="remember-me" className="flex cursor-pointer items-center gap-2 text-xs text-text-secondary">
                   <input
                     id="remember-me"
                     type="checkbox"
+                    className="h-4 w-4 rounded accent-accent"
                     checked={rememberMe}
                     onChange={(event) => setRememberMe(event.target.checked)}
                   />
@@ -259,7 +223,7 @@ export default function LoginPage() {
                 </label>
                 <button
                   type="button"
-                  className="text-btn"
+                  className="text-xs text-text-secondary underline transition-colors hover:text-foreground"
                   onClick={() => {
                     setForgotIdentifier(email);
                     setStep("forgot");
@@ -269,437 +233,152 @@ export default function LoginPage() {
                 </button>
               </div>
 
-              <button type="submit" className="submit-btn" disabled={isLoading}>
+              <button
+                type="submit"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-3 text-sm font-bold text-white shadow-[0_4px_20px_rgba(14,165,233,0.30)] transition-all hover:-translate-y-px hover:shadow-[0_6px_28px_rgba(14,165,233,0.40)] disabled:cursor-not-allowed disabled:opacity-80"
+                disabled={isLoading}
+              >
                 {isLoading ? "Signing in..." : "Continue"}
-                <Icon path={icons.arrow} color="#ffffff" />
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
               </button>
-              {error ? <p className="error-text">{error}</p> : null}
+
+              {error ? <p className="text-xs text-destructive">{error}</p> : null}
             </form>
 
-            <p className="login-footer">
-              New here? <Link href="/register">Create account</Link>
+            <p className="mt-6 text-center text-xs text-text-secondary">
+              New here?{" "}
+              <Link href="/register" className="font-semibold text-accent underline-offset-4 hover:underline">
+                Create account
+              </Link>
             </p>
 
-            <div className="demo-box">
-              <strong>Demo account:</strong>
-              <div>user1@demo.com / user1demo</div>
+            <div className="mt-5 rounded-xl border border-accent2/15 bg-accent2/8 p-3 text-xs text-text-secondary">
+              <strong className="mb-1.5 block text-accent2">Demo account:</strong>
+              <span className="font-mono text-[10px]">user1@demo.com / user1demo</span>
             </div>
           </div>
         ) : null}
 
         {step === "forgot" ? (
-          <div className="login-box">
-            <button type="button" className="back-link" onClick={() => setStep("login")}>
-              &lt;- Back to login
+          <div className="w-full max-w-[420px] animate-[fadeSlideUp_0.6s_ease]">
+            <button
+              type="button"
+              className="mb-6 text-xs text-text-secondary underline transition-colors hover:text-foreground"
+              onClick={() => setStep("login")}
+            >
+              &larr; Back to login
             </button>
-            <h2>Recover account</h2>
-            <p className="subtitle">Enter your email or username to continue.</p>
+            <h2 className="mb-2 font-serif text-[28px] leading-[1.1]">Recover account</h2>
+            <p className="mb-6 text-sm font-light text-text-secondary">Enter your email or username to continue.</p>
 
-            <form onSubmit={handleForgotIdentifierSubmit} noValidate>
-              <div className="form-group">
-                <label htmlFor="forgot-id" className="form-label">Email or username</label>
-                <input
+            <form onSubmit={handleForgotIdentifierSubmit} noValidate className="space-y-4">
+              <FormField label="Email or username" htmlFor="forgot-id">
+                <Input
                   id="forgot-id"
                   type="text"
-                  className="input-field"
                   placeholder="you@example.com or your_username"
+                  className="bg-app-input border-app-border focus-visible:border-accent"
                   value={forgotIdentifier}
                   onChange={(e) => { setForgotIdentifier(e.target.value); setForgotError(null); }}
                   autoComplete="username"
                 />
-              </div>
-              {forgotError ? <p className="error-text">{forgotError}</p> : null}
-              <button type="submit" className="submit-btn" disabled={forgotLoading}>
+              </FormField>
+
+              {forgotError ? <p className="text-xs text-destructive">{forgotError}</p> : null}
+
+              <button
+                type="submit"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-3 text-sm font-bold text-white shadow-[0_4px_20px_rgba(14,165,233,0.30)] transition-all hover:-translate-y-px hover:shadow-[0_6px_28px_rgba(14,165,233,0.40)] disabled:cursor-not-allowed disabled:opacity-80"
+                disabled={forgotLoading}
+              >
                 {forgotLoading ? "Checking…" : "Continue"}
-                {!forgotLoading && <Icon path={icons.arrow} color="#fff" />}
+                {!forgotLoading && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                )}
               </button>
             </form>
           </div>
         ) : null}
 
         {step === "verify" ? (
-          <div className="login-box">
-            <button type="button" className="back-link" onClick={() => { setStep("forgot"); setForgotError(null); }}>
-              &lt;- Back
+          <div className="w-full max-w-[420px] animate-[fadeSlideUp_0.6s_ease]">
+            <button
+              type="button"
+              className="mb-6 text-xs text-text-secondary underline transition-colors hover:text-foreground"
+              onClick={() => { setStep("forgot"); setForgotError(null); }}
+            >
+              &larr; Back
             </button>
-            <h2>Verify your identity</h2>
-            <p className="subtitle">
+            <h2 className="mb-2 font-serif text-[28px] leading-[1.1]">Verify your identity</h2>
+            <p className="mb-6 text-sm font-light text-text-secondary">
               Answer <strong>any one</strong> of the questions below to prove it&apos;s you.
             </p>
 
-            <form onSubmit={handleVerifySubmit} noValidate>
-              <div className="sq-group">
-                <label htmlFor="v-code" className="form-label">Recovery code</label>
-                <input id="v-code" type="text" className="input-field"
+            <form onSubmit={handleVerifySubmit} noValidate className="space-y-3">
+              <FormField label="Recovery code" htmlFor="v-code">
+                <Input
+                  id="v-code"
+                  type="text"
                   placeholder="khosh-xxxx-xxxx"
+                  className="bg-app-input border-app-border focus-visible:border-accent"
                   value={recoveryCode}
                   onChange={(e) => { setRecoveryCode(e.target.value); setForgotError(null); }}
-                  autoComplete="off" />
+                  autoComplete="off"
+                />
+              </FormField>
+
+              <div className="flex items-center gap-2.5">
+                <div className="h-px flex-1 bg-app-border" />
+                <span className="text-[11px] text-text-secondary">or</span>
+                <div className="h-px flex-1 bg-app-border" />
               </div>
-              <div className="sq-divider"><span>or</span></div>
-              <div className="sq-group">
-                <label htmlFor="v-animal" className="form-label">Favourite animal</label>
-                <input id="v-animal" type="text" className="input-field"
+
+              <FormField label="Favourite animal" htmlFor="v-animal">
+                <Input
+                  id="v-animal"
+                  type="text"
                   placeholder="e.g. elephant"
+                  className="bg-app-input border-app-border focus-visible:border-accent"
                   value={favAnimal}
                   onChange={(e) => { setFavAnimal(e.target.value); setForgotError(null); }}
-                  autoComplete="off" />
+                  autoComplete="off"
+                />
+              </FormField>
+
+              <div className="flex items-center gap-2.5">
+                <div className="h-px flex-1 bg-app-border" />
+                <span className="text-[11px] text-text-secondary">or</span>
+                <div className="h-px flex-1 bg-app-border" />
               </div>
-              <div className="sq-divider"><span>or</span></div>
-              <div className="sq-group">
-                <label htmlFor="v-person" className="form-label">Favourite person&apos;s name</label>
-                <input id="v-person" type="text" className="input-field"
+
+              <FormField label="Favourite person's name" htmlFor="v-person">
+                <Input
+                  id="v-person"
+                  type="text"
                   placeholder="e.g. grandmother"
+                  className="bg-app-input border-app-border focus-visible:border-accent"
                   value={favPerson}
                   onChange={(e) => { setFavPerson(e.target.value); setForgotError(null); }}
-                  autoComplete="off" />
-              </div>
+                  autoComplete="off"
+                />
+              </FormField>
 
-              {forgotError ? <p className="error-text" style={{ marginBottom: 12 }}>{forgotError}</p> : null}
+              {forgotError ? <p className="mb-3 text-xs text-destructive">{forgotError}</p> : null}
 
-              <button type="submit" className="submit-btn" disabled={forgotLoading}>
+              <button
+                type="submit"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-3 text-sm font-bold text-white shadow-[0_4px_20px_rgba(14,165,233,0.30)] transition-all hover:-translate-y-px hover:shadow-[0_6px_28px_rgba(14,165,233,0.40)] disabled:cursor-not-allowed disabled:opacity-80"
+                disabled={forgotLoading}
+              >
                 {forgotLoading ? "Verifying…" : "Verify & reset password"}
-                {!forgotLoading && <Icon path={icons.arrow} color="#fff" />}
+                {!forgotLoading && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                )}
               </button>
             </form>
           </div>
         ) : null}
       </section>
-
-      <style jsx>{`
-        .login-page {
-          --bg: #0c0e14;
-          --surface: #13151e;
-          --border: #252836;
-          --text: #e8eaf0;
-          --muted: #6b7080;
-          --accent: #0EA5E9;
-          --accent2: #7b6ef6;
-          --green: #4ade80;
-          --red: #e74c3c;
-          --serif: var(--font-dm-serif), Georgia, serif;
-          --sans: var(--font-dm-sans), sans-serif;
-
-          position: relative;
-          min-height: 100vh;
-          overflow-x: clip;
-          background: var(--bg);
-          color: var(--text);
-          font-family: var(--sans);
-        }
-
-        .login-noise {
-          position: fixed;
-          inset: 0;
-          z-index: 0;
-          opacity: 0.35;
-          pointer-events: none;
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-        }
-
-        .login-orb {
-          position: fixed;
-          z-index: 0;
-          border-radius: 50%;
-          filter: blur(100px);
-          pointer-events: none;
-        }
-
-        .login-orb-1 {
-          width: 500px;
-          height: 500px;
-          top: -150px;
-          right: -100px;
-          transition: transform 0.8s cubic-bezier(0.1, 0.5, 0.1, 1);
-          background: radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, transparent 70%);
-        }
-
-        .login-orb-2 {
-          width: 400px;
-          height: 400px;
-          bottom: -150px;
-          left: -100px;
-          animation: float 8s ease-in-out infinite;
-          background: radial-gradient(circle, rgb(123 110 246 / 8%) 0%, transparent 70%);
-        }
-
-        .login-container {
-          position: relative;
-          z-index: 1;
-          min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 96px 20px 20px;
-        }
-
-        .login-box {
-          width: 100%;
-          max-width: 420px;
-          animation: fade-in 0.6s ease;
-        }
-
-        h1,
-        h2 {
-          margin: 0 0 8px;
-          font-family: var(--serif);
-          line-height: 1.1;
-        }
-
-        h1 {
-          font-size: 32px;
-        }
-
-        h2 {
-          font-size: 28px;
-        }
-
-        .subtitle {
-          margin: 0 0 24px;
-          color: var(--muted);
-          font-size: 15px;
-          font-weight: 300;
-        }
-
-        .form-group {
-          margin-bottom: 18px;
-        }
-
-        .form-label {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 8px;
-          color: var(--muted);
-          font-size: 12px;
-          font-weight: 600;
-          letter-spacing: 0.05em;
-          text-transform: uppercase;
-        }
-
-        .no-margin {
-          margin: 0;
-        }
-
-        .label-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 8px;
-          margin-bottom: 8px;
-        }
-
-        .input-field {
-          width: 100%;
-          border-radius: 12px;
-          border: 1.5px solid var(--border);
-          background: var(--surface);
-          color: var(--text);
-          font: 14px var(--sans);
-          outline: none;
-          padding: 12px 16px;
-          transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .input-field:focus {
-          border-color: var(--accent);
-          box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.10);
-        }
-
-        .input-error {
-          border-color: var(--red);
-        }
-
-        .error-text {
-          margin-top: 6px;
-          font-size: 12px;
-          color: var(--red);
-        }
-
-        .form-footer {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          flex-wrap: wrap;
-          gap: 12px;
-          margin-bottom: 24px;
-        }
-
-        .checkbox-wrapper {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          color: var(--muted);
-          font-size: 13px;
-          cursor: pointer;
-        }
-
-        .checkbox-wrapper input {
-          width: 16px;
-          height: 16px;
-          border-radius: 4px;
-          accent-color: var(--accent);
-        }
-
-        .text-btn {
-          border: 0;
-          padding: 0;
-          background: none;
-          color: var(--muted);
-          text-decoration: underline;
-          font: 13px var(--sans);
-          cursor: pointer;
-          transition: color 0.2s;
-        }
-
-        .text-btn:hover,
-        .back-link:hover {
-          color: var(--text);
-        }
-
-        .submit-btn {
-          width: 100%;
-          border: 0;
-          border-radius: 12px;
-          background: var(--accent);
-          color: #fff;
-          font: 700 14px var(--sans);
-          padding: 13px 0;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          box-shadow: 0 4px 20px rgba(14, 165, 233, 0.30);
-          transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .submit-btn:hover:not(:disabled) {
-          transform: translateY(-1px);
-          box-shadow: 0 6px 28px rgba(14, 165, 233, 0.40);
-        }
-
-        .submit-btn:disabled {
-          opacity: 0.8;
-          cursor: not-allowed;
-        }
-
-        .login-footer {
-          margin: 24px 0 0;
-          text-align: center;
-          color: var(--muted);
-          font-size: 13px;
-        }
-
-        .login-footer :global(a) {
-          color: var(--accent);
-          text-decoration: underline;
-          font-weight: 600;
-        }
-
-        .login-footer :global(a):hover {
-          color: #ffffff;
-        }
-
-        .demo-box {
-          margin-top: 20px;
-          border: 1px solid rgb(123 110 246 / 15%);
-          border-radius: 10px;
-          background: rgb(123 110 246 / 8%);
-          color: var(--muted);
-          font-size: 11px;
-          padding: 12px;
-        }
-
-        .demo-box strong {
-          display: block;
-          margin-bottom: 6px;
-          color: var(--accent2);
-        }
-
-        .demo-box div {
-          font-family: "Courier New", monospace;
-          font-size: 10px;
-        }
-
-        .back-link {
-          margin-bottom: 24px;
-          border: 0;
-          padding: 0;
-          background: none;
-          color: var(--muted);
-          text-decoration: underline;
-          font: 13px var(--sans);
-          cursor: pointer;
-        }
-
-        .sq-group { margin-bottom: 14px; }
-        .sq-divider {
-          display: flex; align-items: center; gap: 10px; margin: 2px 0 14px;
-        }
-        .sq-divider::before, .sq-divider::after {
-          content: ""; flex: 1; height: 1px; background: var(--border);
-        }
-        .sq-divider span { font-size: 11px; color: var(--muted); }
-
-        .verify-icon {
-          width: 80px;
-          height: 80px;
-          margin: 0 auto 24px;
-          border-radius: 16px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: rgb(74 222 128 / 12%);
-          animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes float {
-          0%,
-          100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-20px);
-          }
-        }
-
-        @keyframes pulse {
-          0%,
-          100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.5;
-          }
-        }
-
-        @media (max-width: 640px) {
-          .login-container {
-            align-items: flex-start;
-            padding-top: 90px;
-          }
-
-          .login-box {
-            max-width: 100%;
-          }
-
-          h1 {
-            font-size: 28px;
-          }
-        }
-      `}</style>
     </main>
   );
 }
