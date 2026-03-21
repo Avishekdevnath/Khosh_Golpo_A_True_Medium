@@ -114,7 +114,7 @@ export default function AppSidebar() {
         aria-label={count > 0 ? `${label}, ${count} unread` : label}
         aria-current={active ? "page" : undefined}
         className={cn(
-          "flex items-center gap-3 w-full h-10 px-3 rounded-xl",
+          "flex items-center gap-3 w-full h-10 px-3 rounded-lg",
           "border-0 text-[13.5px] font-medium font-sans",
           "cursor-pointer text-left transition-all duration-150",
           "focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/50 outline-offset-2",
@@ -183,30 +183,30 @@ export default function AppSidebar() {
         </div>
 
         {/* ── New Thread CTA ── */}
-        <div className="px-3 pt-4 pb-1">
+        <div className="px-4 pt-5 pb-2">
           <Link
             href="/threads/new"
             className={cn(
-              "flex items-center justify-center gap-2 w-full h-10 rounded-xl",
+              "flex items-center justify-center gap-2 w-full h-[38px] rounded-lg",
               "bg-primary text-white text-[13px] font-semibold font-sans no-underline",
               "transition-all duration-150",
               "hover:bg-[#38BDF8] hover:shadow-[0_2px_16px_rgba(14,165,233,0.3)]",
               "active:scale-[0.98]",
             )}
           >
-            <Plus size={16} strokeWidth={2.5} />
+            <Plus size={15} strokeWidth={2.5} />
             New Thread
           </Link>
         </div>
 
         {/* ── Main nav ── */}
-        <nav className="flex-1 overflow-y-auto px-3 pt-3 pb-2 flex flex-col gap-0.5 min-h-0" role="navigation">
+        <nav className="flex-1 overflow-y-auto px-4 pt-4 pb-3 flex flex-col gap-1 min-h-0" role="navigation">
           {TOP_NAV.map((item) => (
             <NavRow key={item.href} item={item} />
           ))}
 
           {/* Spacer */}
-          <div className="my-3 mx-2 h-px bg-sidebar-border" />
+          <div className="my-2 h-px bg-sidebar-border" />
 
           {BOTTOM_NAV.map((item) => (
             <NavRow key={item.href} item={item} />
@@ -215,7 +215,7 @@ export default function AppSidebar() {
           {/* Admin */}
           {isAdmin && (
             <>
-              <div className="my-3 mx-2 h-px bg-sidebar-border" />
+              <div className="my-2 h-px bg-sidebar-border" />
               <NavRow
                 item={{ label: "Dashboard", href: "/admin", Icon: BarChart3 }}
               />
@@ -224,11 +224,11 @@ export default function AppSidebar() {
         </nav>
 
         {/* ── User footer ── */}
-        <div ref={menuRef} className="relative shrink-0 border-t border-sidebar-border p-3">
+        <div ref={menuRef} className="relative shrink-0 border-t border-sidebar-border px-4 py-3">
           {/* Pop-up menu */}
           {menuOpen && user && (
             <div
-              className="absolute bottom-[calc(100%+6px)] left-3 right-3 rounded-xl p-1 z-50 border border-border bg-popover shadow-xl animate-[popUp_0.15s_ease]"
+              className="absolute bottom-[calc(100%+6px)] left-4 right-4 rounded-xl p-1.5 z-50 border border-border bg-popover shadow-xl animate-[popUp_0.15s_ease]"
               role="menu"
               aria-label="User options"
             >
