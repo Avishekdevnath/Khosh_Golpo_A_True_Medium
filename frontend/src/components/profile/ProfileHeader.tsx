@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Calendar, Edit2, Globe, Lock, MoreHorizontal } from "lucide-react";
 import FollowButton from "@/components/shared/FollowButton";
+import ConnectionButton from "@/components/shared/ConnectionButton";
 import type { UserOut } from "./useUserProfile";
 import { avatarSeed, initials } from "@/lib/workspaceUtils";
 
@@ -107,6 +108,7 @@ export default function ProfileHeader({
                     <Edit2 size={12} /> Edit
                   </button>
                 )}
+                <ConnectionButton userId={profileUser.id} />
                 <FollowButton userId={profileUser.id} initialFollowing={isFollowing} followsYou={followsYou} onFollowChange={onFollowChange} />
               </div>
             )}
@@ -136,6 +138,9 @@ export default function ProfileHeader({
                   </>
                 ) : (
                   <>
+                    <div onClick={onCloseMobileMenu}>
+                      <ConnectionButton userId={profileUser.id} />
+                    </div>
                     <div onClick={onCloseMobileMenu}>
                       <FollowButton userId={profileUser.id} initialFollowing={isFollowing} followsYou={followsYou} onFollowChange={onFollowChange} />
                     </div>
