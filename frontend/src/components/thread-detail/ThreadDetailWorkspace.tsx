@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { markThreadRead } from "@/lib/profileApi";
 
 import WorkspaceShell from "@/components/app/WorkspaceShell";
 import RichText from "@/components/shared/RichText";
@@ -97,6 +98,11 @@ export default function ThreadDetailWorkspace({
   const isThreadOwner = user?.id === thread.author_id;
   const canEditThread = Boolean(user && (isAdmin || (isThreadOwner && thread.status !== "archived")));
   const canEditThreadBody = Boolean(isAdmin || thread.post_count === 0);
+
+  // ── Fire-and-forget mark-read on mount ────────────────────────────────────
+  useEffect(() => {
+    if (initial.id) void markThreadRead(initial.id);
+  }, [initial.id]);
 
   // ── Escape key closes modals ───────────────────────────────────────────────
   useEffect(() => {
