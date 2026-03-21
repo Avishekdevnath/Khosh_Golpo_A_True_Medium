@@ -20,7 +20,6 @@ export default function ConnectionButton({
   onConnectionChange,
 }: ConnectionButtonProps) {
   const router = useRouter();
-  const hookState = useConnection(userId, { initialStatus, skipInitialLoad: skipStatusFetch });
   const {
     isConnected: connectedState,
     hasPendingRequest: pendingState,
@@ -33,7 +32,7 @@ export default function ConnectionButton({
     sendRequest: sendConnectionRequest,
     acceptRequest: acceptConnectionRequest,
     cancelRequest: cancelConnectionRequest,
-  } = hookState;
+  } = useConnection(userId, { initialStatus, skipInitialLoad: skipStatusFetch });
 
   const handleClick = async () => {
     if (messageState) {
@@ -54,87 +53,69 @@ export default function ConnectionButton({
     if (nextStatus) onConnectionChange?.(nextStatus);
   };
 
-  let bgColor = "rgba(240, 131, 74, 0.1)";
-  let borderColor = "#f0834a";
-  let textColor = "#f0834a";
-  let buttonText = "Connect";
-  let icon = <UserPlus size={14} />;
-  let disabled =
-    statusLoading ||
-    blockedByMeState ||
-    blockedYouState ||
-    (connectedState && !messageState);
-  let title = "Send connection request to message";
+  // Derive state variant
+  type Variant = "connect" | "pending" | "accept" | "connected" | "message" | "blocked";
+  let variant: Variant = "connect";
+  let label = "Connect";
+  let Icon = UserPlus;
+  let title = "Send connection request";
+  let disabled = statusLoading || (connectedState && !messageState);
 
-  if (messageState) {
-    bgColor = "rgba(61, 214, 140, 0.1)";
-    borderColor = "#3dd68c";
-    textColor = "#90e7be";
-    buttonText = "Message";
-    icon = <MessageSquare size={14} />;
-    disabled = statusLoading;
-    title = "Open direct messages";
-  } else if (blockedByMeState || blockedYouState) {
-    bgColor = "rgba(240, 107, 107, 0.1)";
-    borderColor = "#f06b6b";
-    textColor = "#f6b0b0";
-    buttonText = blockedByMeState ? "Blocked" : "Cannot Message";
-    icon = <ShieldBan size={14} />;
+  if (blockedByMeState || blockedYouState) {
+    variant = "blocked";
+    label = blockedByMeState ? "Blocked" : "Cannot connect";
+    Icon = ShieldBan;
     title = blockedByMeState ? "You blocked this user" : "This user blocked you";
-  } else if (connectedState) {
-    bgColor = "rgba(99, 111, 141, 0.12)";
-    borderColor = "#636f8d";
-    textColor = "#c7cee2";
-    buttonText = "Connected";
-    icon = <MessageSquare size={14} />;
-    title = "Connected, but messaging is unavailable right now";
-  } else if (pendingState && !requesterState && requestIdState) {
-    bgColor = "rgba(61, 214, 140, 0.1)";
-    borderColor = "#3dd68c";
-    textColor = "#90e7be";
-    buttonText = "Accept";
-    icon = <Check size={14} />;
+    disabled = true;
+  } else if (messageState) {
+    variant = "message";
+    label = "Message";
+    Icon = MessageSquare;
+    title = "Open direct messages";
     disabled = statusLoading;
-    title = "Accept this connection request";
+  } else if (connectedState) {
+    variant = "connected";
+    label = "Connected";
+    Icon = MessageSquare;
+    title = "Connected";
+    disabled = true;
+  } else if (pendingState && !requesterState) {
+    variant = "accept";
+    label = "Accept";
+    Icon = Check;
+    title = "Accept connection request";
+    disabled = statusLoading;
   } else if (pendingState && requesterState) {
-    bgColor = "rgba(229, 192, 123, 0.08)";
-    borderColor = "#e5c07b";
-    textColor = "#f0c78a";
-    buttonText = "Cancel Request";
-    icon = <X size={14} />;
-    title = "Cancel your connection request";
-  } else if (pendingState) {
-    bgColor = "rgba(61, 214, 140, 0.1)";
-    borderColor = "#3dd68c";
-    textColor = "#90e7be";
-    buttonText = "Accept";
-    icon = <Check size={14} />;
-    title = "Accept this connection request";
+    variant = "pending";
+    label = "Pending";
+    Icon = Clock;
+    title = "Cancel connection request";
+    disabled = statusLoading;
   }
+
+  const variantClass: Record<Variant, string> = {
+    connect:   "border-border bg-background text-text-secondary hover:border-foreground hover:text-foreground",
+    pending:   "border-border bg-card-hover text-text-tertiary hover:border-foreground hover:text-foreground",
+    accept:    "border-primary/40 bg-primary/5 text-primary hover:bg-primary/10",
+    connected: "border-border bg-card-hover text-text-tertiary cursor-default",
+    message:   "border-border bg-background text-text-secondary hover:border-foreground hover:text-foreground",
+    blocked:   "border-border bg-background text-text-tertiary opacity-50 cursor-not-allowed",
+  };
 
   return (
     <button
+      type="button"
       onClick={() => void handleClick()}
       disabled={disabled}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "6px",
-        padding: "8px 16px",
-        borderRadius: "8px",
-        fontSize: "14px",
-        fontWeight: "600",
-        border: `1px solid ${borderColor}`,
-        background: bgColor,
-        color: textColor,
-        cursor: disabled ? "not-allowed" : "pointer",
-        opacity: statusLoading ? 0.6 : 1,
-        transition: "all 0.2s ease",
-      }}
       title={title}
+      className={[
+        "inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-[13px] font-medium transition-colors cursor-pointer font-sans",
+        "disabled:opacity-50 disabled:cursor-not-allowed",
+        variantClass[variant],
+      ].join(" ")}
     >
-      {icon}
-      <span>{statusLoading ? "..." : buttonText}</span>
+      <Icon size={13} />
+      <span>{statusLoading ? "…" : label}</span>
     </button>
   );
 }
