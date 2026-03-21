@@ -18,14 +18,16 @@ export default function ProfileTabs({ activeTab, onTabChange, isOwnProfile }: Pr
   const visibleTabs = TABS.filter(t => !t.ownOnly || isOwnProfile);
 
   return (
-    <div className="flex items-center border-b border-border px-7 max-sm:px-3.5">
+    <div role="tablist" className="flex items-center border-b border-border px-7 max-sm:px-3.5">
       {visibleTabs.map(tab => (
         <button
           key={tab.key}
           type="button"
+          role="tab"
+          aria-selected={activeTab === tab.key}
           onClick={() => onTabChange(tab.key)}
           className={[
-            "mr-6 py-[14px] text-[14px] border-b-2 transition-colors duration-150 whitespace-nowrap font-sans",
+            "mr-6 py-[14px] text-[14px] border-b-2 transition-colors duration-150 whitespace-nowrap font-sans cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm",
             activeTab === tab.key
               ? "border-b-foreground text-foreground font-medium"
               : "border-b-transparent text-text-secondary hover:text-foreground font-normal",
