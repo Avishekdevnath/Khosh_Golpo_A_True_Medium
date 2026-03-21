@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 
-import UserProfileWorkspace from "@/components/users/UserProfileWorkspace";
+import UserProfileWorkspace from "@/components/profile/UserProfileWorkspace";
 import {
   canonicalProfilePath,
   isReservedProfileSlug,
