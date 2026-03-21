@@ -94,12 +94,12 @@ export default function ConnectionButton({
   }
 
   const variantClass: Record<Variant, string> = {
-    connect:   "border-border bg-background text-text-secondary hover:border-foreground hover:text-foreground",
-    pending:   "border-border bg-card-hover text-text-tertiary hover:border-foreground hover:text-foreground",
-    accept:    "border-primary/40 bg-primary/5 text-primary hover:bg-primary/10",
-    connected: "border-border bg-card-hover text-text-tertiary cursor-default",
-    message:   "border-border bg-background text-text-secondary hover:border-foreground hover:text-foreground",
-    blocked:   "border-border bg-background text-text-tertiary opacity-50 cursor-not-allowed",
+    connect:   "border-primary bg-primary text-white hover:opacity-90",
+    pending:   "border-border bg-card-hover text-text-secondary hover:border-foreground hover:text-foreground",
+    accept:    "border-[#16a34a]/40 bg-[#16a34a]/10 text-[#16a34a] hover:bg-[#16a34a]/20",
+    connected: "border-border bg-card-hover text-text-secondary cursor-default",
+    message:   "border-[#16a34a]/40 bg-[#16a34a]/10 text-[#16a34a] hover:bg-[#16a34a]/20",
+    blocked:   "border-border bg-background text-text-tertiary opacity-40 cursor-not-allowed",
   };
 
   return (
