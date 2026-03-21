@@ -7,11 +7,11 @@ import AppSidebar from "@/components/app/AppSidebar";
 
 export default function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-dvh bg-background text-foreground font-sans">
+    <div className="flex h-dvh bg-background text-foreground font-sans overflow-hidden">
       <AppSidebar />
 
       {/* Content column */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-dvh">
+      <div className="flex-1 flex flex-col min-w-0 h-dvh overflow-hidden">
         {/* Mobile-only top bar */}
         <AppNavbar />
 
