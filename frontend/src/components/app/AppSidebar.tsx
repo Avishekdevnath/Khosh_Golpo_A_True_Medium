@@ -125,7 +125,7 @@ export default function AppSidebar() {
         <div
           aria-hidden="true"
           className="pointer-events-none absolute -top-10 -left-6 w-[180px] h-[180px] rounded-full opacity-[0.12]"
-          style={{ background: "radial-gradient(circle, #f0834a 0%, transparent 70%)", filter: "blur(40px)" }}
+          style={{ background: "radial-gradient(circle, #0EA5E9 0%, transparent 70%)", filter: "blur(40px)" }}
         />
         {/* Ambient bottom glow — purple blob */}
         <div
@@ -139,7 +139,7 @@ export default function AppSidebar() {
           className={[
             "relative flex items-center gap-3 px-4 h-[60px] shrink-0 w-full text-left z-10",
             "border-0 border-b border-[rgba(255,255,255,0.06)] bg-transparent cursor-pointer",
-            "transition-colors duration-150 hover:bg-[rgba(240,131,74,0.04)]",
+            "transition-colors duration-150 hover:bg-[rgba(14,165,233,0.04)]",
           ].join(" ")}
           type="button"
           onClick={() => go("/")}
@@ -149,8 +149,8 @@ export default function AppSidebar() {
           <span
             className="relative w-[32px] h-[32px] rounded-[10px] grid place-items-center shrink-0"
             style={{
-              background: "linear-gradient(135deg, #f0834a 0%, #e06030 100%)",
-              boxShadow: "0 0 14px rgba(240,131,74,0.45), 0 2px 8px rgba(0,0,0,0.4)",
+              background: "linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)",
+              boxShadow: "0 0 14px rgba(14,165,233,0.45), 0 2px 8px rgba(0,0,0,0.4)",
             }}
             aria-hidden="true"
           >
@@ -169,7 +169,7 @@ export default function AppSidebar() {
           {totalBadge > 0 && (
             <span
               className="text-white rounded-full text-[10px] font-bold px-1.5 h-[18px] min-w-[18px] inline-flex items-center justify-center shrink-0"
-              style={{ background: "#f0834a", boxShadow: "0 0 8px rgba(240,131,74,0.5)" }}
+              style={{ background: "#0EA5E9", boxShadow: "0 0 8px rgba(14,165,233,0.5)" }}
               aria-label={`${totalBadge} unread`}
             >
               {totalBadge > 99 ? "99+" : totalBadge}
@@ -204,14 +204,14 @@ export default function AppSidebar() {
                       "group flex items-center gap-2.5 w-full h-[38px] px-2.5 rounded-xl",
                       "border-0 text-[13px] font-medium font-sans",
                       "cursor-pointer text-left transition-all duration-150 outline-offset-2",
-                      "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[rgba(240,131,74,0.5)]",
+                      "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[rgba(14,165,233,0.5)]",
                       active
-                        ? "text-[#f0834a] font-semibold"
+                        ? "text-[#0EA5E9] font-semibold"
                         : "text-[rgba(255,255,255,0.48)] hover:text-[rgba(255,255,255,0.85)]",
                     )}
                     style={active ? {
-                      background: "rgba(240,131,74,0.10)",
-                      boxShadow: "inset 2px 0 0 #f0834a",
+                      background: "rgba(14,165,233,0.10)",
+                      boxShadow: "inset 2px 0 0 #0EA5E9",
                     } : undefined}
                     onMouseEnter={e => {
                       if (!active) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)";
@@ -225,7 +225,7 @@ export default function AppSidebar() {
                   >
                     <span
                       className="flex items-center justify-center w-[18px] shrink-0 transition-all duration-150"
-                      style={active ? { filter: "drop-shadow(0 0 6px rgba(240,131,74,0.6))" } : undefined}
+                      style={active ? { filter: "drop-shadow(0 0 6px rgba(14,165,233,0.6))" } : undefined}
                       aria-hidden="true"
                     >
                       <Icon size={15} strokeWidth={active ? 2.3 : 1.8} />
@@ -235,8 +235,8 @@ export default function AppSidebar() {
                       <span
                         className="text-white rounded-full text-[9px] font-bold px-1.5 h-[16px] min-w-[16px] inline-flex items-center justify-center"
                         style={{
-                          background: active ? "#f0834a" : "rgba(240,131,74,0.7)",
-                          boxShadow: active ? "0 0 6px rgba(240,131,74,0.4)" : "none",
+                          background: active ? "#0EA5E9" : "rgba(14,165,233,0.7)",
+                          boxShadow: active ? "0 0 6px rgba(14,165,233,0.4)" : "none",
                         }}
                         aria-hidden="true"
                       >
@@ -265,14 +265,14 @@ export default function AppSidebar() {
                   "flex items-center gap-2.5 w-full h-[38px] px-2.5 rounded-xl",
                   "border-0 text-[13px] font-medium font-sans",
                   "cursor-pointer text-left transition-all duration-150 outline-offset-2",
-                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[rgba(240,131,74,0.5)]",
+                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[rgba(14,165,233,0.5)]",
                   isActive("/admin")
-                    ? "text-[#f0834a] font-semibold"
+                    ? "text-[#0EA5E9] font-semibold"
                     : "text-[rgba(255,255,255,0.48)] hover:text-[rgba(255,255,255,0.85)]",
                 )}
                 style={isActive("/admin") ? {
-                  background: "rgba(240,131,74,0.10)",
-                  boxShadow: "inset 2px 0 0 #f0834a",
+                  background: "rgba(14,165,233,0.10)",
+                  boxShadow: "inset 2px 0 0 #0EA5E9",
                 } : undefined}
                 onMouseEnter={e => {
                   if (!isActive("/admin")) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)";
@@ -285,7 +285,7 @@ export default function AppSidebar() {
               >
                 <span
                   className="flex items-center justify-center w-[18px] shrink-0"
-                  style={isActive("/admin") ? { filter: "drop-shadow(0 0 6px rgba(240,131,74,0.6))" } : undefined}
+                  style={isActive("/admin") ? { filter: "drop-shadow(0 0 6px rgba(14,165,233,0.6))" } : undefined}
                   aria-hidden="true"
                 >
                   <BarChart3 size={15} strokeWidth={isActive("/admin") ? 2.3 : 1.8} />
@@ -315,7 +315,7 @@ export default function AppSidebar() {
               aria-label="User options"
             >
               <button
-                className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl border-0 bg-transparent text-[rgba(255,255,255,0.75)] text-[12.5px] font-sans cursor-pointer text-left transition-colors duration-120 hover:bg-[rgba(255,255,255,0.05)] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[rgba(240,131,74,0.5)] outline-offset-2"
+                className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl border-0 bg-transparent text-[rgba(255,255,255,0.75)] text-[12.5px] font-sans cursor-pointer text-left transition-colors duration-120 hover:bg-[rgba(255,255,255,0.05)] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[rgba(14,165,233,0.5)] outline-offset-2"
                 type="button"
                 role="menuitem"
                 onClick={() => { setMenuOpen(false); go(profileHref); }}
@@ -324,7 +324,7 @@ export default function AppSidebar() {
                 <span>View profile</span>
               </button>
               <button
-                className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl border-0 bg-transparent text-[rgba(255,255,255,0.75)] text-[12.5px] font-sans cursor-pointer text-left transition-colors duration-120 hover:bg-[rgba(255,255,255,0.05)] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[rgba(240,131,74,0.5)] outline-offset-2"
+                className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl border-0 bg-transparent text-[rgba(255,255,255,0.75)] text-[12.5px] font-sans cursor-pointer text-left transition-colors duration-120 hover:bg-[rgba(255,255,255,0.05)] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[rgba(14,165,233,0.5)] outline-offset-2"
                 type="button"
                 role="menuitem"
                 onClick={() => { setMenuOpen(false); go("/settings"); }}
@@ -334,7 +334,7 @@ export default function AppSidebar() {
               </button>
               <div className="h-px bg-[rgba(255,255,255,0.06)] my-1 mx-2" role="separator" />
               <button
-                className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl border-0 bg-transparent text-[#f06b6b] text-[12.5px] font-sans cursor-pointer text-left transition-colors duration-120 hover:bg-[rgba(240,107,107,0.08)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[rgba(240,131,74,0.5)] outline-offset-2"
+                className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl border-0 bg-transparent text-[#ef4444] text-[12.5px] font-sans cursor-pointer text-left transition-colors duration-120 hover:bg-[rgba(239,68,68,0.08)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[rgba(14,165,233,0.5)] outline-offset-2"
                 type="button"
                 role="menuitem"
                 onClick={async () => {
@@ -351,7 +351,7 @@ export default function AppSidebar() {
 
           {/* User row */}
           <button
-            className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl border-0 bg-transparent cursor-pointer text-left font-sans transition-colors duration-150 hover:bg-[rgba(255,255,255,0.04)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[rgba(240,131,74,0.5)] outline-offset-2"
+            className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl border-0 bg-transparent cursor-pointer text-left font-sans transition-colors duration-150 hover:bg-[rgba(255,255,255,0.04)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[rgba(14,165,233,0.5)] outline-offset-2"
             type="button"
             onClick={() => user && setMenuOpen(v => !v)}
             aria-label={user ? `${name} — open user menu` : "User options"}
