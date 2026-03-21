@@ -73,6 +73,7 @@ In `globals.css`, add an `@theme inline` block to register new tokens as Tailwin
   --color-warning:          var(--warning);
   --color-info:             var(--info);
   --color-accent-muted:     var(--accent-muted);
+  --color-border-subtle:    var(--border-subtle);
 }
 ```
 
@@ -160,7 +161,8 @@ toast.success("...", { duration: 3500 })
 ```
 
 Implementation:
-- Provider wraps the app in `(app)/layout.tsx`
+- State managed via **React context** (`ToastContext`) — not Zustand; avoids coupling UI feedback to the auth store
+- `ToastProvider` wraps the app in `(app)/layout.tsx`
 - Toasts render in a fixed `bottom-right` portal via `createPortal`
 - Auto-dismiss after `duration` ms (default 3500)
 - Slide-in/out animation using `@keyframes` in globals.css
@@ -481,6 +483,32 @@ Wrapper: label → input slot → error message (red) or hint (muted). Consisten
 
 Custom styled toggle (not browser checkbox). `bg-accent` when checked, `bg-input` when off.
 
+#### `Spinner`
+
+```tsx
+<Spinner size="sm" className="text-accent" />
+
+// size: "sm" (16px) | "md" (20px) | "lg" (28px)
+```
+
+SVG circle with `animate-spin`. Used inline within buttons and form submit states. Not a full-page loader (that is `PageLoader` in `components/shared/`). Inherits `currentColor` so `className="text-accent"` sets its color.
+
+#### `TextArea`
+
+```tsx
+<TextArea
+  value={value}
+  onChange={setValue}
+  placeholder="Write your post..."
+  autoGrow
+  minRows={3}
+  maxRows={12}
+  className="..."
+/>
+```
+
+Extends shadcn's `Textarea`. `autoGrow` prop auto-expands height as user types (via `scrollHeight` on input event). Consistent focus ring (`ring-2 ring-accent`). Uses same padding/border as `Input`.
+
 ---
 
 ## 6. File Structure
@@ -517,6 +545,8 @@ frontend/src/components/ui/
   form-field.tsx
   password-input.tsx
   toggle-switch.tsx
+  text-area.tsx
+  spinner.tsx
   index.ts               ← barrel export all
 ```
 
@@ -580,7 +610,7 @@ frontend/src/components/
     AppNavbar.tsx              ← reskin to Tailwind
     AppSidebar.tsx             ← reskin to Tailwind
     WorkspaceShell.tsx         ← reskin to Tailwind
-    WorkspaceSidebar.tsx       ← keep (backward compat) or deprecate
+    WorkspaceSidebar.tsx       ← **deprecate in Phase 2**: reskin to Tailwind now, then remove once all pages are migrated to AppSidebar
   auth/
     AuthShell.tsx              ← reskin to Tailwind
   shared/
@@ -628,7 +658,7 @@ All components MUST:
 To ensure components can accommodate future page restructuring:
 
 1. **All components accept `className`** — Consumers can override layout without forking the component.
-2. **Pattern components expose sub-parts** — e.g., `ThreadCard.Title`, `ThreadCard.Meta` are exported separately for exceptional use cases.
+2. **`ThreadCard` exposes sub-parts** — `ThreadCard.Title`, `ThreadCard.Meta`, `ThreadCard.Tags` are exported as named exports for exceptional layout needs (e.g., a future kanban board). Other pattern components (`PostCard`, `NotificationItem`, `UserCard`, `ConversationItem`, `StatCard`) do **not** expose sub-parts unless a future requirement demands it.
 3. **WorkspaceShell is optional** — Pages can render directly inside `app-content` without WorkspaceShell if the layout requires it.
 4. **Variant props, not forks** — New visual requirements go into `variant` or `size` props, not new components. E.g., adding kanban board view adds `variant="kanban"` to ThreadCard, not a new KanbanThreadCard.
 5. **No hardcoded pixel dimensions** — All sizing is via props (`size="sm|md|lg"`) or className override, never hardcoded in component internals.
@@ -754,7 +784,7 @@ AuthShell layout stays. Swap inline form HTML for design system components.
 ## 12. Success Criteria
 
 Phase 1 is complete when:
-- [ ] All 32 components exist in `components/ui/` with Tailwind styling
+- [ ] All components listed in Section 6.1 exist in `components/ui/` with Tailwind styling
 - [ ] `globals.css` has the new token additions and `.app-shell` scope removed
 - [ ] `@theme inline` block exposes all new tokens as Tailwind utilities
 - [ ] All components pass keyboard navigation and have correct ARIA attributes
