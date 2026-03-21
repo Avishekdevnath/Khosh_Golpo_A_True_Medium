@@ -454,7 +454,7 @@ async def get_user_profile(
     if viewer is not None and (viewer.id == user.id or viewer.role.value == "admin"):
         return _to_user_out(user)
 
-    if getattr(user, "is_private", False):
+    if user.is_private:
         is_connected = False
         if viewer is not None:
             is_connected = await _is_connected(viewer.id, user.id)
@@ -1088,8 +1088,12 @@ def _avatar_seed(user_id: str) -> list[str]:
         ["#1f2a3a", "#3b82f6"], ["#2a1f3a", "#a855f7"],
         ["#1f3a2a", "#06b6d4"], ["#3a2a1f", "#f59e0b"],
     ]
-    h = sum(ord(c) for c in user_id) % len(PALETTES)
-    return PALETTES[h]
+    # XOR-fold bytes for better distribution across palette slots
+    b = user_id.encode()
+    h = 0
+    for byte in b:
+        h ^= byte
+    return PALETTES[h % len(PALETTES)]
 
 
 async def _is_connected(viewer_id: PydanticObjectId, owner_id: PydanticObjectId) -> bool:
