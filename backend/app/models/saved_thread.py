@@ -2,6 +2,7 @@
 from datetime import datetime
 from beanie import Document, PydanticObjectId
 from pydantic import Field
+from pymongo import ASCENDING, IndexModel
 from app.models.common import utc_now
 
 
@@ -13,6 +14,9 @@ class SavedThread(Document):
     class Settings:
         name = "saved_threads"
         indexes = [
-            ["user_id", "thread_id"],
-            "user_id",
+            IndexModel(
+                [("user_id", ASCENDING), ("thread_id", ASCENDING)],
+                unique=True,
+            ),
+            IndexModel([("user_id", ASCENDING)]),
         ]
