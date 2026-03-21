@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
-import ThreadDetailWorkspace from "@/components/threads/ThreadDetailWorkspace";
+import { ThreadDetailWorkspace } from "@/components/thread-detail";
 
 type ThreadPageProps = {
   params: Promise<{ id: string }>;
