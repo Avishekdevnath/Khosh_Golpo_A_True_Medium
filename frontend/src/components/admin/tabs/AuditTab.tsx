@@ -53,9 +53,7 @@ function actorLabel(log: AuditLogItem): string {
 }
 
 function actorDetailLabel(log: AuditLogItem): string {
-  if (log.actor_display_name && log.actor_username) {
-    return `${log.actor_display_name} (@${log.actor_username})`;
-  }
+  if (log.actor_display_name && log.actor_username) return `${log.actor_display_name} (@${log.actor_username})`;
   if (log.actor_display_name) return log.actor_display_name;
   return log.actor_id ?? "-";
 }
@@ -66,72 +64,44 @@ function targetDetailLabel(log: AuditLogItem): string {
   return `${log.target_type} (${log.target_id})`;
 }
 
-function cssClassForSeverity(severity: AuditSeverity): string {
-  if (severity === "critical") return "critical";
-  if (severity === "warning") return "warning";
-  return "info";
-}
+const severityChip: Record<string, string> = {
+  info: "border-accent-purple/35 bg-accent-purple/16 text-purple-200",
+  warning: "border-accent-orange/35 bg-accent-orange/16 text-orange-200",
+  critical: "border-accent-red/35 bg-accent-red/16 text-red-300",
+};
+const resultChip: Record<string, string> = {
+  success: "border-accent-green/35 bg-accent-green/16 text-green-300",
+  failed: "border-accent-red/35 bg-accent-red/16 text-red-300",
+};
 
-function cssClassForResult(result: AuditResult): string {
-  if (result === "failed") return "failed";
-  return "success";
-}
+const chipBase = "rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide";
+const inputCls = "rounded-[10px] border border-app-border bg-app-input px-2.5 py-2 text-xs text-foreground font-[inherit] outline-none placeholder:text-muted-foreground/50 focus:border-border-hover";
 
 export default function AuditTab({
-  logs,
-  total,
-  loading,
-  page,
-  totalPages,
-  action,
-  targetType,
-  severity,
-  result,
-  actorId,
-  requestId,
-  dateFrom,
-  dateTo,
-  onActionChange,
-  onTargetTypeChange,
-  onSeverityChange,
-  onResultChange,
-  onActorIdChange,
-  onRequestIdChange,
-  onDateFromChange,
-  onDateToChange,
-  onPageChange,
-  onExport,
+  logs, total, loading, page, totalPages,
+  action, targetType, severity, result, actorId, requestId, dateFrom, dateTo,
+  onActionChange, onTargetTypeChange, onSeverityChange, onResultChange,
+  onActorIdChange, onRequestIdChange, onDateFromChange, onDateToChange,
+  onPageChange, onExport,
 }: AuditTabProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
 
-  // Local debounced state for text inputs
   const [localAction, setLocalAction] = useState(action);
   const [localActorId, setLocalActorId] = useState(actorId);
   const [localRequestId, setLocalRequestId] = useState(requestId);
 
-  // Sync local state when parent value changes (e.g. URL navigation)
   useEffect(() => { setLocalAction(action); }, [action]);
   useEffect(() => { setLocalActorId(actorId); }, [actorId]);
   useEffect(() => { setLocalRequestId(requestId); }, [requestId]);
 
-  // Debounce: fire parent onChange 300ms after local change
-  useEffect(() => {
-    const t = setTimeout(() => onActionChange(localAction), 300);
-    return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [localAction]);
-  useEffect(() => {
-    const t = setTimeout(() => onActorIdChange(localActorId), 300);
-    return () => clearTimeout(t);
+  useEffect(() => { const t = setTimeout(() => onActionChange(localAction), 300); return () => clearTimeout(t); }, [localAction]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [localActorId]);
-  useEffect(() => {
-    const t = setTimeout(() => onRequestIdChange(localRequestId), 300);
-    return () => clearTimeout(t);
+  useEffect(() => { const t = setTimeout(() => onActorIdChange(localActorId), 300); return () => clearTimeout(t); }, [localActorId]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [localRequestId]);
+  useEffect(() => { const t = setTimeout(() => onRequestIdChange(localRequestId), 300); return () => clearTimeout(t); }, [localRequestId]);
 
   useEffect(() => {
     if (!copied) return;
@@ -145,115 +115,111 @@ export default function AuditTab({
   }, [logs, selectedId]);
 
   const selectedLog = useMemo(() => logs.find(log => log.id === activeSelectedId) ?? null, [activeSelectedId, logs]);
-
-  const rawJson = useMemo(() => {
-    if (!selectedLog) return "";
-    return JSON.stringify(selectedLog, null, 2);
-  }, [selectedLog]);
+  const rawJson = useMemo(() => selectedLog ? JSON.stringify(selectedLog, null, 2) : "", [selectedLog]);
 
   const copyRawJson = async () => {
     if (!rawJson) return;
-    try {
-      await navigator.clipboard.writeText(rawJson);
-      setCopied(true);
-    } catch {
-      setCopied(false);
-    }
+    try { await navigator.clipboard.writeText(rawJson); setCopied(true); } catch { setCopied(false); }
   };
 
   return (
-    <div className="audit-shell">
-      <div className="toolbar">
+    <div className="flex h-full min-h-0 flex-col gap-2.5">
+      {/* Toolbar */}
+      <div className="shrink-0 pb-2">
         <AdminSectionHeader title="Audit Log" countLabel={`${total} entries`} />
-
-        <div className="filter-row">
-          <div className="search-wrap grow">
-            <Search size={14} className="search-icon" />
+        <div className="flex flex-wrap gap-2">
+          <div className="relative min-w-[220px] flex-1">
+            <Search size={14} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
             <input
-              className="search-input"
               type="text"
+              className={`${inputCls} w-full pl-9`}
               value={localAction}
               onChange={e => setLocalAction(e.target.value)}
               placeholder="Action..."
             />
           </div>
-          <input className="admin-input" type="text" value={targetType} onChange={e => onTargetTypeChange(e.target.value)} placeholder="Target type" />
-          <select className="admin-select" value={severity} onChange={e => onSeverityChange(e.target.value as "" | AuditSeverity)}>
+          <input className={inputCls} type="text" value={targetType} onChange={e => onTargetTypeChange(e.target.value)} placeholder="Target type" />
+          <select className={inputCls} value={severity} onChange={e => onSeverityChange(e.target.value as "" | AuditSeverity)}>
             <option value="">Any severity</option>
             <option value="info">Info</option>
             <option value="warning">Warning</option>
             <option value="critical">Critical</option>
           </select>
-          <select className="admin-select" value={result} onChange={e => onResultChange(e.target.value as "" | AuditResult)}>
+          <select className={inputCls} value={result} onChange={e => onResultChange(e.target.value as "" | AuditResult)}>
             <option value="">Any result</option>
             <option value="success">Success</option>
             <option value="failed">Failed</option>
           </select>
-          <input className="admin-input" type="text" value={localActorId} onChange={e => setLocalActorId(e.target.value)} placeholder="Actor id" />
-          <input className="admin-input" type="text" value={localRequestId} onChange={e => setLocalRequestId(e.target.value)} placeholder="Request id" />
-          <input className="admin-input" type="date" value={dateFrom} onChange={e => onDateFromChange(e.target.value)} />
-          <input className="admin-input" type="date" value={dateTo} onChange={e => onDateToChange(e.target.value)} />
-          <div className="export-wrap">
+          <input className={inputCls} type="text" value={localActorId} onChange={e => setLocalActorId(e.target.value)} placeholder="Actor id" />
+          <input className={inputCls} type="text" value={localRequestId} onChange={e => setLocalRequestId(e.target.value)} placeholder="Request id" />
+          <input className={inputCls} type="date" value={dateFrom} onChange={e => onDateFromChange(e.target.value)} />
+          <input className={inputCls} type="date" value={dateTo} onChange={e => onDateToChange(e.target.value)} />
+          {/* Export */}
+          <div className="relative shrink-0">
             <button
               type="button"
-              className="export-btn"
+              title="Export"
               onClick={() => setExportOpen(o => !o)}
               onBlur={() => setTimeout(() => setExportOpen(false), 150)}
-              title="Export"
+              className="flex h-full min-h-[36px] w-9 items-center justify-center rounded-[10px] border border-app-border bg-app-input text-muted-foreground hover:border-border-hover hover:text-foreground"
             >
               <Download size={13} />
             </button>
             {exportOpen && (
-              <div className="export-menu">
-                <button type="button" onClick={() => { onExport("csv"); setExportOpen(false); }}>CSV</button>
-                <button type="button" onClick={() => { onExport("json"); setExportOpen(false); }}>JSON</button>
+              <div className="absolute right-0 top-[calc(100%+4px)] z-30 flex min-w-[80px] flex-col gap-0.5 rounded-lg border border-app-border bg-app-panel p-1">
+                <button type="button" className="rounded px-2.5 py-1.5 text-left text-xs text-foreground/80 hover:bg-app-input" onClick={() => { onExport("csv"); setExportOpen(false); }}>CSV</button>
+                <button type="button" className="rounded px-2.5 py-1.5 text-left text-xs text-foreground/80 hover:bg-app-input" onClick={() => { onExport("json"); setExportOpen(false); }}>JSON</button>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      <div className="audit-body">
-        <div className="table-pane">
+      {/* Body */}
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_360px] gap-2.5 max-[1120px]:grid-cols-1">
+        {/* Table pane */}
+        <div className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[14px] border border-app-border bg-app-panel">
           <ScrollArea
-            className="table-scroll"
+            className="min-h-[120px]"
             size="lg"
             tone="strong"
             style={{ flex: 1, minHeight: 0, overflowY: "auto" }}
           >
             {loading && logs.length === 0 ? (
-              <div style={{ padding: "10px 12px" }}><AdminSkeleton rows={8} /></div>
+              <div className="p-3"><AdminSkeleton rows={8} /></div>
             ) : logs.length === 0 ? (
               <AdminEmptyState icon={ClipboardList} text="No audit logs found." />
             ) : (
-              <table className="audit-table">
+              <table className="w-full border-collapse text-xs">
                 <thead>
                   <tr>
-                    <th>Time</th>
-                    <th>Action</th>
-                    <th>Severity</th>
-                    <th>Result</th>
-                    <th>Target</th>
-                    <th>Actor</th>
-                    <th>Request</th>
+                    {["Time", "Action", "Severity", "Result", "Target", "Actor", "Request"].map(h => (
+                      <th key={h} className="sticky top-0 z-[1] whitespace-nowrap border-b border-app-border bg-app-input px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        {h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
                   {logs.map(log => {
                     const selected = log.id === activeSelectedId;
                     return (
-                      <tr key={log.id} className={selected ? "selected" : ""} onClick={() => setSelectedId(log.id)}>
-                        <td title={absoluteTime(log.created_at)}>{relativeTime(log.created_at)}</td>
-                        <td>{log.action}</td>
-                        <td>
-                          <span className={`chip ${cssClassForSeverity(log.severity)}`}>{log.severity}</span>
+                      <tr
+                        key={log.id}
+                        className={`cursor-pointer border-b border-app-border/50 hover:bg-accent-purple/8 ${selected ? "bg-accent-purple/16" : ""}`}
+                        onClick={() => setSelectedId(log.id)}
+                      >
+                        <td className="whitespace-nowrap px-3 py-2.5 text-foreground/80" title={absoluteTime(log.created_at)}>{relativeTime(log.created_at)}</td>
+                        <td className="whitespace-nowrap px-3 py-2.5 text-foreground/80">{log.action}</td>
+                        <td className="px-3 py-2.5">
+                          <span className={`${chipBase} ${severityChip[log.severity] ?? ""}`}>{log.severity}</span>
                         </td>
-                        <td>
-                          <span className={`chip ${cssClassForResult(log.result)}`}>{log.result}</span>
+                        <td className="px-3 py-2.5">
+                          <span className={`${chipBase} ${resultChip[log.result] ?? ""}`}>{log.result}</span>
                         </td>
-                        <td title={log.target_id ?? ""}>{targetLabel(log)}</td>
-                        <td title={log.actor_id ?? ""}>{actorLabel(log)}</td>
-                        <td title={log.request_id ?? ""}>{log.request_id ? log.request_id.slice(0, 16) : "-"}</td>
+                        <td className="whitespace-nowrap px-3 py-2.5 text-foreground/80" title={log.target_id ?? ""}>{targetLabel(log)}</td>
+                        <td className="whitespace-nowrap px-3 py-2.5 text-foreground/80" title={log.actor_id ?? ""}>{actorLabel(log)}</td>
+                        <td className="whitespace-nowrap px-3 py-2.5 text-foreground/80" title={log.request_id ?? ""}>{log.request_id ? log.request_id.slice(0, 16) : "-"}</td>
                       </tr>
                     );
                   })}
@@ -263,392 +229,86 @@ export default function AuditTab({
           </ScrollArea>
 
           {!loading && logs.length > 0 && (
-            <div className="pager">
-              <button type="button" className="tiny-btn" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>
+            <div className="flex shrink-0 items-center justify-end gap-2.5 border-t border-app-border px-3 py-2.5">
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 rounded-lg border border-app-border bg-app-input px-2.5 py-1.5 text-[11px] text-foreground/80 disabled:opacity-50"
+                disabled={page <= 1}
+                onClick={() => onPageChange(page - 1)}
+              >
                 <ChevronLeft size={12} /> Prev
               </button>
-              <span className="page-text">
-                Page {page} / {totalPages}
-              </span>
-              <button type="button" className="tiny-btn" disabled={page >= totalPages} onClick={() => onPageChange(page + 1)}>
+              <span className="text-xs text-muted-foreground">Page {page} / {totalPages}</span>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 rounded-lg border border-app-border bg-app-input px-2.5 py-1.5 text-[11px] text-foreground/80 disabled:opacity-50"
+                disabled={page >= totalPages}
+                onClick={() => onPageChange(page + 1)}
+              >
                 Next <ChevronRight size={12} />
               </button>
             </div>
           )}
         </div>
 
-        <aside className="detail-pane">
+        {/* Detail pane */}
+        <aside className="flex min-h-0 flex-col gap-3 overflow-hidden rounded-[14px] border border-app-border bg-app-panel p-3.5 max-[1120px]:max-h-80">
           {!selectedLog ? (
-            <div className="detail-empty">Select an event to inspect details.</div>
+            <div className="mt-1.5 text-[13px] text-muted-foreground">Select an event to inspect details.</div>
           ) : (
             <>
-              <div className="detail-head">
+              <div className="flex items-start justify-between gap-2.5">
                 <div>
-                  <p className="detail-eyebrow">Event Details</p>
-                  <h3 className="detail-title">{selectedLog.action}</h3>
+                  <p className="m-0 text-[11px] uppercase tracking-widest text-muted-foreground">Event Details</p>
+                  <h3 className="m-0 mt-1 text-base text-foreground leading-snug">{selectedLog.action}</h3>
                 </div>
-                <button type="button" className="copy-btn" onClick={() => void copyRawJson()}>
+                <button
+                  type="button"
+                  className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-lg border border-app-border bg-app-input px-2 py-1.5 text-[11px] text-foreground/80 hover:text-foreground"
+                  onClick={() => void copyRawJson()}
+                >
                   {copied ? <Check size={12} /> : <Copy size={12} />}
                   {copied ? "Copied" : "Copy JSON"}
                 </button>
               </div>
 
-              <div className="detail-grid">
-                <div>
-                  <span className="label">Severity</span>
-                  <span className={`chip ${cssClassForSeverity(selectedLog.severity)}`}>{selectedLog.severity}</span>
-                </div>
-                <div>
-                  <span className="label">Result</span>
-                  <span className={`chip ${cssClassForResult(selectedLog.result)}`}>{selectedLog.result}</span>
-                </div>
-                <div>
-                  <span className="label">Target</span>
-                  <p>{targetDetailLabel(selectedLog)}</p>
-                </div>
-                <div>
-                  <span className="label">Actor</span>
-                  <p>{actorDetailLabel(selectedLog)}</p>
-                </div>
-                <div>
-                  <span className="label">Request ID</span>
-                  <p>{selectedLog.request_id ?? "-"}</p>
-                </div>
-                <div>
-                  <span className="label">IP</span>
-                  <p>{selectedLog.ip ?? "-"}</p>
-                </div>
-                <div>
-                  <span className="label">Created</span>
-                  <p>{absoluteTime(selectedLog.created_at)}</p>
-                </div>
+              <div className="grid grid-cols-2 gap-2.5">
+                {[
+                  { label: "Severity", chip: <span className={`${chipBase} ${severityChip[selectedLog.severity] ?? ""}`}>{selectedLog.severity}</span> },
+                  { label: "Result", chip: <span className={`${chipBase} ${resultChip[selectedLog.result] ?? ""}`}>{selectedLog.result}</span> },
+                ].map(({ label, chip }) => (
+                  <div key={label}>
+                    <span className="mb-1 block text-[10px] uppercase tracking-wider text-muted-foreground">{label}</span>
+                    {chip}
+                  </div>
+                ))}
+                {[
+                  { label: "Target", value: targetDetailLabel(selectedLog) },
+                  { label: "Actor", value: actorDetailLabel(selectedLog) },
+                  { label: "Request ID", value: selectedLog.request_id ?? "-" },
+                  { label: "IP", value: selectedLog.ip ?? "-" },
+                  { label: "Created", value: absoluteTime(selectedLog.created_at) },
+                ].map(({ label, value }) => (
+                  <div key={label}>
+                    <span className="mb-1 block text-[10px] uppercase tracking-wider text-muted-foreground">{label}</span>
+                    <p className="m-0 break-words text-xs text-foreground/90">{value}</p>
+                  </div>
+                ))}
               </div>
 
-              <p className="raw-label">Raw JSON</p>
-              <ScrollArea className="raw-scroll" tone="subtle" size="md" style={{ overflowY: "auto" }}>
-                <pre className="raw">{rawJson}</pre>
+              <p className="m-0 text-[10px] uppercase tracking-wider text-muted-foreground">Raw JSON</p>
+              <ScrollArea
+                className="min-h-[120px] flex-1 overflow-hidden rounded-[10px] border border-app-border bg-app-bg"
+                tone="subtle"
+                size="md"
+                style={{ overflowY: "auto" }}
+              >
+                <pre className="m-0 break-words whitespace-pre-wrap p-2.5 text-[11px] leading-relaxed text-muted-foreground">{rawJson}</pre>
               </ScrollArea>
             </>
           )}
         </aside>
       </div>
-
-      <style jsx>{`
-        .audit-shell {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          height: 100%;
-          min-height: 0;
-        }
-        .toolbar {
-          flex-shrink: 0;
-          padding-bottom: 8px;
-          background: linear-gradient(180deg, #101626 0%, rgba(16, 22, 38, 0.95) 70%, rgba(16, 22, 38, 0));
-        }
-        .filter-row {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-        .export-wrap {
-          position: relative;
-          flex-shrink: 0;
-        }
-        .export-btn {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 36px;
-          height: 100%;
-          min-height: 36px;
-          border: 1px solid #2d3957;
-          background: #131c2f;
-          color: #8a96b8;
-          border-radius: 10px;
-          cursor: pointer;
-        }
-        .export-btn:hover {
-          color: #e4e8f4;
-          border-color: #3a4a70;
-        }
-        .export-menu {
-          position: absolute;
-          top: calc(100% + 4px);
-          right: 0;
-          background: #141c30;
-          border: 1px solid #293553;
-          border-radius: 8px;
-          padding: 4px;
-          z-index: 30;
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-          min-width: 80px;
-        }
-        .export-menu button {
-          background: transparent;
-          border: none;
-          color: #b8c4e0;
-          font-size: 12px;
-          font-family: inherit;
-          padding: 6px 10px;
-          border-radius: 6px;
-          cursor: pointer;
-          text-align: left;
-        }
-        .export-menu button:hover {
-          background: #1e2a45;
-          color: #e4e8f4;
-        }
-        .grow {
-          flex: 1;
-          min-width: 220px;
-        }
-        .search-wrap {
-          position: relative;
-        }
-        .search-wrap :global(.search-icon) {
-          position: absolute;
-          left: 14px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: #3d4460;
-        }
-        .search-input,
-        .admin-input,
-        .admin-select {
-          border: 1px solid #2d3957;
-          background: #131c2f;
-          color: #e4e8f4;
-          border-radius: 10px;
-          padding: 9px 10px;
-          font-size: 12px;
-          font-family: inherit;
-        }
-        .search-input {
-          width: 100%;
-          padding-left: 38px;
-        }
-        .audit-body {
-          flex: 1;
-          min-height: 0;
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) 360px;
-          gap: 10px;
-        }
-        .table-pane {
-          min-width: 0;
-          min-height: 0;
-          border: 1px solid #253252;
-          border-radius: 14px;
-          background: linear-gradient(180deg, #121b2f, #101727);
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
-        }
-        .table-scroll {
-          min-height: 120px;
-        }
-        .center-msg {
-          text-align: center;
-          color: #636f8d;
-          padding: 32px 0;
-        }
-        .audit-table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 12px;
-        }
-        .audit-table th {
-          position: sticky;
-          top: 0;
-          z-index: 1;
-          text-align: left;
-          padding: 10px 12px;
-          border-bottom: 1px solid #253252;
-          color: #9ba9ca;
-          background: #131d32;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          font-size: 10px;
-          white-space: nowrap;
-        }
-        .audit-table td {
-          padding: 10px 12px;
-          border-bottom: 1px solid #1c2742;
-          color: #d4dcf5;
-          white-space: nowrap;
-        }
-        .audit-table tbody tr {
-          cursor: pointer;
-        }
-        .audit-table tbody tr:hover {
-          background: rgba(113, 139, 255, 0.08);
-        }
-        .audit-table tbody tr.selected {
-          background: rgba(113, 139, 255, 0.16);
-        }
-        .chip {
-          border: 1px solid #2f3a59;
-          background: #172036;
-          color: #aebadb;
-          border-radius: 999px;
-          padding: 2px 8px;
-          font-size: 10px;
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-          font-weight: 700;
-        }
-        .chip.info {
-          color: #b8ccff;
-          border-color: rgba(113, 139, 255, 0.35);
-          background: rgba(113, 139, 255, 0.16);
-        }
-        .chip.warning {
-          color: #f6c5ab;
-          border-color: rgba(240, 131, 74, 0.35);
-          background: rgba(240, 131, 74, 0.16);
-        }
-        .chip.critical,
-        .chip.failed {
-          color: #f6b0b0;
-          border-color: rgba(240, 107, 107, 0.35);
-          background: rgba(240, 107, 107, 0.16);
-        }
-        .chip.success {
-          color: #8ce6ba;
-          border-color: rgba(61, 214, 140, 0.35);
-          background: rgba(61, 214, 140, 0.16);
-        }
-        .pager {
-          display: flex;
-          align-items: center;
-          justify-content: flex-end;
-          gap: 10px;
-          padding: 10px 12px;
-          border-top: 1px solid #1f2b47;
-          flex-shrink: 0;
-        }
-        .tiny-btn {
-          border: 1px solid #2f3a58;
-          background: #182135;
-          color: #c3cde7;
-          border-radius: 8px;
-          padding: 6px 9px;
-          font-size: 11px;
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          cursor: pointer;
-        }
-        .tiny-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        .page-text {
-          font-size: 12px;
-          color: #7e87a4;
-        }
-        .detail-pane {
-          border: 1px solid #253252;
-          border-radius: 14px;
-          background: linear-gradient(180deg, #121b2f, #101727);
-          padding: 14px;
-          min-height: 0;
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-        .detail-empty {
-          color: #7d89ab;
-          font-size: 13px;
-          margin-top: 6px;
-        }
-        .detail-head {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 10px;
-        }
-        .detail-eyebrow {
-          margin: 0;
-          color: #7d89ab;
-          font-size: 11px;
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-        }
-        .detail-title {
-          margin: 3px 0 0;
-          color: #ebf1ff;
-          font-size: 16px;
-          line-height: 1.2;
-        }
-        .copy-btn {
-          border: 1px solid #2f3a58;
-          background: #182135;
-          color: #c3cde7;
-          border-radius: 8px;
-          padding: 6px 8px;
-          font-size: 11px;
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          cursor: pointer;
-          white-space: nowrap;
-        }
-        .detail-grid {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 10px;
-        }
-        .detail-grid .label {
-          display: block;
-          color: #7d89ab;
-          font-size: 10px;
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-          margin-bottom: 4px;
-        }
-        .detail-grid p {
-          margin: 0;
-          color: #d7dff8;
-          font-size: 12px;
-          word-break: break-word;
-        }
-        .raw-label {
-          margin: 0;
-          color: #7d89ab;
-          font-size: 10px;
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-        }
-        .raw-scroll {
-          flex: 1;
-          min-height: 120px;
-          border: 1px solid #223050;
-          border-radius: 10px;
-          background: #0d1424;
-          overflow: hidden;
-        }
-        .raw {
-          margin: 0;
-          padding: 10px;
-          font-size: 11px;
-          line-height: 1.45;
-          color: #b0bbdb;
-          white-space: pre-wrap;
-          word-break: break-word;
-        }
-        @media (max-width: 1120px) {
-          .audit-body {
-            grid-template-columns: minmax(0, 1fr);
-          }
-          .detail-pane {
-            max-height: 320px;
-          }
-        }
-      `}</style>
     </div>
   );
 }

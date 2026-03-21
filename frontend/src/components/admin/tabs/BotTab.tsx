@@ -31,18 +31,7 @@ import type {
 } from "@/types/admin";
 
 const BOT_BADGE = (
-  <span
-    style={{
-      fontSize: 10,
-      fontWeight: 700,
-      padding: "2px 6px",
-      borderRadius: 4,
-      border: "1px solid rgba(124, 115, 240, 0.5)",
-      color: "#9d97f0",
-      background: "rgba(124, 115, 240, 0.1)",
-      letterSpacing: "0.04em",
-    }}
-  >
+  <span className="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.04em] border border-accent-purple/50 text-purple-300 bg-accent-purple/10">
     BOT
   </span>
 );
@@ -52,28 +41,12 @@ function formatTs(ts: string | null): string {
   return new Date(ts).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
-// ─── Shared styles ─────────────────────────────────────────────────────────────
-
-const SHARED_STYLES = `
-  .field { display: flex; flex-direction: column; gap: 5px; }
-  .label { font-size: 11px; font-weight: 600; color: #8591b3; text-transform: uppercase; letter-spacing: 0.04em; }
-  .input { background: #151c2e; border: 1px solid #2a3454; border-radius: 8px; color: #e4e8f4; padding: 8px 12px; font-size: 13px; outline: none; width: 100%; box-sizing: border-box; }
-  .input:focus { border-color: #7c73f0; }
-  .textarea { resize: vertical; font-family: inherit; }
-  .section-divider { font-size: 11px; font-weight: 700; color: #7c73f0; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid #1e2741; padding-bottom: 6px; }
-  .form-error { color: #f4b3b3; background: rgba(240, 107, 107, 0.1); border: 1px solid rgba(240, 107, 107, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 12px; }
-  .btn-primary { display: flex; align-items: center; justify-content: center; gap: 6px; background: #7c73f0; border: none; border-radius: 8px; color: #fff; font-size: 13px; font-weight: 600; padding: 9px 0; cursor: pointer; width: 100%; }
-  .btn-primary:hover:not(:disabled) { background: #8f88f5; }
-  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-  .tag-row { display: flex; gap: 8px; }
-  .add-btn { background: #232d4a; border: 1px solid #2a3454; border-radius: 8px; color: #b7c3df; font-size: 12px; padding: 6px 12px; cursor: pointer; white-space: nowrap; }
-  .add-btn:hover { background: #2b3960; }
-  .tag-list { display: flex; flex-wrap: wrap; gap: 6px; min-height: 24px; }
-  .tag { display: flex; align-items: center; gap: 4px; background: rgba(124, 115, 240, 0.12); border: 1px solid rgba(124, 115, 240, 0.3); border-radius: 6px; padding: 3px 8px; font-size: 12px; color: #b3adf5; }
-  .tag button { background: none; border: none; color: #9d97f0; cursor: pointer; font-size: 14px; line-height: 1; padding: 0 0 0 2px; }
-  .spin { animation: spin 0.8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-`;
+const inputCls = "w-full rounded-lg border border-app-border bg-app-input px-3 py-2 text-[13px] text-foreground outline-none font-[inherit] focus:border-accent-purple placeholder:text-muted-foreground/50";
+const textareaCls = `${inputCls} resize-y`;
+const labelCls = "text-[11px] font-semibold uppercase tracking-[0.04em] text-muted-foreground";
+const sectionDividerCls = "text-[11px] font-bold text-accent-purple uppercase tracking-[0.06em] border-b border-app-border pb-1.5";
+const tagCls = "inline-flex items-center gap-1 rounded-md border border-accent-purple/30 bg-accent-purple/12 px-2 py-1 text-[12px] text-purple-300";
+const addBtnCls = "rounded-lg border border-app-border bg-app-input px-3 py-1.5 text-[12px] text-muted-foreground hover:bg-app-panel whitespace-nowrap cursor-pointer";
 
 // ─── Create Bot Panel ─────────────────────────────────────────────────────────
 
@@ -131,87 +104,77 @@ function CreateBotPanel({ onCreated, onCancel }: CreatePanelProps) {
   };
 
   return (
-    <div className="create-panel">
-      <div className="create-header"><Bot size={16} /><span>Create AI Bot Account</span></div>
+    <div className="flex flex-col gap-3.5">
+      <div className="mb-1 flex items-center gap-2 text-[15px] font-bold text-foreground">
+        <Bot size={16} /><span>Create AI Bot Account</span>
+      </div>
 
-      <div className="form-grid">
-        <label className="field">
-          <span className="label">Username *</span>
-          <input className="input" value={form.username} onChange={e => set("username", e.target.value)} placeholder="khoshbot" />
+      <div className="grid grid-cols-2 gap-3">
+        <label className="flex flex-col gap-1.5">
+          <span className={labelCls}>Username *</span>
+          <input className={inputCls} value={form.username} onChange={e => set("username", e.target.value)} placeholder="khoshbot" />
         </label>
-        <label className="field">
-          <span className="label">Display Name *</span>
-          <input className="input" value={form.display_name} onChange={e => set("display_name", e.target.value)} placeholder="KhoshBot" />
+        <label className="flex flex-col gap-1.5">
+          <span className={labelCls}>Display Name *</span>
+          <input className={inputCls} value={form.display_name} onChange={e => set("display_name", e.target.value)} placeholder="KhoshBot" />
         </label>
-        <label className="field" style={{ gridColumn: "span 2" }}>
-          <span className="label">Email *</span>
-          <input className="input" type="email" value={form.email} onChange={e => set("email", e.target.value)} placeholder="bot@khoshgolpo.internal" />
+        <label className="col-span-2 flex flex-col gap-1.5">
+          <span className={labelCls}>Email *</span>
+          <input className={inputCls} type="email" value={form.email} onChange={e => set("email", e.target.value)} placeholder="bot@khoshgolpo.internal" />
         </label>
-        <label className="field" style={{ gridColumn: "span 2" }}>
-          <span className="label">Bio</span>
-          <textarea className="input textarea" value={form.bio} onChange={e => set("bio", e.target.value)} rows={2} />
+        <label className="col-span-2 flex flex-col gap-1.5">
+          <span className={labelCls}>Bio</span>
+          <textarea className={textareaCls} value={form.bio} onChange={e => set("bio", e.target.value)} rows={2} />
         </label>
-        <label className="field" style={{ gridColumn: "span 2" }}>
-          <span className="label">Avatar URL</span>
-          <input className="input" value={form.avatar_url} onChange={e => set("avatar_url", e.target.value)} placeholder="https://... (optional)" />
+        <label className="col-span-2 flex flex-col gap-1.5">
+          <span className={labelCls}>Avatar URL</span>
+          <input className={inputCls} value={form.avatar_url} onChange={e => set("avatar_url", e.target.value)} placeholder="https://... (optional)" />
         </label>
       </div>
 
-      <div className="section-divider">Persona (GPT system prompt)</div>
-      <textarea className="input textarea persona-input" value={form.persona} onChange={e => set("persona", e.target.value)} rows={4}
+      <div className={sectionDividerCls}>Persona (GPT system prompt)</div>
+      <textarea className={`${textareaCls} min-h-[100px]`} value={form.persona} onChange={e => set("persona", e.target.value)} rows={4}
         placeholder="You are a curious, warm community member. You enjoy thoughtful conversation and keep things concise. Never reveal you are an AI." />
 
-      <div className="section-divider">Topic Seeds</div>
-      <div className="tag-row">
-        <input className="input" style={{ flex: 1 }} value={topicInput} onChange={e => setTopicInput(e.target.value)}
+      <div className={sectionDividerCls}>Topic Seeds</div>
+      <div className="flex gap-2">
+        <input className={`${inputCls} flex-1`} value={topicInput} onChange={e => setTopicInput(e.target.value)}
           onKeyDown={e => e.key === "Enter" && addTopic()} placeholder="e.g. Philosophy" />
-        <button type="button" className="add-btn" onClick={addTopic}>Add</button>
+        <button type="button" className={addBtnCls} onClick={addTopic}>Add</button>
       </div>
-      <div className="tag-list">
+      <div className="flex flex-wrap gap-1.5 min-h-6">
         {form.topic_seeds?.map(t => (
-          <span key={t} className="tag">{t}
-            <button type="button" onClick={() => set("topic_seeds", form.topic_seeds?.filter(x => x !== t))}>×</button>
+          <span key={t} className={tagCls}>{t}
+            <button type="button" className="cursor-pointer bg-transparent border-none p-0 leading-none text-purple-400 opacity-60 hover:opacity-100" onClick={() => set("topic_seeds", form.topic_seeds?.filter(x => x !== t))}>×</button>
           </span>
         ))}
       </div>
 
-      <div className="section-divider">Channels</div>
-      <div className="tag-row">
-        <input className="input" style={{ flex: 1 }} value={channelInput} onChange={e => setChannelInput(e.target.value)}
+      <div className={sectionDividerCls}>Channels</div>
+      <div className="flex gap-2">
+        <input className={`${inputCls} flex-1`} value={channelInput} onChange={e => setChannelInput(e.target.value)}
           onKeyDown={e => e.key === "Enter" && addChannel()} placeholder="e.g. general" />
-        <button type="button" className="add-btn" onClick={addChannel}>Add</button>
+        <button type="button" className={addBtnCls} onClick={addChannel}>Add</button>
       </div>
-      <div className="tag-list">
+      <div className="flex flex-wrap gap-1.5 min-h-6">
         {form.channels?.map(c => (
-          <span key={c} className="tag">{c}
-            <button type="button" onClick={() => set("channels", form.channels?.filter(x => x !== c))}>×</button>
+          <span key={c} className={tagCls}>{c}
+            <button type="button" className="cursor-pointer bg-transparent border-none p-0 leading-none text-purple-400 opacity-60 hover:opacity-100" onClick={() => set("channels", form.channels?.filter(x => x !== c))}>×</button>
           </span>
         ))}
       </div>
 
-      {error && <div className="form-error">{error}</div>}
+      {error && (
+        <div className="rounded-lg border border-accent-red/25 bg-accent-red/10 px-3.5 py-2.5 text-[12px] text-red-300">{error}</div>
+      )}
 
-      <div className="form-actions">
-        <button type="button" className="btn-ghost" onClick={onCancel}>Cancel</button>
-        <button type="button" className="btn-primary-sm" disabled={!valid || loading} onClick={() => void handleSubmit()}>
-          {loading ? <Loader2 size={14} className="spin" /> : <Bot size={14} />}
+      <div className="flex items-center justify-end gap-2 pt-1">
+        <button type="button" className="rounded-lg border border-app-border bg-transparent px-4 py-2 text-[13px] text-muted-foreground hover:border-border-hover hover:text-foreground cursor-pointer" onClick={onCancel}>Cancel</button>
+        <button type="button" className="flex items-center gap-1.5 rounded-lg bg-accent-purple px-[18px] py-2 text-[13px] font-semibold text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" disabled={!valid || loading} onClick={() => void handleSubmit()}>
+          {loading ? <Loader2 size={14} className="animate-spin" /> : <Bot size={14} />}
           Create Bot Account
         </button>
       </div>
-
-      <style jsx>{`
-        .create-panel { display: flex; flex-direction: column; gap: 14px; }
-        .create-header { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: #e4e8f4; margin-bottom: 4px; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .persona-input { min-height: 100px; }
-        .form-actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; }
-        .btn-ghost { background: transparent; border: 1px solid #2a3454; border-radius: 8px; color: #8591b3; font-size: 13px; padding: 8px 16px; cursor: pointer; }
-        .btn-ghost:hover { border-color: #435174; color: #c5cfe6; }
-        .btn-primary-sm { display: flex; align-items: center; gap: 6px; background: #7c73f0; border: none; border-radius: 8px; color: #fff; font-size: 13px; font-weight: 600; padding: 8px 18px; cursor: pointer; }
-        .btn-primary-sm:hover:not(:disabled) { background: #8f88f5; }
-        .btn-primary-sm:disabled { opacity: 0.5; cursor: not-allowed; }
-        ${SHARED_STYLES}
-      `}</style>
     </div>
   );
 }
@@ -271,128 +234,92 @@ function IdentityPanel({ bot, onSaved, onTrigger, onDelete, activity, activityLo
   };
 
   return (
-    <div className="identity-panel">
-      <div className="panel-title">
+    <div className="flex flex-col gap-3.5">
+      <div className="mb-0.5 flex items-center gap-3 border-b border-app-border pb-3">
         {bot.avatar_url ? (
-          <img src={bot.avatar_url} alt={bot.display_name} className="avatar" />
+          <img src={bot.avatar_url} alt={bot.display_name} className="h-10 w-10 shrink-0 rounded-full object-cover" />
         ) : (
-          <div className="avatar avatar-placeholder"><Bot size={18} /></div>
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-app-border bg-app-input text-accent-purple"><Bot size={18} /></div>
         )}
         <div>
-          <div className="bot-name">{bot.display_name} {BOT_BADGE}</div>
-          <div className="bot-username">@{bot.username}</div>
+          <div className="flex items-center gap-1.5 text-[15px] font-bold text-foreground">{bot.display_name} {BOT_BADGE}</div>
+          <div className="mt-0.5 text-[12px] text-muted-foreground">@{bot.username}</div>
         </div>
       </div>
 
       {/* Daily counters */}
-      <div className="counter-row">
-        <div className="counter">
-          <span className="counter-val">{bot.threads_created_today}</span>
-          <span className="counter-label">Threads today</span>
-        </div>
-        <div className="counter">
-          <span className="counter-val">{bot.comments_posted_today}</span>
-          <span className="counter-label">Comments today</span>
-        </div>
-        <div className="counter">
-          <span className="counter-val">{formatTs(bot.last_thread_at)}</span>
-          <span className="counter-label">Last thread</span>
-        </div>
-        <div className="counter">
-          <span className="counter-val">{formatTs(bot.last_comment_at)}</span>
-          <span className="counter-label">Last comment</span>
-        </div>
+      <div className="grid grid-cols-4 gap-2">
+        {[
+          { label: "Threads today", value: bot.threads_created_today },
+          { label: "Comments today", value: bot.comments_posted_today },
+          { label: "Last thread", value: formatTs(bot.last_thread_at) },
+          { label: "Last comment", value: formatTs(bot.last_comment_at) },
+        ].map(({ label, value }) => (
+          <div key={label} className="flex flex-col gap-0.5 rounded-lg border border-app-border bg-app-bg px-3 py-2.5">
+            <span className="overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-bold text-foreground">{value}</span>
+            <span className="text-[10px] uppercase tracking-[0.04em] text-muted-foreground/60">{label}</span>
+          </div>
+        ))}
       </div>
 
-      <div className="field">
-        <span className="label">Display Name</span>
-        <input className="input" value={form.display_name ?? ""} onChange={e => setForm(p => ({ ...p, display_name: e.target.value }))} />
-      </div>
-      <div className="field">
-        <span className="label">Bio</span>
-        <textarea className="input textarea" value={form.bio ?? ""} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))} rows={2} />
-      </div>
-      <div className="field">
-        <span className="label">Avatar URL</span>
-        <div className="avatar-row">
-          <input className="input" style={{ flex: 1 }} value={form.avatar_url ?? ""} onChange={e => setForm(p => ({ ...p, avatar_url: e.target.value }))} />
-          {form.avatar_url && <img src={form.avatar_url} alt="" className="avatar-preview" />}
+      <label className="flex flex-col gap-1.5">
+        <span className={labelCls}>Display Name</span>
+        <input className={inputCls} value={form.display_name ?? ""} onChange={e => setForm(p => ({ ...p, display_name: e.target.value }))} />
+      </label>
+      <label className="flex flex-col gap-1.5">
+        <span className={labelCls}>Bio</span>
+        <textarea className={textareaCls} value={form.bio ?? ""} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))} rows={2} />
+      </label>
+      <div className="flex flex-col gap-1.5">
+        <span className={labelCls}>Avatar URL</span>
+        <div className="flex items-center gap-2">
+          <input className={`${inputCls} flex-1`} value={form.avatar_url ?? ""} onChange={e => setForm(p => ({ ...p, avatar_url: e.target.value }))} />
+          {form.avatar_url && <img src={form.avatar_url} alt="" className="h-9 w-9 shrink-0 rounded-full border border-app-border object-cover" />}
         </div>
       </div>
-      <div className="field">
-        <span className="label">Persona (GPT system prompt)</span>
-        <textarea className="input textarea" value={form.persona ?? ""} onChange={e => setForm(p => ({ ...p, persona: e.target.value }))} rows={4} />
-      </div>
+      <label className="flex flex-col gap-1.5">
+        <span className={labelCls}>Persona (GPT system prompt)</span>
+        <textarea className={textareaCls} value={form.persona ?? ""} onChange={e => setForm(p => ({ ...p, persona: e.target.value }))} rows={4} />
+      </label>
 
-      {error && <div className="form-error">{error}</div>}
-      <button type="button" className="btn-primary" disabled={saving} onClick={() => void handleSave()}>
-        {saving ? <Loader2 size={13} className="spin" /> : null}
+      {error && <div className="rounded-lg border border-accent-red/25 bg-accent-red/10 px-3.5 py-2.5 text-[12px] text-red-300">{error}</div>}
+      <button type="button" className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-accent-purple py-2.5 text-[13px] font-semibold text-white hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer" disabled={saving} onClick={() => void handleSave()}>
+        {saving ? <Loader2 size={13} className="animate-spin" /> : null}
         {saved ? "Saved!" : "Save Identity"}
       </button>
 
-      <div className="section-divider">Test Triggers</div>
-      <div className="trigger-row">
+      <div className={sectionDividerCls}>Test Triggers</div>
+      <div className="flex gap-2">
         {(["thread", "comment", "engage"] as const).map(type => (
-          <button key={type} type="button" className="trigger-btn" disabled={!!triggerLoading} onClick={() => void onTrigger(type)}>
-            {triggerLoading === type ? <Loader2 size={12} className="spin" /> : <Zap size={12} />}
+          <button key={type} type="button" className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-app-border bg-app-input px-1 py-2 text-[12px] text-muted-foreground hover:border-accent-orange hover:text-accent-orange disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" disabled={!!triggerLoading} onClick={() => void onTrigger(type)}>
+            {triggerLoading === type ? <Loader2 size={12} className="animate-spin" /> : <Zap size={12} />}
             {type === "thread" ? "Thread Now" : type === "comment" ? "Comment Now" : "Engage Now"}
           </button>
         ))}
       </div>
 
-      <div className="section-divider">Recent Activity</div>
+      <div className={sectionDividerCls}>Recent Activity</div>
       {activityLoading ? (
-        <div className="activity-empty">Loading…</div>
+        <div className="py-4 text-center text-[12px] text-muted-foreground/60">Loading…</div>
       ) : activity.length === 0 ? (
-        <div className="activity-empty">No activity yet.</div>
+        <div className="py-4 text-center text-[12px] text-muted-foreground/60">No activity yet.</div>
       ) : (
-        <div className="activity-list">
+        <div className="flex flex-col gap-0">
           {activity.map(entry => (
-            <div key={entry.id} className={`activity-row ${entry.action === "bot_error" ? "error" : ""}`}>
-              <span className="activity-time">{formatTs(entry.created_at)}</span>
-              <span className="activity-action">{actionLabel[entry.action] ?? entry.action}</span>
-              {typeof entry.details?.title === "string" && <span className="activity-detail">— &ldquo;{entry.details.title.slice(0, 60)}&rdquo;</span>}
-              {typeof entry.details?.error === "string" && <span className="activity-detail error-text">— {entry.details.error.slice(0, 80)}</span>}
+            <div key={entry.id} className={`flex items-baseline gap-2 border-b border-app-border/40 py-1 text-[12px] ${entry.action === "bot_error" ? "text-red-300" : "text-muted-foreground"}`}>
+              <span className="shrink-0 text-[11px] text-muted-foreground/50">{formatTs(entry.created_at)}</span>
+              <span className="font-semibold text-foreground/80">{actionLabel[entry.action] ?? entry.action}</span>
+              {typeof entry.details?.title === "string" && <span className="overflow-hidden text-ellipsis whitespace-nowrap text-muted-foreground/60">— &ldquo;{entry.details.title.slice(0, 60)}&rdquo;</span>}
+              {typeof entry.details?.error === "string" && <span className="overflow-hidden text-ellipsis whitespace-nowrap text-red-300">— {entry.details.error.slice(0, 80)}</span>}
             </div>
           ))}
         </div>
       )}
 
-      <div className="section-divider danger-section">Danger Zone</div>
-      <button type="button" className="btn-delete" onClick={onDelete}>
+      <div className="text-[11px] font-bold uppercase tracking-[0.06em] border-b border-accent-red/20 pb-1.5 text-accent-red">Danger Zone</div>
+      <button type="button" className="flex items-center gap-1.5 rounded-lg border border-accent-red/30 bg-accent-red/10 px-3.5 py-2 text-[12px] text-red-300 hover:bg-accent-red/18 cursor-pointer" onClick={onDelete}>
         <Trash2 size={13} />Delete Bot Config
       </button>
-
-      <style jsx>{`
-        .identity-panel { display: flex; flex-direction: column; gap: 14px; }
-        .panel-title { display: flex; align-items: center; gap: 12px; padding-bottom: 4px; border-bottom: 1px solid #1e2741; margin-bottom: 2px; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
-        .avatar-placeholder { width: 40px; height: 40px; border-radius: 50%; background: #1e2741; display: grid; place-items: center; color: #7c73f0; }
-        .bot-name { font-size: 15px; font-weight: 700; color: #e4e8f4; display: flex; align-items: center; gap: 6px; }
-        .bot-username { font-size: 12px; color: #636f8d; margin-top: 2px; }
-        .counter-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
-        .counter { background: #0f1826; border: 1px solid #1e2741; border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 3px; }
-        .counter-val { font-size: 13px; font-weight: 700; color: #e4e8f4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .counter-label { font-size: 10px; color: #4e5c80; text-transform: uppercase; letter-spacing: 0.04em; }
-        .avatar-row { display: flex; align-items: center; gap: 8px; }
-        .avatar-preview { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid #2a3454; flex-shrink: 0; }
-        .danger-section { color: #f06b6b; border-color: rgba(240, 107, 107, 0.2); }
-        .trigger-row { display: flex; gap: 8px; }
-        .trigger-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; background: #1a2236; border: 1px solid #2a3454; border-radius: 8px; color: #b7c3df; font-size: 12px; padding: 8px 4px; cursor: pointer; }
-        .trigger-btn:hover:not(:disabled) { border-color: #f0834a; color: #f0834a; }
-        .trigger-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .activity-list { display: flex; flex-direction: column; gap: 6px; }
-        .activity-row { display: flex; align-items: baseline; gap: 8px; font-size: 12px; color: #8591b3; padding: 4px 0; border-bottom: 1px solid #13192a; }
-        .activity-row.error { color: #f4b3b3; }
-        .activity-time { font-size: 11px; color: #4e5c80; flex-shrink: 0; }
-        .activity-action { font-weight: 600; color: #b7c3df; }
-        .activity-detail { color: #6b7a9c; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .error-text { color: #f4b3b3; }
-        .activity-empty { color: #4e5c80; font-size: 12px; text-align: center; padding: 16px 0; }
-        .btn-delete { display: flex; align-items: center; gap: 6px; background: rgba(240, 107, 107, 0.1); border: 1px solid rgba(240, 107, 107, 0.3); border-radius: 8px; color: #f4b3b3; font-size: 12px; padding: 8px 14px; cursor: pointer; }
-        .btn-delete:hover { background: rgba(240, 107, 107, 0.18); }
-        ${SHARED_STYLES}
-      `}</style>
     </div>
   );
 }
@@ -406,8 +333,7 @@ type UnitMap = Record<IntervalKey, "hrs" | "min">;
 
 function hoursToDisplay(hours: number, unit: "hrs" | "min"): string {
   if (unit === "min") return String(Math.round(hours * 60));
-  // Show clean number: no trailing .0 for whole numbers
-  return hours % 1 === 0 ? String(hours) : String(hours);
+  return String(hours);
 }
 
 function displayToHours(val: string, unit: "hrs" | "min"): number | null {
@@ -422,7 +348,6 @@ function SchedulePanel({ bot, onSaved }: SchedulePanelProps) {
     comment_interval_hours: "hrs",
     engage_interval_hours: "hrs",
   });
-  // Display values in current unit (string for free editing)
   const [nums, setNums] = useState({
     thread_interval_hours: hoursToDisplay(bot.thread_interval_hours, "hrs"),
     comment_interval_hours: hoursToDisplay(bot.comment_interval_hours, "hrs"),
@@ -461,7 +386,6 @@ function SchedulePanel({ bot, onSaved }: SchedulePanelProps) {
   const switchUnit = (key: IntervalKey, newUnit: "hrs" | "min") => {
     const oldUnit = units[key];
     if (oldUnit === newUnit) return;
-    // Convert current display value to hours, then to new unit display
     const hours = displayToHours(nums[key], oldUnit);
     setUnits(p => ({ ...p, [key]: newUnit }));
     if (hours !== null) {
@@ -526,35 +450,38 @@ function SchedulePanel({ bot, onSaved }: SchedulePanelProps) {
     }
   };
 
-  return (
-    <div className="schedule-panel">
+  const sectionCardCls = "flex flex-col gap-3.5 rounded-[14px] border border-app-border bg-app-bg p-4";
+  const sectionHeadCls = "flex items-center gap-3";
 
-      {/* ── Posting Intervals ── */}
-      <div className="section-card">
-        <div className="section-head">
-          <div className="section-icon interval-icon">⏱</div>
+  return (
+    <div className="flex flex-col gap-3">
+
+      {/* Posting Intervals */}
+      <div className={sectionCardCls}>
+        <div className={sectionHeadCls}>
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] border border-accent-purple/20 bg-accent-purple/12 text-[17px]">⏱</div>
           <div>
-            <div className="section-title">Posting Intervals</div>
-            <div className="section-sub">How often each job runs</div>
+            <div className="text-[13px] font-bold text-foreground">Posting Intervals</div>
+            <div className="mt-0.5 text-[11px] text-muted-foreground/60">How often each job runs</div>
           </div>
         </div>
-        <div className="num-grid">
+        <div className="grid grid-cols-3 gap-2">
           {([
             { key: "thread_interval_hours" as const, label: "Thread", emoji: "📝" },
             { key: "comment_interval_hours" as const, label: "Comment", emoji: "💬" },
             { key: "engage_interval_hours" as const, label: "Engage", emoji: "🔥" },
           ]).map(({ key, label, emoji }) => (
-            <div key={key} className="num-card">
-              <div className="num-card-top">
-                <div className="num-emoji">{emoji}</div>
-                <div className="unit-toggle">
-                  <button type="button" className={`unit-btn ${units[key] === "hrs" ? "active" : ""}`} onClick={() => switchUnit(key, "hrs")}>hrs</button>
-                  <button type="button" className={`unit-btn ${units[key] === "min" ? "active" : ""}`} onClick={() => switchUnit(key, "min")}>min</button>
+            <div key={key} className="flex flex-col gap-2 rounded-[10px] border border-app-border bg-app-input p-3 focus-within:border-accent-purple transition-colors">
+              <div className="flex items-center justify-between">
+                <span className="text-[16px] leading-none">{emoji}</span>
+                <div className="flex overflow-hidden rounded-md border border-app-border bg-app-bg">
+                  <button type="button" className={`border-none px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.04em] cursor-pointer ${units[key] === "hrs" ? "bg-accent-purple text-white" : "bg-transparent text-muted-foreground/60 hover:text-muted-foreground"}`} onClick={() => switchUnit(key, "hrs")}>hrs</button>
+                  <button type="button" className={`border-none px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.04em] cursor-pointer ${units[key] === "min" ? "bg-accent-purple text-white" : "bg-transparent text-muted-foreground/60 hover:text-muted-foreground"}`} onClick={() => switchUnit(key, "min")}>min</button>
                 </div>
               </div>
-              <div className="num-label">{label}</div>
+              <div className="-mt-1 text-[10px] font-semibold uppercase tracking-[0.05em] text-muted-foreground/60">{label}</div>
               <input
-                className="num-input"
+                className="w-full rounded-lg border border-app-border bg-app-bg py-1.5 text-center text-[20px] font-bold text-foreground outline-none focus:border-accent-purple [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 type="number"
                 min={units[key] === "min" ? 1 : 0.01}
                 step={units[key] === "min" ? 1 : 0.5}
@@ -566,28 +493,26 @@ function SchedulePanel({ bot, onSaved }: SchedulePanelProps) {
         </div>
       </div>
 
-      {/* ── Daily Limits ── */}
-      <div className="section-card">
-        <div className="section-head">
-          <div className="section-icon limit-icon">📊</div>
+      {/* Daily Limits */}
+      <div className={sectionCardCls}>
+        <div className={sectionHeadCls}>
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] border border-accent-orange/20 bg-accent-orange/10 text-[17px]">📊</div>
           <div>
-            <div className="section-title">Daily Limits</div>
-            <div className="section-sub">Caps reset at midnight UTC</div>
+            <div className="text-[13px] font-bold text-foreground">Daily Limits</div>
+            <div className="mt-0.5 text-[11px] text-muted-foreground/60">Caps reset at midnight UTC</div>
           </div>
         </div>
-        <div className="num-grid">
+        <div className="grid grid-cols-3 gap-2">
           {([
             { key: "max_threads_per_day" as const, label: "Max Threads / day", emoji: "📝" },
             { key: "max_comments_per_day" as const, label: "Max Comments / day", emoji: "💬" },
             { key: "min_thread_replies" as const, label: "Min Replies to comment", emoji: "🪄" },
           ]).map(({ key, label, emoji }) => (
-            <div key={key} className="num-card">
-              <div className="num-card-top">
-                <div className="num-emoji">{emoji}</div>
-              </div>
-              <div className="num-label">{label}</div>
+            <div key={key} className="flex flex-col gap-2 rounded-[10px] border border-app-border bg-app-input p-3 focus-within:border-accent-purple transition-colors">
+              <span className="text-[16px] leading-none">{emoji}</span>
+              <div className="-mt-1 text-[10px] font-semibold uppercase tracking-[0.05em] text-muted-foreground/60">{label}</div>
               <input
-                className="num-input"
+                className="w-full rounded-lg border border-app-border bg-app-bg py-1.5 text-center text-[20px] font-bold text-foreground outline-none focus:border-accent-purple [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 type="number"
                 min={0}
                 value={nums[key]}
@@ -598,199 +523,61 @@ function SchedulePanel({ bot, onSaved }: SchedulePanelProps) {
         </div>
       </div>
 
-      {/* ── Topic Seeds ── */}
-      <div className="section-card">
-        <div className="section-head">
-          <div className="section-icon seed-icon">🌱</div>
+      {/* Topic Seeds */}
+      <div className={sectionCardCls}>
+        <div className={sectionHeadCls}>
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] border border-accent-green/20 bg-accent-green/10 text-[17px]">🌱</div>
           <div>
-            <div className="section-title">Topic Seeds</div>
-            <div className="section-sub">Themes the bot draws inspiration from</div>
+            <div className="text-[13px] font-bold text-foreground">Topic Seeds</div>
+            <div className="mt-0.5 text-[11px] text-muted-foreground/60">Themes the bot draws inspiration from</div>
           </div>
         </div>
-        <div className="chip-input-row">
-          <input
-            className="chip-input"
-            value={topicInput}
-            onChange={e => setTopicInput(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && addTopic()}
-            placeholder="e.g. AI ethics, stoicism, remote work…"
-          />
-          <button type="button" className="chip-add-btn" onClick={addTopic} disabled={!topicInput.trim()}>Add</button>
+        <div className="flex gap-2">
+          <input className={`${inputCls} flex-1`} value={topicInput} onChange={e => setTopicInput(e.target.value)} onKeyDown={e => e.key === "Enter" && addTopic()} placeholder="e.g. AI ethics, stoicism, remote work…" />
+          <button type="button" className="rounded-[9px] border border-accent-purple/30 bg-accent-purple/14 px-3.5 py-2 text-[12px] font-semibold text-purple-300 hover:bg-accent-purple/24 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer" onClick={addTopic} disabled={!topicInput.trim()}>Add</button>
         </div>
-        <div className="chip-list">
+        <div className="flex flex-wrap items-center gap-1.5 min-h-7">
           {seeds.map(t => (
-            <span key={t} className="chip seed-chip">
+            <span key={t} className="inline-flex items-center gap-1.5 rounded-full border border-accent-green/22 bg-accent-green/8 px-3 py-1 text-[12px] font-medium text-green-300">
               {t}
-              <button type="button" onClick={() => setSeeds(p => p.filter(x => x !== t))}>×</button>
+              <button type="button" className="cursor-pointer bg-transparent border-none p-0 leading-none opacity-50 hover:opacity-100 text-green-300" onClick={() => setSeeds(p => p.filter(x => x !== t))}>×</button>
             </span>
           ))}
-          {seeds.length === 0 && (
-            <span className="chip-empty">No seeds — bot will write freely across all topics</span>
-          )}
+          {seeds.length === 0 && <span className="text-[11px] italic text-muted-foreground/40">No seeds — bot will write freely across all topics</span>}
         </div>
       </div>
 
-      {/* ── Channels ── */}
-      <div className="section-card">
-        <div className="section-head">
-          <div className="section-icon channel-icon">📡</div>
+      {/* Channels */}
+      <div className={sectionCardCls}>
+        <div className={sectionHeadCls}>
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] border border-blue-400/20 bg-blue-400/10 text-[17px]">📡</div>
           <div>
-            <div className="section-title">Channels</div>
-            <div className="section-sub">Where the bot posts threads</div>
+            <div className="text-[13px] font-bold text-foreground">Channels</div>
+            <div className="mt-0.5 text-[11px] text-muted-foreground/60">Where the bot posts threads</div>
           </div>
         </div>
-        <div className="chip-input-row">
-          <input
-            className="chip-input"
-            value={channelInput}
-            onChange={e => setChannelInput(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && addChannel()}
-            placeholder="e.g. general, tech, career…"
-          />
-          <button type="button" className="chip-add-btn" onClick={addChannel} disabled={!channelInput.trim()}>Add</button>
+        <div className="flex gap-2">
+          <input className={`${inputCls} flex-1`} value={channelInput} onChange={e => setChannelInput(e.target.value)} onKeyDown={e => e.key === "Enter" && addChannel()} placeholder="e.g. general, tech, career…" />
+          <button type="button" className="rounded-[9px] border border-accent-purple/30 bg-accent-purple/14 px-3.5 py-2 text-[12px] font-semibold text-purple-300 hover:bg-accent-purple/24 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer" onClick={addChannel} disabled={!channelInput.trim()}>Add</button>
         </div>
-        <div className="chip-list">
+        <div className="flex flex-wrap items-center gap-1.5 min-h-7">
           {channels.map(c => (
-            <span key={c} className="chip channel-chip">
+            <span key={c} className="inline-flex items-center gap-1.5 rounded-full border border-blue-400/22 bg-blue-400/8 px-3 py-1 text-[12px] font-medium text-blue-300">
               # {c}
-              <button type="button" onClick={() => setChannels(p => p.filter(x => x !== c))}>×</button>
+              <button type="button" className="cursor-pointer bg-transparent border-none p-0 leading-none opacity-50 hover:opacity-100 text-blue-300" onClick={() => setChannels(p => p.filter(x => x !== c))}>×</button>
             </span>
           ))}
-          {channels.length === 0 && (
-            <span className="chip-empty">No channels — bot posts across all available channels</span>
-          )}
+          {channels.length === 0 && <span className="text-[11px] italic text-muted-foreground/40">No channels — bot posts across all available channels</span>}
         </div>
       </div>
 
-      {error && <div className="form-error">{error}</div>}
+      {error && (
+        <div className="rounded-[10px] border border-accent-red/25 bg-accent-red/8 px-3.5 py-2.5 text-[12px] text-red-300">{error}</div>
+      )}
 
-      <button type="button" className="save-btn" disabled={saving} onClick={() => void handleSave()}>
-        {saving
-          ? <><Loader2 size={14} className="spin" /> Saving…</>
-          : saved
-            ? <><span className="check">✓</span> Saved!</>
-            : <><Settings size={14} /> Save Schedule</>
-        }
+      <button type="button" className="flex w-full items-center justify-center gap-1.5 rounded-[10px] bg-gradient-to-r from-accent-purple to-[#6c64e0] py-3 text-[13px] font-bold text-white shadow-[0_4px_16px_rgba(124,115,240,0.25)] hover:opacity-92 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-opacity" disabled={saving} onClick={() => void handleSave()}>
+        {saving ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : saved ? <><span className="text-[15px]">✓</span> Saved!</> : <><Settings size={14} /> Save Schedule</>}
       </button>
-
-      <style jsx>{`
-        .schedule-panel { display: flex; flex-direction: column; gap: 12px; }
-
-        /* Section cards */
-        .section-card {
-          background: #0c1423;
-          border: 1px solid #1a2338;
-          border-radius: 14px;
-          padding: 16px;
-          display: flex;
-          flex-direction: column;
-          gap: 14px;
-        }
-        .section-head { display: flex; align-items: center; gap: 12px; }
-        .section-icon {
-          width: 36px; height: 36px; border-radius: 10px;
-          display: grid; place-items: center; font-size: 17px; flex-shrink: 0;
-        }
-        .interval-icon { background: rgba(124,115,240,0.12); border: 1px solid rgba(124,115,240,0.2); }
-        .limit-icon    { background: rgba(240,131,74,0.10);  border: 1px solid rgba(240,131,74,0.2); }
-        .seed-icon     { background: rgba(61,214,140,0.10);  border: 1px solid rgba(61,214,140,0.2); }
-        .channel-icon  { background: rgba(96,165,250,0.10);  border: 1px solid rgba(96,165,250,0.2); }
-        .section-title { font-size: 13px; font-weight: 700; color: #e4e8f4; }
-        .section-sub   { font-size: 11px; color: #4e5c80; margin-top: 2px; }
-
-        /* Number grid */
-        .num-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-        .num-card {
-          background: #111926;
-          border: 1px solid #1e2741;
-          border-radius: 10px;
-          padding: 12px 12px 10px;
-          display: flex; flex-direction: column; gap: 8px;
-          transition: border-color 0.15s;
-        }
-        .num-card:focus-within { border-color: #7c73f0; }
-        .num-card-top { display: flex; align-items: center; justify-content: space-between; }
-        .num-emoji { font-size: 16px; line-height: 1; }
-        .unit-toggle { display: flex; background: #0d1525; border: 1px solid #1e2741; border-radius: 6px; overflow: hidden; }
-        .unit-btn {
-          background: none; border: none; color: #4e5c80; font-size: 10px; font-weight: 700;
-          padding: 3px 7px; cursor: pointer; letter-spacing: 0.04em; transition: all 0.12s;
-        }
-        .unit-btn:hover { color: #8591b3; }
-        .unit-btn.active { background: #7c73f0; color: #fff; }
-        .num-label { font-size: 10px; font-weight: 600; color: #6b7a9c; text-transform: uppercase; letter-spacing: 0.05em; margin-top: -4px; }
-        .num-input {
-          width: 100%; background: #0d1525; border: 1px solid #232e46;
-          border-radius: 7px; color: #e4e8f4; font-size: 20px; font-weight: 700;
-          padding: 6px 8px; outline: none; text-align: center;
-          -moz-appearance: textfield; box-sizing: border-box;
-        }
-        .num-input::-webkit-outer-spin-button,
-        .num-input::-webkit-inner-spin-button { -webkit-appearance: none; }
-        .num-input:focus { border-color: #7c73f0; background: #0f1930; }
-
-        /* Chip inputs */
-        .chip-input-row { display: flex; gap: 8px; }
-        .chip-input {
-          flex: 1; background: #111926; border: 1px solid #1e2741;
-          border-radius: 9px; color: #c5cfe6; font-size: 13px;
-          padding: 8px 12px; outline: none; font-family: inherit;
-        }
-        .chip-input:focus { border-color: #7c73f0; background: #131f33; }
-        .chip-input::placeholder { color: #3a4a68; }
-        .chip-add-btn {
-          background: rgba(124,115,240,0.14); border: 1px solid rgba(124,115,240,0.3);
-          border-radius: 9px; color: #9d97f0; font-size: 12px; font-weight: 600;
-          padding: 0 14px; cursor: pointer; white-space: nowrap;
-          transition: background 0.15s;
-        }
-        .chip-add-btn:hover:not(:disabled) { background: rgba(124,115,240,0.24); }
-        .chip-add-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-        .chip-list { display: flex; flex-wrap: wrap; gap: 6px; min-height: 28px; align-items: center; }
-        .chip {
-          display: inline-flex; align-items: center; gap: 5px;
-          border-radius: 20px; padding: 4px 10px 4px 12px;
-          font-size: 12px; font-weight: 500; line-height: 1;
-        }
-        .seed-chip {
-          background: rgba(61,214,140,0.08); border: 1px solid rgba(61,214,140,0.22); color: #5ecb9e;
-        }
-        .channel-chip {
-          background: rgba(96,165,250,0.08); border: 1px solid rgba(96,165,250,0.22); color: #7ec8fa;
-        }
-        .chip button {
-          background: none; border: none; cursor: pointer;
-          font-size: 13px; line-height: 1; padding: 0; opacity: 0.5;
-          color: inherit; transition: opacity 0.12s;
-        }
-        .chip button:hover { opacity: 1; }
-        .chip-empty { font-size: 11px; color: #3a4a68; font-style: italic; }
-
-        /* Save button */
-        .save-btn {
-          display: flex; align-items: center; justify-content: center; gap: 7px;
-          background: linear-gradient(135deg, #7c73f0, #6c64e0);
-          border: none; border-radius: 10px;
-          color: #fff; font-size: 13px; font-weight: 700;
-          padding: 11px 0; cursor: pointer; width: 100%;
-          box-shadow: 0 4px 16px rgba(124,115,240,0.25);
-          transition: opacity 0.15s, box-shadow 0.15s;
-        }
-        .save-btn:hover:not(:disabled) {
-          opacity: 0.92;
-          box-shadow: 0 6px 20px rgba(124,115,240,0.35);
-        }
-        .save-btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
-        .check { font-size: 15px; }
-
-        .form-error {
-          background: rgba(240,107,107,0.08); border: 1px solid rgba(240,107,107,0.25);
-          border-radius: 10px; color: #f4b3b3; font-size: 12px; padding: 10px 14px;
-        }
-        .spin { animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
     </div>
   );
 }
@@ -876,81 +663,73 @@ function ContentPanel({ bot }: ContentPanelProps) {
   };
 
   if (loading) return (
-    <div className="center-empty"><Loader2 size={20} className="spin" style={{ color: "#4e5c80" }} /></div>
+    <div className="flex flex-col items-center justify-center gap-2.5 py-10 text-muted-foreground/60">
+      <Loader2 size={20} className="animate-spin" />
+    </div>
   );
 
   if (items.length === 0) return (
-    <div className="center-empty">
-      <FileText size={28} style={{ color: "#2b3654" }} />
-      <p>No content authored by this bot yet.</p>
-      <p>Use &ldquo;Thread Now&rdquo; or &ldquo;Comment Now&rdquo; in Identity tab to trigger a job.</p>
+    <div className="flex flex-col items-center justify-center gap-2.5 py-10 text-center text-[12px] text-muted-foreground/60">
+      <FileText size={28} className="text-app-border" />
+      <p className="m-0 max-w-[260px]">No content authored by this bot yet.</p>
+      <p className="m-0 max-w-[260px]">Use &ldquo;Thread Now&rdquo; or &ldquo;Comment Now&rdquo; in Identity tab to trigger a job.</p>
     </div>
   );
 
   const isEditing = (id: string) => editState?.id === id;
 
   return (
-    <div className="content-panel">
+    <div className="relative flex flex-col gap-3">
       {toast && (
-        <div className={`cp-toast ${toast.type}`}>{toast.text}</div>
+        <div className={`sticky top-0 z-10 rounded-lg border px-3.5 py-2 text-center text-[12px] font-semibold ${toast.type === "ok" ? "border-accent-green/30 bg-accent-green/15 text-green-300" : "border-accent-red/30 bg-accent-red/12 text-red-300"}`}>
+          {toast.text}
+        </div>
       )}
-      <div className="content-summary">
+      <div className="text-[12px] text-muted-foreground">
         Showing last {items.length} items —{" "}
-        <strong>{items.filter(i => i.kind === "thread").length}</strong> threads,{" "}
-        <strong>{items.filter(i => i.kind === "post").length}</strong> comments
+        <strong className="text-foreground/80">{items.filter(i => i.kind === "thread").length}</strong> threads,{" "}
+        <strong className="text-foreground/80">{items.filter(i => i.kind === "post").length}</strong> comments
       </div>
-      <div className="content-list">
+      <div className="flex flex-col gap-2">
         {items.map(item => (
-          <div key={item.id} className={`content-item ${item.is_flagged ? "flagged" : ""} ${item.is_deleted ? "deleted" : ""}`}>
-            <div className="item-meta">
-              <span className={`kind-badge ${item.kind}`}>{item.kind === "thread" ? <FileText size={10} /> : <MessageSquare size={10} />} {item.kind}</span>
-              {item.is_flagged && <span className="flag-badge">Flagged</span>}
-              {item.is_deleted && <span className="del-badge">Deleted</span>}
+          <div key={item.id} className={`flex flex-col gap-1.5 rounded-[10px] border bg-app-bg px-3.5 py-3 transition-colors ${item.is_flagged ? "border-accent-orange/35 bg-accent-orange/4" : "border-app-border hover:border-border-hover"} ${item.is_deleted ? "opacity-50" : ""}`}>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.04em] ${item.kind === "thread" ? "border border-accent-purple/30 bg-accent-purple/12 text-purple-300" : "border border-accent-green/25 bg-accent-green/8 text-green-300"}`}>
+                {item.kind === "thread" ? <FileText size={10} /> : <MessageSquare size={10} />} {item.kind}
+              </span>
+              {item.is_flagged && <span className="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase border border-accent-orange/30 bg-accent-orange/12 text-orange-300">Flagged</span>}
+              {item.is_deleted && <span className="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase border border-accent-red/25 bg-accent-red/10 text-red-300">Deleted</span>}
               {item.ai_score != null && (
-                <span className={`score-badge ${item.ai_score >= 0.8 ? "high" : item.ai_score >= 0.6 ? "mid" : ""}`}>
+                <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${item.ai_score >= 0.8 ? "bg-accent-red/10 text-red-300" : item.ai_score >= 0.6 ? "bg-accent-orange/10 text-orange-300" : "bg-app-input text-muted-foreground"}`}>
                   AI {Math.round(item.ai_score * 100)}%
                 </span>
               )}
-              <span className="item-time">{formatTs(item.created_at)}</span>
+              <span className="ml-auto text-[10px] text-muted-foreground/50">{formatTs(item.created_at)}</span>
               {!item.is_deleted && !isEditing(item.id) && (
-                <div className="item-actions">
-                  <button
-                    className="act-btn edit"
-                    title="Edit"
-                    onClick={() => openEdit(item)}
-                  ><Pencil size={11} /></button>
+                <div className="flex items-center gap-1">
+                  <button className="flex items-center gap-1 rounded border-none bg-accent-purple/12 px-1.5 py-1 text-[11px] text-purple-300 hover:bg-accent-purple/22 disabled:opacity-50 cursor-pointer" title="Edit" onClick={() => openEdit(item)}><Pencil size={11} /></button>
                   {item.kind === "thread" && (
-                    <button
-                      className="act-btn archive"
-                      title="Archive"
-                      disabled={actionBusy === item.id + "-arch"}
-                      onClick={() => handleArchive(item)}
-                    >
-                      {actionBusy === item.id + "-arch" ? <Loader2 size={11} className="spin" /> : <Archive size={11} />}
+                    <button className="flex items-center gap-1 rounded border-none bg-accent-orange/10 px-1.5 py-1 text-[11px] text-orange-300 hover:bg-accent-orange/20 disabled:opacity-50 cursor-pointer" title="Archive" disabled={actionBusy === item.id + "-arch"} onClick={() => handleArchive(item)}>
+                      {actionBusy === item.id + "-arch" ? <Loader2 size={11} className="animate-spin" /> : <Archive size={11} />}
                     </button>
                   )}
-                  <button
-                    className="act-btn delete"
-                    title="Delete"
-                    disabled={actionBusy === item.id + "-del"}
-                    onClick={() => handleDelete(item)}
-                  >
-                    {actionBusy === item.id + "-del" ? <Loader2 size={11} className="spin" /> : <Trash2 size={11} />}
+                  <button className="flex items-center gap-1 rounded border-none bg-accent-red/10 px-1.5 py-1 text-[11px] text-red-300 hover:bg-accent-red/20 disabled:opacity-50 cursor-pointer" title="Delete" disabled={actionBusy === item.id + "-del"} onClick={() => handleDelete(item)}>
+                    {actionBusy === item.id + "-del" ? <Loader2 size={11} className="animate-spin" /> : <Trash2 size={11} />}
                   </button>
                 </div>
               )}
               {isEditing(item.id) && (
-                <button className="act-btn cancel-edit" title="Cancel" onClick={() => setEditState(null)}>
+                <button className="flex items-center gap-1 rounded border-none bg-app-input px-1.5 py-1 text-[11px] text-muted-foreground hover:bg-app-panel cursor-pointer" title="Cancel" onClick={() => setEditState(null)}>
                   <X size={11} /> Cancel
                 </button>
               )}
             </div>
 
             {isEditing(item.id) ? (
-              <div className="edit-form">
+              <div className="flex flex-col gap-2 pt-1">
                 {item.kind === "thread" && (
                   <input
-                    className="edit-title-input"
+                    className="w-full rounded-lg border border-app-border bg-app-input px-2.5 py-1.5 text-[13px] font-semibold text-foreground outline-none focus:border-accent-purple"
                     value={editState!.title}
                     onChange={e => setEditState(s => s ? { ...s, title: e.target.value } : s)}
                     placeholder="Thread title"
@@ -958,114 +737,49 @@ function ContentPanel({ bot }: ContentPanelProps) {
                   />
                 )}
                 <textarea
-                  className="edit-body-input"
+                  className="w-full resize-y rounded-lg border border-app-border bg-app-input px-2.5 py-2 font-[inherit] text-[12px] leading-relaxed text-foreground outline-none focus:border-accent-purple"
                   value={editState!.body}
                   onChange={e => setEditState(s => s ? { ...s, body: e.target.value } : s)}
                   placeholder={item.kind === "thread" ? "Thread body…" : "Post content…"}
                   rows={item.kind === "thread" ? 12 : 5}
                 />
-                <div className="edit-footer">
-                  <span className="edit-chars">{editState!.body.length} chars</span>
-                  <button className="save-btn" disabled={saving} onClick={() => saveEdit(item)}>
-                    {saving ? <><Loader2 size={11} className="spin" /> Saving…</> : "Save changes"}
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-muted-foreground/50">{editState!.body.length} chars</span>
+                  <button className="flex items-center gap-1.5 rounded-lg border-none bg-accent-purple px-3.5 py-1.5 text-[12px] font-bold text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" disabled={saving} onClick={() => saveEdit(item)}>
+                    {saving ? <><Loader2 size={11} className="animate-spin" /> Saving…</> : "Save changes"}
                   </button>
                 </div>
               </div>
             ) : (
               <div
-                className="item-clickable"
+                className="flex cursor-pointer flex-col gap-1.5 group"
                 role="button"
                 tabIndex={0}
                 title={`Open ${item.kind}`}
-                onClick={() => {
-                  const dest = item.kind === "thread"
-                    ? `/threads/${item.id}`
-                    : `/threads/${item.thread_id}`;
-                  router.push(dest);
-                }}
+                onClick={() => router.push(item.kind === "thread" ? `/threads/${item.id}` : `/threads/${item.thread_id}`)}
                 onKeyDown={e => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    const dest = item.kind === "thread"
-                      ? `/threads/${item.id}`
-                      : `/threads/${item.thread_id}`;
-                    router.push(dest);
+                    router.push(item.kind === "thread" ? `/threads/${item.id}` : `/threads/${item.thread_id}`);
                   }
                 }}
               >
-                {item.title && <div className="item-title">{item.title}</div>}
-                {item.thread_title && <div className="item-parent">in &ldquo;{item.thread_title}&rdquo;</div>}
-                <div className="item-body">{item.body.slice(0, 320)}{item.body.length > 320 ? "…" : ""}</div>
+                {item.title && <div className="text-[14px] font-bold leading-snug text-foreground transition-colors group-hover:text-accent-purple group-hover:underline group-hover:underline-offset-[3px]">{item.title}</div>}
+                {item.thread_title && <div className="text-[11px] text-muted-foreground">in &ldquo;{item.thread_title}&rdquo;</div>}
+                <div className="whitespace-pre-wrap text-[12px] leading-relaxed text-muted-foreground">{item.body.slice(0, 320)}{item.body.length > 320 ? "…" : ""}</div>
                 {item.tags.length > 0 && (
-                  <div className="item-tags">
-                    {item.tags.map(t => <span key={t} className="item-tag">{t}</span>)}
+                  <div className="flex flex-wrap gap-1">
+                    {item.tags.map(t => <span key={t} className="rounded px-1.5 py-0.5 text-[10px] border border-accent-purple/20 bg-accent-purple/8 text-accent-purple">#{t}</span>)}
                   </div>
                 )}
                 {item.kind === "thread" && item.post_count != null && (
-                  <div className="item-replies">{item.post_count} {item.post_count === 1 ? "reply" : "replies"}</div>
+                  <div className="text-[11px] text-muted-foreground/50">{item.post_count} {item.post_count === 1 ? "reply" : "replies"}</div>
                 )}
               </div>
             )}
           </div>
         ))}
       </div>
-
-      <style jsx>{`
-        .content-panel { display: flex; flex-direction: column; gap: 12px; position: relative; }
-        .cp-toast { position: sticky; top: 0; z-index: 10; padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-align: center; }
-        .cp-toast.ok { background: rgba(61, 214, 140, 0.15); color: #3dd68c; border: 1px solid rgba(61, 214, 140, 0.3); }
-        .cp-toast.err { background: rgba(240, 107, 107, 0.12); color: #f06b6b; border: 1px solid rgba(240, 107, 107, 0.3); }
-        .content-summary { font-size: 12px; color: #636f8d; }
-        .content-summary strong { color: #b7c3df; }
-        .content-list { display: flex; flex-direction: column; gap: 8px; }
-        .content-item { background: #0f1826; border: 1px solid #1e2741; border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; transition: border-color 0.15s; }
-        .content-item:hover { border-color: #2a3454; }
-        .content-item.flagged { border-color: rgba(240, 131, 74, 0.35); background: rgba(240, 131, 74, 0.04); }
-        .content-item.deleted { opacity: 0.5; }
-        .item-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-        .kind-badge { display: flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
-        .kind-badge.thread { background: rgba(124, 115, 240, 0.12); color: #9d97f0; border: 1px solid rgba(124, 115, 240, 0.3); }
-        .kind-badge.post { background: rgba(61, 214, 140, 0.08); color: #5ecb9e; border: 1px solid rgba(61, 214, 140, 0.25); }
-        .flag-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(240, 131, 74, 0.12); color: #f0834a; border: 1px solid rgba(240, 131, 74, 0.3); }
-        .del-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(240, 107, 107, 0.1); color: #f06b6b; border: 1px solid rgba(240, 107, 107, 0.25); }
-        .score-badge { font-size: 10px; padding: 2px 5px; border-radius: 4px; font-weight: 600; background: rgba(100, 116, 160, 0.12); color: #8591b3; }
-        .score-badge.mid { background: rgba(240, 131, 74, 0.1); color: #f0834a; }
-        .score-badge.high { background: rgba(240, 107, 107, 0.1); color: #f06b6b; }
-        .item-time { font-size: 10px; color: #4e5c80; margin-left: auto; }
-        .item-actions { display: flex; align-items: center; gap: 4px; margin-left: 6px; }
-        .act-btn { display: flex; align-items: center; gap: 3px; border: none; border-radius: 5px; padding: 3px 7px; font-size: 11px; cursor: pointer; font-weight: 600; transition: background 0.15s, color 0.15s; }
-        .act-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .act-btn.edit { background: rgba(124, 115, 240, 0.12); color: #9d97f0; }
-        .act-btn.edit:hover:not(:disabled) { background: rgba(124, 115, 240, 0.22); }
-        .act-btn.archive { background: rgba(240, 131, 74, 0.1); color: #f0834a; }
-        .act-btn.archive:hover:not(:disabled) { background: rgba(240, 131, 74, 0.2); }
-        .act-btn.delete { background: rgba(240, 107, 107, 0.1); color: #f06b6b; }
-        .act-btn.delete:hover:not(:disabled) { background: rgba(240, 107, 107, 0.2); }
-        .act-btn.cancel-edit { background: rgba(100, 116, 160, 0.1); color: #8591b3; }
-        .act-btn.cancel-edit:hover { background: rgba(100, 116, 160, 0.18); }
-        .item-clickable { cursor: pointer; display: flex; flex-direction: column; gap: 6px; }
-        .item-clickable:hover .item-title { color: #a49cf5; text-decoration: underline; text-underline-offset: 3px; }
-        .item-title { font-size: 14px; font-weight: 700; color: #e4e8f4; line-height: 1.3; transition: color 0.15s; }
-        .item-parent { font-size: 11px; color: #636f8d; }
-        .item-body { font-size: 12px; color: #8591b3; line-height: 1.5; white-space: pre-wrap; }
-        .item-tags { display: flex; gap: 4px; flex-wrap: wrap; }
-        .item-tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(124, 115, 240, 0.08); color: #7c73f0; border: 1px solid rgba(124, 115, 240, 0.2); }
-        .item-replies { font-size: 11px; color: #4e5c80; }
-        .edit-form { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
-        .edit-title-input { background: #151c2e; border: 1px solid #2a3454; border-radius: 7px; color: #e4e8f4; padding: 7px 10px; font-size: 13px; font-weight: 600; outline: none; width: 100%; box-sizing: border-box; }
-        .edit-title-input:focus { border-color: #7c73f0; }
-        .edit-body-input { background: #151c2e; border: 1px solid #2a3454; border-radius: 7px; color: #e4e8f4; padding: 8px 10px; font-size: 12px; outline: none; width: 100%; box-sizing: border-box; resize: vertical; font-family: inherit; line-height: 1.6; }
-        .edit-body-input:focus { border-color: #7c73f0; }
-        .edit-footer { display: flex; align-items: center; justify-content: space-between; }
-        .edit-chars { font-size: 11px; color: #4e5c80; }
-        .save-btn { display: flex; align-items: center; gap: 5px; background: #7c73f0; color: #fff; border: none; border-radius: 7px; padding: 6px 14px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
-        .save-btn:hover:not(:disabled) { background: #6b63d9; }
-        .save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .center-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #4e5c80; font-size: 12px; text-align: center; padding: 40px 16px; }
-        .center-empty p { margin: 0; max-width: 260px; }
-        .spin { animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
     </div>
   );
 }
@@ -1188,29 +902,33 @@ export default function BotTab() {
   ];
 
   return (
-    <div className="bot-tab">
+    <div className="flex h-full min-h-0 overflow-hidden">
       {/* Left panel — bot list */}
-      <div className="list-panel">
-        <div className="list-header">
-          <div className="list-title"><Bot size={14} /><span>AI Bots ({bots.length})</span></div>
-          <button type="button" className="new-btn" onClick={() => { setCreating(true); setSelectedId(null); }}>
+      <div className="flex w-[300px] shrink-0 flex-col overflow-hidden border-r border-app-border">
+        <div className="flex items-center justify-between border-b border-app-border px-4 py-4">
+          <div className="flex items-center gap-1.5 text-[13px] font-bold text-foreground">
+            <Bot size={14} /><span>AI Bots ({bots.length})</span>
+          </div>
+          <button type="button" className="flex items-center gap-1 rounded-lg border border-accent-purple/35 bg-accent-purple/15 px-2.5 py-1.5 text-[12px] font-semibold text-purple-300 hover:bg-accent-purple/24 cursor-pointer" onClick={() => { setCreating(true); setSelectedId(null); }}>
             <Plus size={13} />New Bot
           </button>
         </div>
 
         {loading ? (
-          <div className="list-empty"><Loader2 size={20} className="spin" /></div>
+          <div className="flex flex-1 flex-col items-center justify-center gap-2 p-8 text-muted-foreground/50">
+            <Loader2 size={20} className="animate-spin" />
+          </div>
         ) : bots.length === 0 ? (
-          <div className="list-empty">No bots yet. Create one.</div>
+          <div className="flex flex-1 flex-col items-center justify-center p-8 text-center text-[12px] text-muted-foreground/50">No bots yet. Create one.</div>
         ) : (
-          <div className="bot-list">
+          <div className="flex flex-1 flex-col gap-1 overflow-y-auto p-2">
             {bots.map(bot => (
               <div
                 key={bot.id}
                 role="button"
                 tabIndex={0}
                 aria-pressed={selectedId === bot.id}
-                className={`bot-card ${selectedId === bot.id ? "selected" : ""}`}
+                className={`flex cursor-pointer items-center justify-between gap-2 rounded-[10px] border px-3 py-2.5 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-purple ${selectedId === bot.id ? "border-accent-purple bg-accent-purple/8" : "border-app-border bg-app-input hover:border-border-hover hover:bg-app-panel"}`}
                 onClick={() => { setSelectedId(bot.id); setCreating(false); setRightTab("identity"); }}
                 onKeyDown={e => {
                   if (e.key === "Enter" || e.key === " ") {
@@ -1221,60 +939,60 @@ export default function BotTab() {
                   }
                 }}
               >
-                <div className="card-left">
+                <div className="flex min-w-0 flex-1 items-center gap-2.5">
                   {bot.avatar_url
-                    ? <img src={bot.avatar_url} alt={bot.display_name} className="card-avatar" />
-                    : <div className="card-avatar avatar-ph"><Bot size={14} /></div>
+                    ? <img src={bot.avatar_url} alt={bot.display_name} className="h-8 w-8 shrink-0 rounded-full object-cover" />
+                    : <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-app-border bg-app-bg text-accent-purple"><Bot size={14} /></div>
                   }
-                  <div className="card-info">
-                    <div className="card-name"><span>{bot.display_name}</span>{BOT_BADGE}</div>
-                    <div className="card-username">@{bot.username}</div>
-                    <div className="card-counters">
-                      {bot.threads_created_today}T · {bot.comments_posted_today}C today
-                    </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 text-[13px] font-semibold text-foreground"><span className="truncate">{bot.display_name}</span>{BOT_BADGE}</div>
+                    <div className="mt-0.5 text-[11px] text-muted-foreground">@{bot.username}</div>
+                    <div className="mt-0.5 text-[10px] text-muted-foreground/50">{bot.threads_created_today}T · {bot.comments_posted_today}C today</div>
                   </div>
                 </div>
-                <div className="card-right">
+                <div className="flex shrink-0 items-center gap-1">
                   <button
                     type="button"
-                    className={`toggle-btn ${bot.enabled ? "on" : "off"}`}
+                    className={`flex cursor-pointer items-center border-none bg-transparent p-0.5 ${bot.enabled ? "text-accent-green" : "text-muted-foreground/50"} disabled:opacity-50 disabled:cursor-not-allowed`}
                     disabled={enableLoading === bot.id}
                     onClick={e => { e.stopPropagation(); void handleToggleEnabled(bot); }}
                     title={bot.enabled ? "Disable bot" : "Enable bot"}
                   >
-                    {enableLoading === bot.id ? <Loader2 size={16} className="spin" /> : bot.enabled ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+                    {enableLoading === bot.id ? <Loader2 size={16} className="animate-spin" /> : bot.enabled ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
                   </button>
-                  <ChevronRight size={14} className="card-chevron" />
+                  <ChevronRight size={14} className="text-muted-foreground/40" />
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        <button type="button" className="refresh-link" onClick={() => void loadBots()}>
+        <button type="button" className="flex cursor-pointer items-center justify-center gap-1.5 border-none border-t border-app-border bg-transparent py-2.5 text-[11px] text-muted-foreground/50 hover:text-muted-foreground" onClick={() => void loadBots()}>
           <RefreshCw size={12} />Refresh
         </button>
       </div>
 
       {/* Right panel */}
-      <div className="right-panel">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         {creating ? (
-          <CreateBotPanel onCreated={() => void handleCreated()} onCancel={() => setCreating(false)} />
+          <div className="flex-1 overflow-y-auto p-6">
+            <CreateBotPanel onCreated={() => void handleCreated()} onCancel={() => setCreating(false)} />
+          </div>
         ) : selectedBot ? (
           <>
-            <div className="right-tabs">
+            <div className="flex shrink-0 gap-0.5 border-b border-app-border px-6 pt-3">
               {RIGHT_TABS.map(t => (
                 <button
                   key={t.key}
                   type="button"
-                  className={`right-tab ${rightTab === t.key ? "active" : ""}`}
+                  className={`cursor-pointer border-none bg-transparent px-3.5 py-2 text-[13px] font-semibold transition-colors mb-[-1px] border-b-2 ${rightTab === t.key ? "border-accent-purple text-accent-purple" : "border-transparent text-muted-foreground hover:text-foreground"}`}
                   onClick={() => setRightTab(t.key)}
                 >
                   {t.label}
                 </button>
               ))}
             </div>
-            <div className="right-body">
+            <div className="flex-1 overflow-y-auto p-6">
               {rightTab === "identity" && (
                 <IdentityPanel
                   bot={selectedBot}
@@ -1295,58 +1013,19 @@ export default function BotTab() {
             </div>
           </>
         ) : (
-          <div className="empty-state">
-            <Bot size={32} style={{ color: "#2b3654" }} />
-            <p>Select a bot to edit its identity, schedule, or view content.</p>
-            <p>Or create a new bot account using the button on the left.</p>
+          <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center text-[13px] text-muted-foreground/50">
+            <Bot size={32} className="text-app-border" />
+            <p className="m-0 max-w-[280px]">Select a bot to edit its identity, schedule, or view content.</p>
+            <p className="m-0 max-w-[280px]">Or create a new bot account using the button on the left.</p>
           </div>
         )}
       </div>
 
-      {toast && <div className={`toast ${toast.type}`}>{toast.text}</div>}
-
-      <style jsx>{`
-        .bot-tab { display: flex; gap: 0; height: 100%; min-height: 0; overflow: hidden; }
-        .list-panel { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; border-right: 1px solid #1e2741; overflow: hidden; }
-        .list-header { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid #1e2741; }
-        .list-title { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #e4e8f4; }
-        .new-btn { display: flex; align-items: center; gap: 5px; background: rgba(124, 115, 240, 0.15); border: 1px solid rgba(124, 115, 240, 0.35); border-radius: 7px; color: #9d97f0; font-size: 12px; font-weight: 600; padding: 5px 10px; cursor: pointer; }
-        .new-btn:hover { background: rgba(124, 115, 240, 0.24); }
-        .bot-list { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
-        .bot-card { display: flex; align-items: center; justify-content: space-between; width: 100%; background: #111926; border: 1px solid #1c2640; border-radius: 10px; padding: 10px 12px; cursor: pointer; text-align: left; gap: 8px; }
-        .bot-card:focus-visible { outline: 2px solid rgba(124, 115, 240, 0.85); outline-offset: 2px; }
-        .bot-card:hover { border-color: #2b3654; background: #141e32; }
-        .bot-card.selected { border-color: #7c73f0; background: rgba(124, 115, 240, 0.08); }
-        .card-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
-        .card-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
-        .avatar-ph { background: #1e2741; display: grid; place-items: center; color: #7c73f0; }
-        .card-info { flex: 1; min-width: 0; }
-        .card-name { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: #e4e8f4; }
-        .card-username { font-size: 11px; color: #636f8d; margin-top: 1px; }
-        .card-counters { font-size: 10px; color: #4e5c80; margin-top: 3px; }
-        .card-right { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
-        .toggle-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 2px; }
-        .toggle-btn.on { color: #3dd68c; }
-        .toggle-btn.off { color: #4e5c80; }
-        .toggle-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .card-chevron { color: #4e5c80; }
-        .list-empty { flex: 1; display: flex; align-items: center; justify-content: center; color: #4e5c80; font-size: 12px; gap: 8px; flex-direction: column; padding: 32px 16px; text-align: center; }
-        .refresh-link { display: flex; align-items: center; justify-content: center; gap: 5px; background: none; border: none; border-top: 1px solid #1e2741; color: #4e5c80; font-size: 11px; padding: 10px; cursor: pointer; }
-        .refresh-link:hover { color: #8591b3; }
-        .right-panel { flex: 1; min-width: 0; overflow: hidden; display: flex; flex-direction: column; }
-        .right-tabs { display: flex; gap: 2px; padding: 12px 24px 0; border-bottom: 1px solid #1e2741; flex-shrink: 0; }
-        .right-tab { background: none; border: none; border-bottom: 2px solid transparent; color: #636f8d; font-size: 13px; font-weight: 600; padding: 8px 14px; cursor: pointer; margin-bottom: -1px; }
-        .right-tab:hover { color: #b7c3df; }
-        .right-tab.active { color: #7c73f0; border-bottom-color: #7c73f0; }
-        .right-body { flex: 1; overflow-y: auto; padding: 24px; }
-        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 12px; color: #4e5c80; font-size: 13px; text-align: center; }
-        .empty-state p { margin: 0; max-width: 280px; }
-        .toast { position: fixed; bottom: 24px; right: 24px; padding: 10px 16px; border-radius: 10px; font-size: 12px; font-weight: 600; z-index: 99; box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
-        .toast.ok { background: rgba(61,214,140,0.16); color: #85e6ba; border: 1px solid rgba(61,214,140,0.34); }
-        .toast.err { background: rgba(240,107,107,0.16); color: #f4b3b3; border: 1px solid rgba(240,107,107,0.34); }
-        .spin { animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
+      {toast && (
+        <div className={`fixed bottom-6 right-6 z-[99] flex items-center gap-2 rounded-[10px] border px-4 py-2.5 text-[12px] font-semibold shadow-2xl ${toast.type === "ok" ? "border-accent-green/34 bg-accent-green/16 text-green-300" : "border-accent-red/34 bg-accent-red/16 text-red-300"}`}>
+          {toast.text}
+        </div>
+      )}
     </div>
   );
 }
