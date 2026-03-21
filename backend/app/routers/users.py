@@ -1177,3 +1177,27 @@ def _to_audit_log_out(log: AuditLog) -> AuditLogOut:
         details=log.details,
         created_at=log.created_at,
     )
+
+
+def _to_thread_out(thread: Thread) -> ThreadOut:
+    like_ids = [str(uid) for uid in thread.likes] if thread.likes else []
+    return ThreadOut(
+        id=str(thread.id),
+        title=thread.title,
+        body=thread.body,
+        tags=thread.tags,
+        author_id=str(thread.author_id),
+        author_username=None,
+        author_display_name=None,
+        author_is_bot=False,
+        post_count=thread.post_count,
+        like_count=len(like_ids),
+        liked_by_me=False,
+        status=thread.status,
+        is_pinned=thread.is_pinned,
+        ai_score=thread.ai_score,
+        is_flagged=thread.is_flagged,
+        is_deleted=thread.is_deleted,
+        created_at=thread.created_at,
+        updated_at=thread.updated_at,
+    )
