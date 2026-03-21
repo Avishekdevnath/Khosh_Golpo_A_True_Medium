@@ -5,7 +5,7 @@ from beanie import PydanticObjectId
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
-from app.core.auth import get_current_user
+from app.core.auth import get_current_user, get_optional_current_user
 from app.core.profile_slug import validate_profile_slug
 from app.models.connection import Connection, ConnectionStatus, MessageRequest
 from app.models.user import User
@@ -21,7 +21,8 @@ from app.schemas.discovery import (
     PeopleSearchResponse,
 )
 from app.services.audit import log_audit
-from app.schemas.user import UserOut, UserUpdate
+from app.schemas.user import UserOut, UserUpdate, ProfileLockedOut
+from typing import Union
 from app.schemas.follow import FollowAction, FollowStats, FollowStatus, FollowerOut, FollowerListResponse
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -379,10 +380,31 @@ async def check_profile_slug(
 
 
 @router.get("/{user_id}")
-async def get_user_profile(user_id: str) -> UserOut:
+async def get_user_profile(
+    user_id: str,
+    viewer: User | None = Depends(get_optional_current_user),
+) -> Union[UserOut, ProfileLockedOut]:
     user = await _find_user(user_id)
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    if viewer is not None and (viewer.id == user.id or viewer.role.value == "admin"):
+        return _to_user_out(user)
+
+    if getattr(user, "is_private", False):
+        is_connected = False
+        if viewer is not None:
+            is_connected = await _is_connected(viewer.id, user.id)
+        if not is_connected:
+            return ProfileLockedOut(
+                id=str(user.id),
+                username=user.username,
+                display_name=user.display_name,
+                bio=user.bio,
+                avatar_seed=_avatar_seed(str(user.id)),
+                created_at=user.created_at,
+            )
+
     return _to_user_out(user)
 
 
@@ -994,6 +1016,28 @@ async def _find_user(user_id: str) -> User | None:
 
     # 3. Try profile_slug (changeable vanity URL)
     return await User.find_one({"profile_slug": normalized})
+
+
+def _avatar_seed(user_id: str) -> list[str]:
+    PALETTES = [
+        ["#1e3a5f", "#0ea5e9"], ["#3b1f5e", "#7c3aed"],
+        ["#1a3a2a", "#10b981"], ["#3a1f1f", "#ef4444"],
+        ["#1f2a3a", "#3b82f6"], ["#2a1f3a", "#a855f7"],
+        ["#1f3a2a", "#06b6d4"], ["#3a2a1f", "#f59e0b"],
+    ]
+    h = sum(ord(c) for c in user_id) % len(PALETTES)
+    return PALETTES[h]
+
+
+async def _is_connected(viewer_id: PydanticObjectId, owner_id: PydanticObjectId) -> bool:
+    conn = await Connection.find_one({
+        "$or": [
+            {"user_id": viewer_id, "connected_user_id": owner_id},
+            {"user_id": owner_id, "connected_user_id": viewer_id},
+        ],
+        "status": ConnectionStatus.CONNECTED,
+    })
+    return conn is not None
 
 
 async def _count_active_following(user: User) -> int:

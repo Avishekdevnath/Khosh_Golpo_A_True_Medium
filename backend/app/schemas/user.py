@@ -40,3 +40,14 @@ class UserOut(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ProfileLockedOut(BaseModel):
+    id: str
+    username: str
+    display_name: str
+    bio: str | None
+    avatar_seed: list[str]
+    is_private: bool = True
+    is_locked: bool = True
+    created_at: datetime
