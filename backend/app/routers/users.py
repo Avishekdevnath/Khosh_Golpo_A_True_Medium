@@ -24,6 +24,10 @@ from app.services.audit import log_audit
 from app.schemas.user import UserOut, UserUpdate, ProfileLockedOut
 from typing import Union
 from app.schemas.follow import FollowAction, FollowStats, FollowStatus, FollowerOut, FollowerListResponse
+from app.models.saved_thread import SavedThread
+from app.models.read_history import ReadHistory
+from app.models.thread import Thread
+from app.schemas.thread import ThreadOut, ThreadListResponse
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -377,6 +381,65 @@ async def check_profile_slug(
         return {"available": False, "reason": "Already taken."}
 
     return {"available": True}
+
+
+
+@router.get("/me/saved-threads")
+async def get_saved_threads(
+    page: int = Query(default=1, ge=1),
+    limit: int = Query(default=10, ge=1, le=40),
+    current_user: User = Depends(get_current_user),
+) -> ThreadListResponse:
+    saved = await SavedThread.find(
+        {"user_id": current_user.id}
+    ).sort("-saved_at").to_list()
+
+    total = len(saved)
+    page_saved = saved[(page - 1) * limit : page * limit]
+    thread_ids = [s.thread_id for s in page_saved]
+
+    threads = await Thread.find(
+        {"_id": {"$in": thread_ids}, "is_deleted": False}
+    ).to_list()
+
+    thread_map = {t.id: t for t in threads}
+    ordered = [thread_map[tid] for tid in thread_ids if tid in thread_map]
+
+    return ThreadListResponse(
+        data=[_to_thread_out(t) for t in ordered],
+        page=page,
+        limit=limit,
+        total=total,
+    )
+
+
+@router.get("/me/read-history")
+async def get_read_history(
+    page: int = Query(default=1, ge=1),
+    limit: int = Query(default=10, ge=1, le=40),
+    current_user: User = Depends(get_current_user),
+) -> ThreadListResponse:
+    history = await ReadHistory.find(
+        {"user_id": current_user.id}
+    ).sort("-read_at").to_list()
+
+    total = len(history)
+    page_history = history[(page - 1) * limit : page * limit]
+    thread_ids = [h.thread_id for h in page_history]
+
+    threads = await Thread.find(
+        {"_id": {"$in": thread_ids}, "is_deleted": False}
+    ).to_list()
+
+    thread_map = {t.id: t for t in threads}
+    ordered = [thread_map[tid] for tid in thread_ids if tid in thread_map]
+
+    return ThreadListResponse(
+        data=[_to_thread_out(t) for t in ordered],
+        page=page,
+        limit=limit,
+        total=total,
+    )
 
 
 @router.get("/{user_id}")
