@@ -433,7 +433,7 @@ async def mark_thread_read(
     ).sort("-read_at").skip(100).to_list()
     if recent:
         ids_to_delete = [r.id for r in recent]
-        await ReadHistory.find({"_id": {"$in": ids_to_delete}}).delete()
+        await ReadHistory.find({"_id": {"$in": ids_to_delete}}).delete_many()
 
     return {"ok": True}
 
