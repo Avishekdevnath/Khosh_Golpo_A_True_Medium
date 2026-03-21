@@ -4,6 +4,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiGet, apiPatch } from "@/lib/api";
 import { getFollowStatus } from "@/lib/followApi";
+import {
+  getUserReplies,
+  getSavedThreads,
+  getReadHistory,
+  setProfilePrivacy,
+} from "@/lib/profileApi";
 
 // ─── Shared types ──────────────────────────────────────────────────────────────
 
@@ -16,6 +22,9 @@ export type UserOut = {
   role: "member" | "moderator" | "admin";
   is_active: boolean;
   is_bot?: boolean;
+  is_private?: boolean;
+  is_locked?: boolean;
+  avatar_seed?: string[];
   first_name?: string | null;
   last_name?: string | null;
   gender?: string | null;
@@ -43,6 +52,8 @@ export type ThreadListResponse = {
   total: number;
 };
 
+export type ProfileTab = "threads" | "replies" | "saved" | "history";
+
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export interface UseUserProfileReturn {
@@ -52,6 +63,29 @@ export interface UseUserProfileReturn {
   loading: boolean;
   error: string | null;
   threadsLoading: boolean;
+
+  // Tabs
+  activeTab: ProfileTab;
+  setActiveTab: (tab: ProfileTab) => void;
+
+  // Replies tab
+  replies: ThreadOut[];
+  repliesLoading: boolean;
+  repliesLoaded: boolean;
+
+  // Saved tab
+  savedThreads: ThreadOut[];
+  savedLoading: boolean;
+  savedLoaded: boolean;
+
+  // History tab
+  readHistory: ThreadOut[];
+  historyLoading: boolean;
+  historyLoaded: boolean;
+
+  // Privacy
+  isPrivate: boolean;
+  togglePrivacy: () => Promise<void>;
 
   isFollowing: boolean;
   followsYou: boolean;
@@ -89,13 +123,37 @@ export interface UseUserProfileReturn {
   closeMobileMenu: () => void;
 }
 
-export function useUserProfile(userId: string): UseUserProfileReturn {
+export function useUserProfile(userId: string, currentUserId?: string): UseUserProfileReturn {
   const [profileUser, setProfileUser] = useState<UserOut | null>(null);
   const [threads, setThreads] = useState<ThreadOut[]>([]);
   const [threadTotal, setThreadTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [threadsLoading, setThreadsLoading] = useState(false);
+
+  // Tabs
+  const [activeTab, setActiveTab] = useState<ProfileTab>("threads");
+
+  // Replies
+  const [replies, setReplies] = useState<ThreadOut[]>([]);
+  const [repliesLoading, setRepliesLoading] = useState(false);
+  const [repliesLoaded, setRepliesLoaded] = useState(false);
+
+  // Saved
+  const [savedThreads, setSavedThreads] = useState<ThreadOut[]>([]);
+  const [savedLoading, setSavedLoading] = useState(false);
+  const [savedLoaded, setSavedLoaded] = useState(false);
+
+  // History
+  const [readHistory, setReadHistory] = useState<ThreadOut[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
+
+  // Privacy
+  const [isPrivate, setIsPrivate] = useState(false);
+
+  // Own profile ref — set after profile loads
+  const isOwnProfileRef = useRef(false);
 
   const [isFollowing, setIsFollowing] = useState(false);
   const [followsYou, setFollowsYou] = useState(false);
@@ -136,6 +194,8 @@ export function useUserProfile(userId: string): UseUserProfileReturn {
     };
   }, [mobileMenuOpen]);
 
+  // ─── Main profile load ────────────────────────────────────────────────────
+
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -143,12 +203,25 @@ export function useUserProfile(userId: string): UseUserProfileReturn {
     setProfileUser(null);
     setThreads([]);
     setThreadTotal(0);
+    // Reset lazy tabs on user change
+    setRepliesLoaded(false);
+    setSavedLoaded(false);
+    setHistoryLoaded(false);
+    setReplies([]);
+    setSavedThreads([]);
+    setReadHistory([]);
 
     async function load() {
       try {
         const u = await apiGet<UserOut>(`users/${encodeURIComponent(userId)}`);
         if (cancelled) return;
         setProfileUser(u);
+        setIsPrivate(u.is_private ?? false);
+
+        // Determine own profile
+        isOwnProfileRef.current = Boolean(
+          currentUserId ? currentUserId === u.id : false
+        );
 
         try {
           const fs = await getFollowStatus(u.id);
@@ -182,7 +255,71 @@ export function useUserProfile(userId: string): UseUserProfileReturn {
 
     void load();
     return () => { cancelled = true; };
-  }, [userId]);
+  }, [userId, currentUserId]);
+
+  // ─── Lazy: replies tab ────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (activeTab !== "replies" || repliesLoaded || !profileUser) return;
+    let cancelled = false;
+    setRepliesLoading(true);
+    getUserReplies(profileUser.id).then(res => {
+      if (!cancelled) { setReplies(res.data); setRepliesLoaded(true); }
+    }).catch(() => {
+      if (!cancelled) setRepliesLoaded(true);
+    }).finally(() => {
+      if (!cancelled) setRepliesLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [activeTab, repliesLoaded, profileUser]);
+
+  // ─── Lazy: saved tab ──────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (activeTab !== "saved" || savedLoaded || !isOwnProfileRef.current) return;
+    let cancelled = false;
+    setSavedLoading(true);
+    getSavedThreads().then(res => {
+      if (!cancelled) { setSavedThreads(res.data); setSavedLoaded(true); }
+    }).catch(() => {
+      if (!cancelled) setSavedLoaded(true);
+    }).finally(() => {
+      if (!cancelled) setSavedLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [activeTab, savedLoaded]);
+
+  // ─── Lazy: history tab ────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (activeTab !== "history" || historyLoaded || !isOwnProfileRef.current) return;
+    let cancelled = false;
+    setHistoryLoading(true);
+    getReadHistory().then(res => {
+      if (!cancelled) { setReadHistory(res.data); setHistoryLoaded(true); }
+    }).catch(() => {
+      if (!cancelled) setHistoryLoaded(true);
+    }).finally(() => {
+      if (!cancelled) setHistoryLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [activeTab, historyLoaded]);
+
+  // ─── Privacy toggle ───────────────────────────────────────────────────────
+
+  async function togglePrivacy() {
+    const prev = isPrivate;
+    const next = !prev;
+    setIsPrivate(next);
+    try {
+      await setProfilePrivacy(next);
+    } catch {
+      // Revert on error
+      setIsPrivate(prev);
+    }
+  }
+
+  // ─── Admin edit ───────────────────────────────────────────────────────────
 
   function openAdminEdit() {
     if (!profileUser) return;
@@ -222,6 +359,24 @@ export function useUserProfile(userId: string): UseUserProfileReturn {
     loading,
     error,
     threadsLoading,
+
+    activeTab,
+    setActiveTab,
+
+    replies,
+    repliesLoading,
+    repliesLoaded,
+
+    savedThreads,
+    savedLoading,
+    savedLoaded,
+
+    readHistory,
+    historyLoading,
+    historyLoaded,
+
+    isPrivate,
+    togglePrivacy,
 
     isFollowing,
     followsYou,
