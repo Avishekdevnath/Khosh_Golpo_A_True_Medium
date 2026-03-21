@@ -110,8 +110,8 @@ export default function AppNavbar() {
               }}
               onFocus={e => {
                 e.currentTarget.style.background = "rgba(255,255,255,0.07)";
-                e.currentTarget.style.border = "1px solid rgba(240,131,74,0.4)";
-                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(240,131,74,0.08)";
+                e.currentTarget.style.border = "1px solid rgba(14,165,233,0.4)";
+                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(14,165,233,0.08)";
               }}
               onBlur={e => {
                 e.currentTarget.style.background = "rgba(255,255,255,0.05)";
@@ -134,8 +134,8 @@ export default function AppNavbar() {
             href="/threads/new"
             className="h-[34px] px-3.5 rounded-xl no-underline text-white text-[12.5px] font-semibold font-sans flex items-center gap-1.5 transition-all duration-150 hover:scale-[1.03] active:scale-[0.97] max-[859px]:w-8 max-[859px]:px-0 max-[859px]:justify-center"
             style={{
-              background: "linear-gradient(135deg, #f0834a 0%, #d96030 100%)",
-              boxShadow: "0 2px 12px rgba(240,131,74,0.35), 0 0 0 1px rgba(240,131,74,0.2)",
+              background: "linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)",
+              boxShadow: "0 2px 12px rgba(14,165,233,0.35), 0 0 0 1px rgba(14,165,233,0.2)",
             }}
           >
             <Plus size={14} strokeWidth={2.5} />
@@ -156,7 +156,7 @@ export default function AppNavbar() {
           {unreadCount > 0 && (
             <span
               className="absolute top-[5px] right-[5px] w-[7px] h-[7px] rounded-full border-[1.5px] border-[rgba(6,8,14,0.88)]"
-              style={{ background: "#f0834a", boxShadow: "0 0 6px rgba(240,131,74,0.7)" }}
+              style={{ background: "#0EA5E9", boxShadow: "0 0 6px rgba(14,165,233,0.7)" }}
               aria-hidden="true"
             />
           )}
@@ -167,7 +167,7 @@ export default function AppNavbar() {
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className="w-[32px] h-[32px] rounded-[9px] border-0 grid place-items-center text-[11px] font-bold text-white cursor-pointer transition-all duration-150 hover:scale-[1.06] hover:shadow-[0_0_0_2px_rgba(240,131,74,0.4)] focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_rgba(240,131,74,0.5)]"
+              className="w-[32px] h-[32px] rounded-[9px] border-0 grid place-items-center text-[11px] font-bold text-white cursor-pointer transition-all duration-150 hover:scale-[1.06] hover:shadow-[0_0_0_2px_rgba(14,165,233,0.4)] focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_rgba(14,165,233,0.5)]"
               style={{ background: `linear-gradient(135deg,${av1},${av2})` }}
               aria-label="Open user menu"
             >
@@ -193,7 +193,7 @@ export default function AppNavbar() {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="text-[#f06b6b] flex items-center gap-2 focus:text-[#f06b6b]">
+            <DropdownMenuItem onClick={handleLogout} className="text-[#ef4444] flex items-center gap-2 focus:text-[#ef4444]">
               <LogOut size={13} strokeWidth={1.8} /> Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
