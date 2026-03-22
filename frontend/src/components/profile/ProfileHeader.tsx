@@ -66,11 +66,11 @@ export default function ProfileHeader({
     <img
       src={publicProfile.user.avatar_url}
       alt={publicProfile.user.display_name}
-      className="size-[120px] rounded-full border-4 border-background object-cover shadow-lg max-sm:size-[96px]"
+      className="size-[160px] rounded-full border-4 border-background object-cover shadow-lg max-sm:size-[120px]"
     />
   ) : (
     <div
-      className="grid size-[120px] place-items-center rounded-full border-4 border-background font-serif text-[36px] font-bold text-white shadow-lg max-sm:size-[96px] max-sm:text-[28px]"
+      className="grid size-[160px] place-items-center rounded-full border-4 border-background font-serif text-[48px] font-bold text-white shadow-lg max-sm:size-[120px] max-sm:text-[36px]"
       style={{ background: `linear-gradient(135deg, ${accentA}, ${accentB})` }}
     >
       {initials(publicProfile.user.display_name)}
@@ -115,7 +115,7 @@ export default function ProfileHeader({
       </div>
 
       {/* ── Profile info — pt accounts for avatar protrusion (60px half + 16px gap) ── */}
-      <div className="px-7 pt-[84px] pb-7 max-sm:px-4 max-sm:pt-[68px]">
+      <div className="px-7 pt-[104px] pb-7 max-sm:px-4 max-sm:pt-[76px]">
 
         {/* Action buttons row — right-aligned, sits beside the protruding avatar */}
         <div className="mb-5 flex items-center justify-end gap-3">
