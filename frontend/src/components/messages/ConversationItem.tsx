@@ -1,6 +1,16 @@
 "use client";
 
-import { avatarSeed, initials, relativeTime } from "@/lib/workspaceUtils";
+import { avatarSeed, initials } from "@/lib/workspaceUtils";
+
+function formatConvTime(value: string): string {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  if (isToday) return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+  const sameYear = d.getFullYear() === now.getFullYear();
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", ...(sameYear ? {} : { year: "numeric" }) });
+}
 import type { Conversation } from "@/types/message";
 
 type ConversationItemProps = {
@@ -47,7 +57,7 @@ export default function ConversationItem({ conversation, selected, onSelect }: C
           </span>
           {last_message_at && (
             <time className="text-[11px] text-text-tertiary shrink-0">
-              {relativeTime(last_message_at)}
+              {formatConvTime(last_message_at)}
             </time>
           )}
         </div>

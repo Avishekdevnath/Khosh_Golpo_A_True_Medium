@@ -1,8 +1,13 @@
 "use client";
 
 import { AlertCircle, RotateCcw } from "lucide-react";
-import { relativeTime } from "@/lib/workspaceUtils";
 import type { Message } from "@/types/message";
+
+function formatMessageTime(value: string): string {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+}
 
 type DeliveryState = "sending" | "sent" | "failed";
 
@@ -39,7 +44,7 @@ export default function MessageBubble({ message, isOwn, deliveryState, onRetry }
       {/* Meta row */}
       <div className={["flex items-center gap-1.5 px-1", isOwn ? "flex-row-reverse" : "flex-row"].join(" ")}>
         <time className="text-[11px] text-text-tertiary">
-          {relativeTime(message.created_at)}
+          {formatMessageTime(message.created_at)}
         </time>
 
         {isFailed && (
