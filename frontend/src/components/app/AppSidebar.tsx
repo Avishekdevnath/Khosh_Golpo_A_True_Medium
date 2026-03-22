@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   BarChart3,
   Bell,
+  Briefcase,
   Mail,
   MessageSquare,
   Settings,
@@ -28,6 +29,7 @@ interface NavItem {
 
 const TOP_NAV: NavItem[] = [
   { label: "Threads",       href: "/threads",       Icon: MessageSquare },
+  { label: "Jobs",          href: "/jobs",          Icon: Briefcase },
   { label: "Messages",      href: "/messages",      Icon: Mail,    badgeKey: "messages" },
   { label: "People",        href: "/people",        Icon: Users },
 ];

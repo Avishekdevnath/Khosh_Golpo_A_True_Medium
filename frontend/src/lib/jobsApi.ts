@@ -154,7 +154,7 @@ export async function createJob(data: {
   return api.post("jobs", { json: data }).json();
 }
 
-export async function updateJob(jobId: string, data: Partial<typeof createJob extends (d: infer D) => unknown ? D : never>): Promise<JobPostOut> {
+export async function updateJob(jobId: string, data: Record<string, unknown>): Promise<JobPostOut> {
   return api.patch(`jobs/${jobId}`, { json: data }).json();
 }
 

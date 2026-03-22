@@ -121,7 +121,6 @@ async def _enrich_jobs(
 def _app_to_out(app: JobApplication, applicant: Optional[User] = None) -> ApplicationOut:
     applicant_out = None
     if applicant:
-        from app.models.user_profile import UserProfile  # lazy import
         applicant_out = ApplicantUserOut(
             id=str(applicant.id),
             username=applicant.username,
