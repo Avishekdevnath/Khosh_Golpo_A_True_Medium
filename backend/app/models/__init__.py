@@ -1,4 +1,7 @@
 from app.models.appeal import ModerationAppeal
+from app.models.job_post import JobPost, JobType, ExperienceLevel, JobStatus
+from app.models.job_application import JobApplication, SavedJob, ApplicationStage, STAGE_TRANSITIONS, TERMINAL_STAGES
+from app.models.job_report import JobReport, ReportReason, ReportStatus
 from app.models.audit_log import AuditLog
 from app.models.bot import BotConfig
 from app.models.channel import Channel
@@ -51,6 +54,10 @@ DOCUMENT_MODELS = [
     UserSkill,
     UserCertification,
     UserContactLink,
+    JobPost,
+    JobApplication,
+    SavedJob,
+    JobReport,
 ]
 
 __all__ = [
@@ -81,4 +88,16 @@ __all__ = [
     "UserCertification",
     "UserContactLink",
     "DOCUMENT_MODELS",
+    "JobPost",
+    "JobType",
+    "ExperienceLevel",
+    "JobStatus",
+    "JobApplication",
+    "SavedJob",
+    "ApplicationStage",
+    "STAGE_TRANSITIONS",
+    "TERMINAL_STAGES",
+    "JobReport",
+    "ReportReason",
+    "ReportStatus",
 ]
