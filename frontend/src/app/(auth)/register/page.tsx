@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
+import { MessageSquare, ShieldCheck, Copy, Check, ArrowRight, Loader2 } from "lucide-react";
 
-import NavBar from "@/components/public/sections/NavBar";
 import { useAuth } from "@/hooks";
 import { FormField } from "@/components/ui/form-field";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Input } from "@/components/ui/input";
-import { ShieldCheck, Copy, Check } from "lucide-react";
 
 type FormErrors = {
   firstName?: string;
@@ -20,13 +19,61 @@ type FormErrors = {
   confirmPassword?: string;
 };
 
-function emailIsValid(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+function emailIsValid(v: string) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+const GENDER_OPTIONS = ["Male", "Female", "Non-binary", "Prefer not to say"] as const;
+
+/* ── Left branding panel ───────────────────────────────────────────────── */
+function BrandPanel() {
+  return (
+    <div className="relative hidden lg:flex lg:w-[420px] xl:w-[460px] shrink-0 flex-col justify-between overflow-hidden bg-[#080a10] px-12 py-14">
+      <div className="pointer-events-none absolute -top-32 -left-32 h-[500px] w-[500px] rounded-full opacity-30"
+        style={{ background: "radial-gradient(circle, rgba(14,165,233,0.35) 0%, transparent 65%)" }} />
+      <div className="pointer-events-none absolute -bottom-40 -right-20 h-[400px] w-[400px] rounded-full opacity-20"
+        style={{ background: "radial-gradient(circle, rgba(124,115,240,0.45) 0%, transparent 65%)" }} />
+
+      <div className="relative z-10 flex items-center gap-2.5">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary">
+          <MessageSquare size={18} className="text-white" strokeWidth={2.5} />
+        </div>
+        <span className="font-serif text-[22px] font-bold text-white">KhoshGolpo</span>
+      </div>
+
+      <div className="relative z-10 my-auto">
+        <h2 className="mb-4 font-serif text-[38px] font-bold leading-[1.1] text-white">
+          Join a community<br />worth your time.
+        </h2>
+        <p className="mb-10 text-[15px] leading-relaxed text-white/55">
+          Create your account in under a minute. Free forever.
+        </p>
+
+        <div className="flex flex-col gap-4">
+          {[
+            "No algorithmic feed — just conversations you chose",
+            "Follow people and topics that matter to you",
+            "AI moderation keeps quality high",
+            "Your recovery code keeps your account safe",
+          ].map((item) => (
+            <div key={item} className="flex items-start gap-3">
+              <div className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+              <p className="text-[14px] text-white/60">{item}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="relative z-10">
+        <p className="text-[13px] italic text-white/30">&ldquo;Ship less noise. Grow more signal.&rdquo;</p>
+      </div>
+    </div>
+  );
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   PAGE
+══════════════════════════════════════════════════════════════════════════ */
 export default function RegisterPage() {
   const router = useRouter();
-  const orbRef = useRef<HTMLDivElement | null>(null);
   const { register, isLoading, error } = useAuth();
 
   const [firstName, setFirstName] = useState("");
@@ -39,50 +86,29 @@ export default function RegisterPage() {
   const [favAnimal, setFavAnimal] = useState("");
   const [favPerson, setFavPerson] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
-
   const [recoveryCode, setRecoveryCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    const nav = document.getElementById("nav");
-    nav?.classList.add("scrolled");
-    const handleMouseMove = (event: MouseEvent) => {
-      if (!orbRef.current) return;
-      const x = (event.clientX / window.innerWidth) * 15 - 7.5;
-      const y = (event.clientY / window.innerHeight) * 15 - 7.5;
-      orbRef.current.style.transform = `translate(${x}px, ${y}px)`;
-    };
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => {
-      nav?.classList.remove("scrolled");
-      window.removeEventListener("mousemove", handleMouseMove);
-    };
-  }, []);
-
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const nextErrors: FormErrors = {};
-
-    if (!firstName.trim()) nextErrors.firstName = "Please enter your first name";
-    if (!lastName.trim()) nextErrors.lastName = "Please enter your last name";
-    if (!username.trim()) nextErrors.username = "Please choose a username";
-    if (!email.trim()) nextErrors.email = "Please enter your email";
-    else if (!emailIsValid(email)) nextErrors.email = "Please enter a valid email";
-    if (!password.trim()) nextErrors.password = "Please create a password";
-    else if (password.length < 6) nextErrors.password = "Password must be at least 6 characters";
-    if (!confirmPassword.trim()) nextErrors.confirmPassword = "Please confirm your password";
-    else if (confirmPassword !== password) nextErrors.confirmPassword = "Passwords do not match";
-
-    setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) return;
-
-    const displayName = `${firstName.trim()} ${lastName.trim()}`.trim();
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const next: FormErrors = {};
+    if (!firstName.trim()) next.firstName = "Required";
+    if (!lastName.trim()) next.lastName = "Required";
+    if (!username.trim()) next.username = "Please choose a username";
+    if (!email.trim()) next.email = "Please enter your email";
+    else if (!emailIsValid(email)) next.email = "Please enter a valid email";
+    if (!password.trim()) next.password = "Please create a password";
+    else if (password.length < 6) next.password = "At least 6 characters";
+    if (!confirmPassword.trim()) next.confirmPassword = "Please confirm your password";
+    else if (confirmPassword !== password) next.confirmPassword = "Passwords do not match";
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
 
     try {
       const code = await register(
         username.trim().toLowerCase(),
         email.trim().toLowerCase(),
-        displayName,
+        `${firstName.trim()} ${lastName.trim()}`.trim(),
         password,
         {
           fav_animal: favAnimal.trim() || undefined,
@@ -103,223 +129,170 @@ export default function RegisterPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  const genderOptions = ["Male", "Female", "Non-binary", "Prefer not to say"] as const;
-
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-app-bg text-foreground">
-      <NavBar />
+    <main className="flex min-h-screen bg-background text-foreground">
+      <BrandPanel />
 
-      {/* Background orbs */}
-      <div className="pointer-events-none fixed inset-0 z-0 opacity-35" aria-hidden="true" />
-      <div
-        ref={orbRef}
-        className="pointer-events-none fixed z-0 h-[500px] w-[500px] -top-[150px] -right-[100px] rounded-full blur-[100px] transition-transform duration-[800ms] ease-[cubic-bezier(0.1,0.5,0.1,1)]"
-        style={{ background: "radial-gradient(circle, rgba(14,165,233,0.08) 0%, transparent 70%)" }}
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none fixed z-0 h-[400px] w-[400px] -bottom-[150px] -left-[100px] rounded-full blur-[100px]"
-        style={{ background: "radial-gradient(circle, rgba(123,110,246,0.08) 0%, transparent 70%)" }}
-        aria-hidden="true"
-      />
+      {/* ── Right: scrollable form panel ── */}
+      <div className="flex flex-1 flex-col items-center justify-start overflow-y-auto px-5 py-12 sm:px-10">
 
-      <section className="relative z-10 flex min-h-screen items-center justify-center px-5 pb-8 pt-24 sm:pt-28">
-        {recoveryCode ? (
-          <div className="w-full max-w-[420px] rounded-[18px] border border-app-border bg-app-panel/82 p-6 text-center backdrop-blur-[10px]">
-            <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-[20px] bg-accent2/12">
-              <ShieldCheck className="h-9 w-9 text-accent2" />
-            </div>
-            <h1 className="mb-2 font-serif text-[clamp(28px,5vw,40px)] leading-[1.1]">Save your recovery code</h1>
-            <p className="mb-5 text-sm text-text-secondary">
-              This is shown <strong>only once</strong>. Store it somewhere safe —
-              you will need it to recover your account if you forget your password.
-            </p>
+        {/* Mobile logo */}
+        <div className="mb-8 flex w-full max-w-[440px] items-center gap-2 lg:hidden">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+            <MessageSquare size={16} className="text-white" strokeWidth={2.5} />
+          </div>
+          <span className="font-serif text-[20px] font-bold">KhoshGolpo</span>
+        </div>
 
-            <div className="mb-3 flex items-center justify-between gap-2.5 rounded-xl border border-accent2/30 bg-app-bg p-4">
-              <span className="font-mono text-xl font-bold tracking-[0.08em] text-[#c4bdff]">
-                {recoveryCode}
-              </span>
+        <div className="w-full max-w-[440px]">
+
+          {/* ── Recovery code screen ── */}
+          {recoveryCode ? (
+            <div className="animate-[fadeSlideUp_0.4s_ease]">
+              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+                <ShieldCheck size={28} className="text-primary" />
+              </div>
+              <h1 className="mb-2 font-serif text-[32px] font-bold leading-tight">Save your recovery code</h1>
+              <p className="mb-8 text-[15px] text-foreground/60">
+                This is shown <strong className="text-foreground">only once</strong>. Store it somewhere safe — you&apos;ll need it if you ever forget your password.
+              </p>
+
+              <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-primary/25 bg-primary/5 p-4">
+                <span className="font-mono text-[20px] font-bold tracking-[0.08em] text-primary">
+                  {recoveryCode}
+                </span>
+                <button
+                  type="button"
+                  onClick={copyCode}
+                  aria-label="Copy recovery code"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-background transition-colors hover:bg-card-hover cursor-pointer"
+                >
+                  {copied ? <Check size={15} className="text-green-500" /> : <Copy size={15} className="text-foreground/60" />}
+                </button>
+              </div>
+
+              <p className="mb-8 text-[13px] leading-relaxed text-foreground/50">
+                Your favourite animal and person name also work as backups — any one of the three unlocks your account.
+              </p>
+
               <button
                 type="button"
-                className="flex rounded-md p-1.5 text-accent2 transition-colors hover:bg-accent2/15"
-                onClick={copyCode}
-                aria-label="Copy code"
+                onClick={() => router.push("/threads")}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-[15px] font-semibold text-white transition-all hover:bg-primary/90"
               >
-                {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
+                I&apos;ve saved it — continue
+                <ArrowRight size={16} />
               </button>
             </div>
+          ) : (
 
-            <p className="mb-6 text-xs leading-relaxed text-text-secondary">
-              Your favourite animal and person name also work as backup — any one of the three unlocks your account.
-            </p>
+            /* ── Registration form ── */
+            <div className="animate-[fadeSlideUp_0.4s_ease]">
+              <h1 className="mb-1 font-serif text-[32px] font-bold leading-tight">Create account</h1>
+              <p className="mb-8 text-[15px] text-foreground/60">
+                Already have one?{" "}
+                <Link href="/login" className="font-semibold text-primary hover:underline">Sign in</Link>
+              </p>
 
-            <button
-              type="button"
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-3 text-sm font-bold text-white shadow-[0_4px_20px_rgba(14,165,233,0.30)] transition-all hover:-translate-y-px hover:shadow-[0_6px_28px_rgba(14,165,233,0.40)]"
-              onClick={() => router.push("/threads")}
-            >
-              I&apos;ve saved it — continue
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-            </button>
-          </div>
-        ) : (
-          <div className="w-full max-w-[420px] rounded-[18px] border border-app-border bg-app-panel/82 p-5 backdrop-blur-[10px] sm:p-6">
-            <h1 className="mb-2 font-serif text-[clamp(32px,5vw,46px)] leading-[1]">Create account</h1>
-            <p className="mb-5 text-sm text-text-secondary">Join KhoshGolpo and start thoughtful conversations.</p>
+              <form onSubmit={onSubmit} noValidate className="space-y-4">
 
-            <form onSubmit={onSubmit} noValidate className="space-y-3">
-              {/* Name row */}
-              <div className="flex gap-2.5">
-                <FormField label="First name" htmlFor="register-first-name" error={errors.firstName} className="flex-1">
-                  <Input
-                    id="register-first-name"
-                    type="text"
-                    placeholder="First"
-                    className="bg-app-input border-app-border focus-visible:border-accent"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                  />
-                </FormField>
-                <FormField label="Last name" htmlFor="register-last-name" error={errors.lastName} className="flex-1">
-                  <Input
-                    id="register-last-name"
-                    type="text"
-                    placeholder="Last"
-                    className="bg-app-input border-app-border focus-visible:border-accent"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                  />
-                </FormField>
-              </div>
-
-              {/* Gender */}
-              <div className="flex flex-col gap-1.5">
-                <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-text-secondary">
-                  Gender
-                  <span className="rounded px-1.5 py-px text-[10px] font-bold uppercase tracking-wider bg-accent2/15 text-accent2">
-                    optional
-                  </span>
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {genderOptions.map((opt) => (
-                    <button
-                      key={opt}
-                      type="button"
-                      className={[
-                        "rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
-                        gender === opt
-                          ? "border-accent bg-accent/10 text-accent"
-                          : "border-app-border bg-app-input text-text-secondary hover:border-accent hover:text-foreground",
-                      ].join(" ")}
-                      onClick={() => setGender((prev) => (prev === opt ? "" : opt))}
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <FormField label="Username" htmlFor="register-username" error={errors.username}>
-                <Input
-                  id="register-username"
-                  type="text"
-                  placeholder="your_username"
-                  className="bg-app-input border-app-border focus-visible:border-accent"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </FormField>
-
-              <FormField label="Email" htmlFor="register-email" error={errors.email}>
-                <Input
-                  id="register-email"
-                  type="email"
-                  placeholder="you@example.com"
-                  className="bg-app-input border-app-border focus-visible:border-accent"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </FormField>
-
-              <FormField label="Password" htmlFor="register-password" error={errors.password}>
-                <PasswordInput
-                  id="register-password"
-                  placeholder="Create password"
-                  className="bg-app-input border-app-border focus-visible:border-accent"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </FormField>
-
-              <FormField label="Confirm password" htmlFor="register-confirm-password" error={errors.confirmPassword}>
-                <PasswordInput
-                  id="register-confirm-password"
-                  placeholder="Repeat password"
-                  className="bg-app-input border-app-border focus-visible:border-accent"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-              </FormField>
-
-              {/* Account recovery section */}
-              <div className="rounded-xl border border-accent2/20 bg-accent2/4 p-3.5">
-                <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-[#a89cf7]">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  Account recovery
-                  <span className="rounded px-1.5 py-px text-[10px] font-bold uppercase tracking-wider bg-accent2/15 text-accent2">
-                    optional
-                  </span>
-                </div>
-                <p className="mb-2.5 text-xs text-text-secondary">
-                  Set at least one so you can recover your account without email.
-                </p>
-                <div className="space-y-2">
-                  <FormField label="Favourite animal" htmlFor="register-animal">
-                    <Input
-                      id="register-animal"
-                      type="text"
-                      placeholder="e.g. elephant"
-                      className="bg-app-input border-app-border focus-visible:border-accent"
-                      value={favAnimal}
-                      onChange={(e) => setFavAnimal(e.target.value)}
-                      autoComplete="off"
-                    />
+                {/* Name row */}
+                <div className="flex gap-3">
+                  <FormField label="First name" htmlFor="reg-first" error={errors.firstName} className="flex-1">
+                    <Input id="reg-first" type="text" placeholder="First" autoComplete="given-name"
+                      value={firstName} onChange={(e) => setFirstName(e.target.value)} />
                   </FormField>
-                  <FormField label="Favourite person's name" htmlFor="register-person">
-                    <Input
-                      id="register-person"
-                      type="text"
-                      placeholder="e.g. grandmother"
-                      className="bg-app-input border-app-border focus-visible:border-accent"
-                      value={favPerson}
-                      onChange={(e) => setFavPerson(e.target.value)}
-                      autoComplete="off"
-                    />
+                  <FormField label="Last name" htmlFor="reg-last" error={errors.lastName} className="flex-1">
+                    <Input id="reg-last" type="text" placeholder="Last" autoComplete="family-name"
+                      value={lastName} onChange={(e) => setLastName(e.target.value)} />
                   </FormField>
                 </div>
-              </div>
 
-              <button
-                type="submit"
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-3 text-sm font-bold text-white shadow-[0_4px_20px_rgba(14,165,233,0.25)] transition-all hover:-translate-y-px hover:shadow-[0_6px_28px_rgba(14,165,233,0.35)] disabled:cursor-not-allowed disabled:opacity-70"
-                disabled={isLoading}
-              >
-                {isLoading ? "Creating..." : "Create account"}
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-              </button>
+                {/* Gender pills */}
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[13px] font-medium text-foreground/70">Gender</span>
+                    <span className="rounded-full bg-card px-2 py-0.5 text-[11px] font-medium text-foreground/40 border border-border/50">optional</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {GENDER_OPTIONS.map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setGender((prev) => (prev === opt ? "" : opt))}
+                        className={[
+                          "rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition-all cursor-pointer",
+                          gender === opt
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border/60 bg-card/50 text-foreground/60 hover:border-primary/50 hover:text-foreground",
+                        ].join(" ")}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-              {error ? <p className="text-xs text-destructive">{error}</p> : null}
-            </form>
+                <FormField label="Username" htmlFor="reg-username" error={errors.username}>
+                  <Input id="reg-username" type="text" placeholder="your_username" autoComplete="username"
+                    value={username} onChange={(e) => setUsername(e.target.value)} />
+                </FormField>
 
-            <p className="mt-4 text-sm text-text-secondary">
-              Already have an account?{" "}
-              <Link href="/login" className="font-semibold text-accent underline-offset-4 hover:underline">
-                Sign in
-              </Link>
-            </p>
-          </div>
-        )}
-      </section>
+                <FormField label="Email" htmlFor="reg-email" error={errors.email}>
+                  <Input id="reg-email" type="email" placeholder="you@example.com" autoComplete="email"
+                    value={email} onChange={(e) => setEmail(e.target.value)} />
+                </FormField>
+
+                <FormField label="Password" htmlFor="reg-password" error={errors.password}>
+                  <PasswordInput id="reg-password" placeholder="Create a password" autoComplete="new-password"
+                    value={password} onChange={(e) => setPassword(e.target.value)} />
+                </FormField>
+
+                <FormField label="Confirm password" htmlFor="reg-confirm" error={errors.confirmPassword}>
+                  <PasswordInput id="reg-confirm" placeholder="Repeat your password" autoComplete="new-password"
+                    value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                </FormField>
+
+                {/* Account recovery */}
+                <div className="rounded-xl border border-border/50 bg-card/40 p-4">
+                  <div className="mb-1 flex items-center gap-2">
+                    <ShieldCheck size={14} className="text-primary" />
+                    <span className="text-[13px] font-semibold text-foreground">Account recovery</span>
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">optional</span>
+                  </div>
+                  <p className="mb-3 text-[12px] leading-relaxed text-foreground/50">
+                    Set at least one so you can recover your account without email.
+                  </p>
+                  <div className="space-y-3">
+                    <FormField label="Favourite animal" htmlFor="reg-animal">
+                      <Input id="reg-animal" type="text" placeholder="e.g. elephant" autoComplete="off"
+                        value={favAnimal} onChange={(e) => setFavAnimal(e.target.value)} />
+                    </FormField>
+                    <FormField label="Favourite person's name" htmlFor="reg-person">
+                      <Input id="reg-person" type="text" placeholder="e.g. grandmother" autoComplete="off"
+                        value={favPerson} onChange={(e) => setFavPerson(e.target.value)} />
+                    </FormField>
+                  </div>
+                </div>
+
+                <div className="pt-1">
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-[15px] font-semibold text-white transition-all hover:bg-primary/90 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isLoading && <Loader2 size={16} className="animate-spin" />}
+                    {isLoading ? "Creating account…" : "Create account"}
+                    {!isLoading && <ArrowRight size={16} />}
+                  </button>
+                </div>
+
+                {error && <p className="text-[13px] text-destructive">{error}</p>}
+              </form>
+            </div>
+          )}
+        </div>
+      </div>
     </main>
   );
 }
