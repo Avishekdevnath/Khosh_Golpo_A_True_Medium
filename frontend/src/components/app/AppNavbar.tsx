@@ -17,6 +17,7 @@ function getSectionName(pathname: string): string {
   if (pathname.startsWith("/people")) return "People";
   if (pathname.startsWith("/notifications")) return "Notifications";
   if (pathname.startsWith("/settings")) return "Settings";
+  if (pathname.startsWith("/jobs")) return "Jobs";
   if (pathname.startsWith("/admin")) return "Admin";
   return "Home";
 }
