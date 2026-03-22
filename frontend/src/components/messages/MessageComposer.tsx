@@ -2,9 +2,6 @@
 
 import { LoaderCircle, SendHorizontal } from "lucide-react";
 import { useRef, useEffect } from "react";
-import { TextArea } from "@/components/ui/textarea";
-
-// ─── Props ────────────────────────────────────────────────────────────────────
 
 type MessageComposerProps = {
   value: string;
@@ -14,8 +11,6 @@ type MessageComposerProps = {
   sending?: boolean;
   placeholder?: string;
 };
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function MessageComposer({
   value,
@@ -27,50 +22,57 @@ export default function MessageComposer({
 }: MessageComposerProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Keep autogrow in sync when value is cleared externally
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 180)}px`;
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
   }, [value]);
 
   return (
-    <div className="flex items-end gap-2.5 border-t border-border px-5 py-3 shrink-0">
-      <TextArea
-        ref={textareaRef}
-        variant="autogrow"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            onSend();
-          }
-        }}
-        placeholder={disabled ? "Messaging disabled" : placeholder}
-        disabled={disabled || sending}
-        rows={1}
-        className="min-h-[42px] rounded-xl text-sm"
-      />
-      <button
-        type="button"
-        disabled={!value.trim() || disabled || sending}
-        onClick={onSend}
-        className="inline-flex items-center gap-1.5 shrink-0 px-4 py-2 rounded-xl
-          bg-gradient-to-br from-orange-500 to-orange-600
-          text-white text-sm font-bold
-          transition-opacity duration-150
-          disabled:opacity-45 disabled:cursor-not-allowed
-          enabled:hover:opacity-88"
-      >
-        {sending ? (
-          <LoaderCircle size={15} className="animate-spin" />
-        ) : (
-          <SendHorizontal size={15} />
-        )}
-        Send
-      </button>
+    <div className="border-t border-border px-4 py-3 shrink-0">
+      <div className="flex items-end gap-2.5 bg-card-hover border border-border rounded-2xl px-4 py-2.5 transition-colors focus-within:border-primary/40 focus-within:bg-background">
+        <textarea
+          ref={textareaRef}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              onSend();
+            }
+          }}
+          placeholder={disabled ? "Messaging disabled" : placeholder}
+          disabled={disabled || sending}
+          rows={1}
+          className={[
+            "flex-1 min-h-[24px] bg-transparent text-[14px] text-foreground placeholder:text-text-tertiary",
+            "resize-none outline-none leading-relaxed font-sans",
+            "disabled:opacity-40 disabled:cursor-not-allowed",
+          ].join(" ")}
+        />
+        <button
+          type="button"
+          disabled={!value.trim() || disabled || sending}
+          onClick={onSend}
+          aria-label="Send message"
+          className={[
+            "shrink-0 size-9 rounded-xl flex items-center justify-center",
+            "bg-primary text-white transition-opacity duration-150",
+            "disabled:opacity-30 disabled:cursor-not-allowed",
+            "enabled:hover:opacity-85",
+          ].join(" ")}
+        >
+          {sending ? (
+            <LoaderCircle size={16} className="animate-spin" />
+          ) : (
+            <SendHorizontal size={16} />
+          )}
+        </button>
+      </div>
+      <p className="mt-1.5 text-[11px] text-text-tertiary px-1">
+        Enter to send · Shift+Enter for new line
+      </p>
     </div>
   );
 }
