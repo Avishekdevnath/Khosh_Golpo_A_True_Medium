@@ -55,7 +55,7 @@ app/
         ├── [id]/page.tsx       → Browse with job selected (static segments take priority)
         ├── saved/page.tsx      → Saved jobs
         ├── my/page.tsx         → My Posted Jobs
-        ├── post/page.tsx       → Post a Job form
+        ├── post/page.tsx       → Post a Job form (create mode); also handles edit mode via `?edit=<id>` query param
         ├── pipeline/page.tsx   → Kanban Pipeline
         └── applications/page.tsx → My Applications (candidate)
 ```
@@ -92,15 +92,16 @@ The shell background is `#080a10`. The top bar and sidebar share this background
 
 Sticky `h-14` top bar. Its content is contextual per route.
 
-| Route | Left | Center | Right |
-|---|---|---|---|
-| `/jobs` (Browse) | `◆ Khosh Jobs` wordmark | `🔍 Search jobs...` expandable pill | `[+ Post a Job]` button |
-| `/jobs/[id]` (Browse + selected) | `◆ Khosh Jobs` wordmark | `🔍 Search jobs...` expandable pill | `[+ Post a Job]` button |
-| `/jobs/saved` | `← Back` | `Saved Jobs` title | — |
-| `/jobs/my` | `← Back` | `My Posts` title | `[+ Post a Job]` button |
-| `/jobs/post` | `← Back` | `Post a Job` title | — |
-| `/jobs/pipeline` | `← Back` | `My Pipeline` title | — |
-| `/jobs/applications` | `← Back` | `My Applications` title | — |
+| Route | Left (desktop) | Center (desktop) | Right (desktop) | Mobile override |
+|---|---|---|---|---|
+| `/jobs` (Browse) | `◆ Khosh Jobs` wordmark | `🔍 Search jobs...` pill | `[+ Post a Job]` | Same as desktop |
+| `/jobs/[id]` (Browse + selected) | `◆ Khosh Jobs` wordmark | `🔍 Search jobs...` pill | `[+ Post a Job]` | `← Back` · job title (truncated) · no right action; tab bar hidden |
+| `/jobs/saved` | `← Back` | `Saved Jobs` title | — | Same |
+| `/jobs/my` | `← Back` | `My Posts` title | `[+ Post a Job]` | Same |
+| `/jobs/post` (create) | `← Back` | `Post a Job` title | — | Same |
+| `/jobs/post?edit=<id>` (edit) | `← Back` | `Edit Job` title | — | Same |
+| `/jobs/pipeline` | `← Back` | `My Pipeline` title | — | Same |
+| `/jobs/applications` | `← Back` | `My Applications` title | — | Same |
 
 **Details:**
 
@@ -109,9 +110,7 @@ Sticky `h-14` top bar. Its content is contextual per route.
 - `← Back` navigates to `/jobs` (Browse) on all sub-pages.
 - `+ Post a Job` button: sky-blue filled pill — `bg-primary text-white`.
 - Top bar is separated from content by `border-b border-[#1e2235]`.
-
-**Mobile top bar override:**
-On mobile (`<860px`), when a user taps a job card and enters full-screen detail view, the `JobsTopBar` left slot changes contextually to `← Back` (calls `router.back()`) and the center shows the job title (truncated). This replaces the wordmark/search for that view — there is no second bar. The tab bar is hidden during full-screen detail view and restored on back navigation.
+- On mobile, the `/jobs/[id]` full-screen detail view overrides the entire top bar (no second bar). The tab bar is hidden during this view and restored on back navigation. `← Back` calls `router.back()`.
 
 ---
 
@@ -137,7 +136,9 @@ On mobile (`<860px`), when a user taps a job card and enters full-screen detail 
 [PenLine icon]   Post a Job     ← CTA-styled row (sky-blue text, no active state)
 ```
 
-The **Post a Job** row is visually distinct from nav items — it uses `text-primary` always (never muted) and has a subtle `border border-primary/20 rounded-lg` treatment to signal it's an action, not a destination. It navigates to `/jobs/post`. On the `/jobs/post` route, this row stays highlighted as the active item.
+The **Post a Job** row is visually distinct from nav items — it uses `text-primary` always (never muted) and has a subtle `border border-primary/20 rounded-lg` treatment to signal it's an action, not a destination. It navigates to `/jobs/post` (and `/jobs/post?edit=<id>` for editing).
+
+**Active state on `/jobs/post`:** The CTA row drops its border treatment and switches to the standard active nav style (`bg-primary/10` fill + `border-l-2 border-primary` left accent) — the two treatments do not stack. The `text-primary` color is unchanged. This makes it clear which page is active while keeping visual consistency with the other nav items.
 
 **Nav item design:**
 
@@ -225,8 +226,28 @@ Applicant breakdown:
 
 - `View Pipeline →` navigates to `/jobs/pipeline` with this job pre-selected.
 - `Edit Job` navigates to `/jobs/post?edit=<id>` (the post form in edit mode).
-- `Close Job` triggers a confirmation dialog, then calls `closeJob(id)`.
+- `Close Job` triggers a confirmation dialog then calls `closeJob(id)`.
 - This is a new file: `frontend/src/components/jobs/MyJobDetailPanel.tsx`.
+
+**Job status badge colors (used in MyJobDetailPanel header):**
+
+| Status | Badge style |
+|---|---|
+| `active` | `bg-[#3dd68c]/15 text-[#3dd68c]` (green) |
+| `pending_review` | `bg-[#f5b64a]/15 text-[#f5b64a]` (yellow) |
+| `closed` | `bg-[#1e2235] text-[#636f8d]` (neutral muted) |
+| `rejected` (by admin) | `bg-[#f06b6b]/15 text-[#f06b6b]` (red) |
+| `draft` | `bg-[#1e2235] text-[#636f8d]` (neutral muted) |
+
+**Close Job confirmation dialog:**
+
+```
+Title:   "Close this job posting?"
+Body:    "This will stop accepting new applications.
+          Existing applications remain in your pipeline."
+Cancel:  "Keep Open"   — secondary button, dismisses dialog
+Confirm: "Close Job"   — destructive button: bg-[#f06b6b]/15 text-[#f06b6b] border border-[#f06b6b]/30
+```
 
 ---
 
@@ -415,7 +436,7 @@ When tapping a job card on mobile (navigating to full-screen detail), the detail
 | `app/(jobs)/jobs/saved/page.tsx` | Saved jobs |
 | `app/(jobs)/jobs/my/page.tsx` | My Posted Jobs |
 | `app/(jobs)/jobs/pipeline/page.tsx` | Kanban Pipeline |
-| `app/(jobs)/jobs/post/page.tsx` | Post a Job form |
+| `app/(jobs)/jobs/post/page.tsx` | Post a Job form — handles both create mode and edit mode (`?edit=<id>` query param); reads `searchParams.edit` to pre-populate form fields via `getJob(id)` |
 | `app/(jobs)/jobs/applications/page.tsx` | My Applications (candidate) |
 | `frontend/src/components/jobs/layout/JobsShell.tsx` | Shell wrapper component |
 | `frontend/src/components/jobs/layout/JobsTopBar.tsx` | Contextual top bar |
@@ -450,6 +471,13 @@ When tapping a job card on mobile (navigating to full-screen detail), the detail
 | `/jobs/applications` | Yes | `/login?next=/jobs/applications` |
 
 Auth checks are handled at the page level using the existing `useAuthStore` pattern — if `user` is `null` after hydration, redirect via `router.replace(...)`. Do not add auth logic to `JobsShell` (the layout) — keep it at the individual page level so Browse and job detail remain publicly accessible.
+
+**In-panel action auth (Save / Apply on `/jobs/[id]`):**
+The Browse and job detail pages are publicly accessible, but Save and Apply require a logged-in user. When an unauthenticated user clicks either button, show an **inline prompt** within `JobDetailPanel` — a small banner below the action row:
+```
+"Sign in to apply or save jobs"  [Sign In →]
+```
+Do not redirect the user away from the job detail. This keeps the browsing experience intact for visitors.
 
 ---
 
