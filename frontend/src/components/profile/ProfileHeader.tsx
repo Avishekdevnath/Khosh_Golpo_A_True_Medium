@@ -109,13 +109,13 @@ export default function ProfileHeader({
         </div>
 
         {/* Avatar — left-side, 1/3 protruding below banner */}
-        <div className="absolute bottom-0 left-7 translate-y-1/3 z-10 max-sm:left-4">
+        <div className="absolute bottom-0 left-[78px] translate-y-1/3 z-10 max-sm:left-4">
           {avatarEl}
         </div>
       </div>
 
       {/* ── Profile info — pt accounts for avatar protrusion (60px half + 16px gap) ── */}
-      <div className="px-7 pt-[100px] pb-7 max-sm:px-4 max-sm:pt-[72px]">
+      <div className="px-7 pt-[68px] pb-5 max-sm:px-4 max-sm:pt-[52px]">
 
         {/* Action buttons row — right-aligned */}
         <div className="mb-5 flex items-center justify-end gap-3">
