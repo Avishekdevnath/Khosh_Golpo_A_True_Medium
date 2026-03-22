@@ -2029,3 +2029,189 @@ def _to_audit_log_out(
         details=log.details,
         created_at=log.created_at,
     )
+
+
+# ── Admin: Job Board Moderation ───────────────────────────────────────────────
+
+@router.get("/jobs")
+async def admin_list_jobs(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    status_filter: str | None = Query(default=None, alias="status"),
+    admin_user: User = Depends(require_roles(UserRole.ADMIN)),
+) -> dict:
+    from app.models.job_post import JobPost, JobStatus
+    filters: list = []
+    if status_filter:
+        try:
+            filters.append({"status": JobStatus(status_filter)})
+        except ValueError:
+            pass
+    else:
+        filters.append({"status": JobStatus.pending_review})
+
+    q = JobPost.find(*filters)
+    total = await q.count()
+    jobs = await q.sort("-created_at").skip((page - 1) * limit).limit(limit).to_list()
+
+    from app.schemas.job import JobPostOut, JobPosterOut
+    poster_ids = list({j.poster_id for j in jobs})
+    posters_list = await User.find({"_id": {"$in": poster_ids}}).to_list()
+    posters = {p.id: p for p in posters_list}
+
+    data = []
+    for j in jobs:
+        p = posters.get(j.poster_id)
+        poster_out = JobPosterOut(
+            id=str(p.id), username=p.username,
+            display_name=p.display_name, avatar_url=p.avatar_url,
+        ) if p else None
+        data.append(JobPostOut(
+            id=str(j.id), title=j.title, description=j.description,
+            company_name=j.company_name, company_logo_url=j.company_logo_url,
+            poster_id=str(j.poster_id), poster=poster_out,
+            location=j.location, is_remote=j.is_remote,
+            job_type=j.job_type, experience_level=j.experience_level,
+            salary_min=j.salary_min, salary_max=j.salary_max,
+            salary_currency=j.salary_currency, salary_visible=j.salary_visible,
+            required_skills=j.required_skills, tags=j.tags,
+            application_deadline=j.application_deadline, status=j.status,
+            application_count=j.application_count, save_count=j.save_count,
+            created_at=j.created_at, updated_at=j.updated_at,
+        ))
+
+    return {"data": [d.model_dump() for d in data], "total": total}
+
+
+@router.post("/jobs/{job_id}/approve")
+async def admin_approve_job(
+    job_id: str,
+    admin_user: User = Depends(require_roles(UserRole.ADMIN)),
+) -> dict:
+    from app.models.job_post import JobPost, JobStatus
+    from app.models.common import utc_now as _utc_now
+    job = await JobPost.get(PydanticObjectId(job_id))
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    job.status = JobStatus.active
+    job.updated_at = _utc_now()
+    await job.replace()
+
+    n = Notification(
+        type=NotificationType.SYSTEM,
+        recipient_id=job.poster_id,
+        actor_id=admin_user.id,
+        message=f"Your job post '{job.title[:60]}' has been approved and is now live.",
+        metadata={"job_id": str(job.id), "link": f"/jobs/{job.id}"},
+    )
+    await n.insert()
+    return {"id": str(job.id), "status": job.status}
+
+
+@router.post("/jobs/{job_id}/reject")
+async def admin_reject_job(
+    job_id: str,
+    reason: str | None = Query(default=None),
+    admin_user: User = Depends(require_roles(UserRole.ADMIN)),
+) -> dict:
+    from app.models.job_post import JobPost, JobStatus
+    from app.models.common import utc_now as _utc_now
+    job = await JobPost.get(PydanticObjectId(job_id))
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    job.status = JobStatus.rejected
+    job.updated_at = _utc_now()
+    await job.replace()
+
+    msg = f"Your job post '{job.title[:60]}' was not approved."
+    if reason:
+        msg = f"{msg} Reason: {reason[:120]}"
+    n = Notification(
+        type=NotificationType.SYSTEM,
+        recipient_id=job.poster_id,
+        actor_id=admin_user.id,
+        message=msg,
+        metadata={"job_id": str(job.id), "link": "/jobs/my"},
+    )
+    await n.insert()
+    return {"id": str(job.id), "status": job.status}
+
+
+@router.get("/jobs/reports")
+async def admin_list_reports(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    status_filter: str | None = Query(default=None, alias="status"),
+    admin_user: User = Depends(require_roles(UserRole.ADMIN)),
+) -> dict:
+    from app.models.job_report import JobReport, ReportStatus
+    filters: list = []
+    if status_filter:
+        try:
+            filters.append({"status": ReportStatus(status_filter)})
+        except ValueError:
+            pass
+    else:
+        filters.append({"status": ReportStatus.pending})
+
+    q = JobReport.find(*filters)
+    total = await q.count()
+    reports = await q.sort("-created_at").skip((page - 1) * limit).limit(limit).to_list()
+
+    data = [
+        {
+            "id": str(r.id),
+            "job_id": str(r.job_id),
+            "reported_by": str(r.reported_by),
+            "reason": r.reason,
+            "details": r.details,
+            "status": r.status,
+            "admin_note": r.admin_note,
+            "created_at": r.created_at.isoformat(),
+        }
+        for r in reports
+    ]
+    return {"data": data, "total": total}
+
+
+@router.post("/jobs/reports/{report_id}/action")
+async def admin_action_report(
+    report_id: str,
+    action: str = Query(..., description="dismiss | close_job"),
+    admin_note: str | None = Query(default=None),
+    admin_user: User = Depends(require_roles(UserRole.ADMIN)),
+) -> dict:
+    from app.models.job_report import JobReport, ReportStatus
+    from app.models.job_post import JobPost, JobStatus
+    from app.models.common import utc_now as _utc_now
+
+    report = await JobReport.get(PydanticObjectId(report_id))
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    if action == "dismiss":
+        report.status = ReportStatus.dismissed
+    elif action == "close_job":
+        report.status = ReportStatus.actioned
+        job = await JobPost.get(report.job_id)
+        if job:
+            job.status = JobStatus.closed
+            job.updated_at = _utc_now()
+            await job.replace()
+            n = Notification(
+                type=NotificationType.SYSTEM,
+                recipient_id=job.poster_id,
+                actor_id=admin_user.id,
+                message=f"Your job post '{job.title[:60]}' was closed following a report.",
+                metadata={"job_id": str(job.id), "link": "/jobs/my"},
+            )
+            await n.insert()
+    else:
+        raise HTTPException(status_code=400, detail="Invalid action. Use 'dismiss' or 'close_job'")
+
+    report.reviewed_by = admin_user.id
+    report.admin_note = admin_note
+    report.updated_at = _utc_now()
+    await report.replace()
+
+    return {"id": str(report.id), "status": report.status}
