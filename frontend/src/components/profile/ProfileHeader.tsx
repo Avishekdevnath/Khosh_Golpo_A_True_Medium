@@ -6,7 +6,6 @@ import { ArrowLeft, Calendar, Edit2, Globe, Link as LinkIcon, Lock, MapPin, More
 import ConnectionButton from "@/components/shared/ConnectionButton";
 import FollowButton from "@/components/shared/FollowButton";
 import type { PublicProfilePayload } from "@/lib/profileApi";
-import { getPublicProfileCoverLayout } from "@/lib/profileCoverLayout";
 import { avatarSeed, initials } from "@/lib/workspaceUtils";
 
 
@@ -59,65 +58,75 @@ export default function ProfileHeader({
 }: ProfileHeaderProps) {
   const router = useRouter();
   const [accentA, accentB] = avatarSeed(publicProfile.user.id);
-  const coverLayout = getPublicProfileCoverLayout();
   const bannerFallbackStyle = {
-    background: `linear-gradient(135deg, ${accentA}25 0%, ${accentB}18 58%, rgba(255,255,255,0) 100%), var(--card-hover)`,
+    background: `linear-gradient(135deg, ${accentA}30 0%, ${accentB}22 58%, ${accentA}10 100%)`,
   };
+
+  const avatarEl = publicProfile.user.avatar_url ? (
+    <img
+      src={publicProfile.user.avatar_url}
+      alt={publicProfile.user.display_name}
+      className="size-[120px] rounded-full border-4 border-background object-cover shadow-lg max-sm:size-[96px]"
+    />
+  ) : (
+    <div
+      className="grid size-[120px] place-items-center rounded-full border-4 border-background font-serif text-[36px] font-bold text-white shadow-lg max-sm:size-[96px] max-sm:text-[28px]"
+      style={{ background: `linear-gradient(135deg, ${accentA}, ${accentB})` }}
+    >
+      {initials(publicProfile.user.display_name)}
+    </div>
+  );
 
   return (
     <>
-      <div className="absolute left-0 top-0 z-10 px-5 py-4">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background/80 px-3 py-2 text-[13px] font-medium text-foreground backdrop-blur-sm transition-all hover:bg-card-hover cursor-pointer"
+      {/* ── Banner ── aspect-[4/1], overflow:visible so avatar can protrude */}
+      <div className="relative w-full aspect-[4/1]">
+
+        {/* Inner clipping layer — keeps image/gradient inside 4:1 bounds */}
+        <div
+          className="absolute inset-0 overflow-hidden bg-card-hover"
+          style={publicProfile.basics.banner_url ? undefined : bannerFallbackStyle}
         >
-          <ArrowLeft size={14} strokeWidth={2} />
-          Back
-        </button>
+          {publicProfile.basics.banner_url && (
+            <img
+              src={publicProfile.basics.banner_url}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          )}
+        </div>
+
+        {/* Back button — top-left inside banner */}
+        <div className="absolute left-4 top-4 z-20">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-black/30 px-3 py-2 text-[13px] font-medium text-white backdrop-blur-sm transition-all hover:bg-black/50 cursor-pointer"
+          >
+            <ArrowLeft size={14} strokeWidth={2} />
+            Back
+          </button>
+        </div>
+
+        {/* Avatar — sits at bottom of banner, half protruding below */}
+        <div className="absolute bottom-0 left-6 translate-y-1/2 z-10 max-sm:left-4">
+          {avatarEl}
+        </div>
       </div>
 
-      <div
-        className={`${coverLayout.frameClassName} h-[200px] sm:h-[240px] md:h-[220px]`}
-        style={publicProfile.basics.banner_url ? undefined : bannerFallbackStyle}
-      >
-        {publicProfile.basics.banner_url && (
-          <img
-            src={publicProfile.basics.banner_url}
-            alt=""
-            className={coverLayout.imageClassName}
-          />
-        )}
-      </div>
+      {/* ── Profile info — pt accounts for avatar protrusion (60px half + 16px gap) ── */}
+      <div className="px-7 pt-[84px] pb-7 max-sm:px-4 max-sm:pt-[68px]">
 
-      <div className="px-7 pb-7 max-sm:px-4">
-        <div className="mb-6 flex items-end justify-between gap-4">
-          <div className={`${coverLayout.avatarOverlapClassName} flex items-end gap-4`}>
-            {publicProfile.user.avatar_url ? (
-              <img
-                src={publicProfile.user.avatar_url}
-                alt={publicProfile.user.display_name}
-                className="size-[120px] rounded-full border-4 border-background object-cover shadow-lg max-sm:size-[96px]"
-              />
-            ) : (
-              <div
-                className="grid size-[120px] place-items-center rounded-full border-4 border-background font-serif text-[36px] font-bold text-white shadow-lg max-sm:size-[96px] max-sm:text-[28px]"
-                style={{ background: `linear-gradient(135deg, ${accentA}, ${accentB})` }}
-              >
-                {initials(publicProfile.user.display_name)}
-              </div>
-            )}
+        {/* Action buttons row — right-aligned, sits beside the protruding avatar */}
+        <div className="mb-5 flex items-center justify-end gap-3">
+          {isPrivate && (
+            <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-border bg-background/80 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-foreground">
+              <Lock size={11} strokeWidth={2.5} />
+              Private
+            </span>
+          )}
 
-            <div className="pb-1 max-sm:hidden">
-              {isPrivate && (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/80 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-foreground">
-                  <Lock size={11} strokeWidth={2.5} />
-                  Private
-                </span>
-              )}
-            </div>
-          </div>
-
+          {/* Desktop actions */}
           <div className="hidden items-center gap-3 sm:flex">
             {isOwnProfile ? (
               <>
@@ -132,14 +141,14 @@ export default function ProfileHeader({
                 <button
                   type="button"
                   onClick={() => router.push("/profile/manage")}
-                  className="inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/8 px-3.5 py-2 text-[13px] font-semibold text-primary transition-all hover:bg-primary/12 cursor-pointer"
+                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-[13px] font-semibold text-white transition-all hover:bg-primary/90 cursor-pointer"
                 >
                   <Edit2 size={13} strokeWidth={2} />
                   Manage Profile
                 </button>
               </>
             ) : (
-              <div className="flex items-center gap-3">
+              <>
                 {isAdmin && (
                   <button
                     type="button"
@@ -157,16 +166,17 @@ export default function ProfileHeader({
                   followsYou={followsYou}
                   onFollowChange={onFollowChange}
                 />
-              </div>
+              </>
             )}
           </div>
 
-          <div className="relative pb-1 sm:hidden" ref={mobileMenuRef}>
+          {/* Mobile overflow menu */}
+          <div className="relative sm:hidden" ref={mobileMenuRef}>
             <button
               type="button"
               onClick={onToggleMobileMenu}
               aria-label="Profile actions"
-              className="grid size-9 place-items-center rounded-full border border-border bg-background text-text-secondary transition-colors hover:text-foreground"
+              className="grid size-9 place-items-center rounded-full border border-border bg-background text-foreground/60 transition-colors hover:text-foreground cursor-pointer"
             >
               <MoreHorizontal size={16} />
             </button>
@@ -177,22 +187,16 @@ export default function ProfileHeader({
                   <>
                     <button
                       type="button"
-                      onClick={() => {
-                        onCloseMobileMenu();
-                        onTogglePrivacy();
-                      }}
-                      className="flex w-full items-center gap-2 rounded-[14px] px-3 py-2.5 text-[13px] text-text-secondary transition-colors hover:bg-card-hover hover:text-foreground"
+                      onClick={() => { onCloseMobileMenu(); onTogglePrivacy(); }}
+                      className="flex w-full items-center gap-2 rounded-[14px] px-3 py-2.5 text-[13px] text-foreground/70 transition-colors hover:bg-card-hover hover:text-foreground"
                     >
                       {isPrivate ? <Lock size={13} /> : <Globe size={13} />}
                       {isPrivate ? "Make public" : "Make private"}
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
-                        onCloseMobileMenu();
-                        router.push("/profile/manage");
-                      }}
-                      className="flex w-full items-center gap-2 rounded-[14px] px-3 py-2.5 text-[13px] text-text-secondary transition-colors hover:bg-card-hover hover:text-foreground"
+                      onClick={() => { onCloseMobileMenu(); router.push("/profile/manage"); }}
+                      className="flex w-full items-center gap-2 rounded-[14px] px-3 py-2.5 text-[13px] text-foreground/70 transition-colors hover:bg-card-hover hover:text-foreground"
                     >
                       <Edit2 size={13} />
                       Manage Profile
@@ -200,9 +204,7 @@ export default function ProfileHeader({
                   </>
                 ) : (
                   <>
-                    <div onClick={onCloseMobileMenu}>
-                      <ConnectionButton userId={publicProfile.user.id} />
-                    </div>
+                    <div onClick={onCloseMobileMenu}><ConnectionButton userId={publicProfile.user.id} /></div>
                     <div onClick={onCloseMobileMenu}>
                       <FollowButton
                         userId={publicProfile.user.id}
@@ -214,11 +216,8 @@ export default function ProfileHeader({
                     {isAdmin && (
                       <button
                         type="button"
-                        onClick={() => {
-                          onCloseMobileMenu();
-                          onOpenAdminEdit();
-                        }}
-                        className="flex w-full items-center gap-2 rounded-[14px] px-3 py-2.5 text-[13px] text-text-secondary transition-colors hover:bg-card-hover hover:text-foreground"
+                        onClick={() => { onCloseMobileMenu(); onOpenAdminEdit(); }}
+                        className="flex w-full items-center gap-2 rounded-[14px] px-3 py-2.5 text-[13px] text-foreground/70 transition-colors hover:bg-card-hover hover:text-foreground"
                       >
                         <Edit2 size={13} />
                         Admin Edit
@@ -231,8 +230,9 @@ export default function ProfileHeader({
           </div>
         </div>
 
-        <div className="mb-2 flex flex-wrap items-center gap-2.5">
-          <h1 className="font-serif text-[36px] font-bold leading-tight text-foreground max-sm:text-[28px]">
+        {/* Name */}
+        <div className="mb-1.5 flex flex-wrap items-center gap-2.5">
+          <h1 className="font-serif text-[32px] font-bold leading-tight text-foreground max-sm:text-[26px]">
             {publicProfile.user.display_name}
           </h1>
           {publicProfile.user.is_bot && (
@@ -242,21 +242,25 @@ export default function ProfileHeader({
           )}
         </div>
 
-        <div className="mb-3 text-[15px] font-medium text-text-secondary">@{publicProfile.user.username}</div>
+        {/* Username */}
+        <div className="mb-3 text-[14px] font-medium text-foreground/60">@{publicProfile.user.username}</div>
 
+        {/* Headline */}
         {publicProfile.basics.headline && (
-          <p className="mb-4 max-w-[720px] text-[17px] leading-relaxed text-foreground max-sm:text-[16px]">
+          <p className="mb-3 max-w-[680px] text-[16px] leading-relaxed text-foreground max-sm:text-[15px]">
             {publicProfile.basics.headline}
           </p>
         )}
 
+        {/* Bio */}
         {publicProfile.user.bio && (
-          <p className="mb-5 max-w-[720px] text-[15px] leading-relaxed text-foreground">{publicProfile.user.bio}</p>
+          <p className="mb-4 max-w-[680px] text-[14px] leading-relaxed text-foreground/80">{publicProfile.user.bio}</p>
         )}
 
-        <div className="mb-6 flex flex-wrap items-center gap-4 text-[14px] text-foreground">
+        {/* Location / website */}
+        <div className="mb-4 flex flex-wrap items-center gap-4 text-[14px] text-foreground/70">
           {publicProfile.basics.location && (
-            <span className="inline-flex items-center gap-1.5 font-medium">
+            <span className="inline-flex items-center gap-1.5">
               <MapPin size={14} strokeWidth={2} />
               {publicProfile.basics.location}
             </span>
@@ -266,7 +270,7 @@ export default function ProfileHeader({
               href={publicProfile.basics.website}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1.5 font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-primary hover:text-primary/80 transition-colors cursor-pointer"
             >
               <LinkIcon size={14} strokeWidth={2} />
               {publicProfile.basics.website}
@@ -274,27 +278,28 @@ export default function ProfileHeader({
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 text-[14px] text-foreground">
+        {/* Stats row */}
+        <div className="flex flex-wrap items-center gap-4 text-[14px] text-foreground/70">
           <button
             type="button"
             onClick={onOpenFollowers}
-            className="border-none bg-transparent p-0 hover:opacity-75 transition-opacity cursor-pointer font-medium"
+            className="border-none bg-transparent p-0 hover:text-primary transition-colors cursor-pointer"
           >
-            <span className="font-bold text-primary">{followersCount}</span> followers
+            <span className="font-bold text-foreground">{followersCount}</span> followers
           </button>
-          <span className="text-border">•</span>
+          <span className="text-border">·</span>
           <button
             type="button"
             onClick={onOpenFollowing}
-            className="border-none bg-transparent p-0 hover:opacity-75 transition-opacity cursor-pointer font-medium"
+            className="border-none bg-transparent p-0 hover:text-primary transition-colors cursor-pointer"
           >
-            <span className="font-bold text-primary">{followingCount}</span> following
+            <span className="font-bold text-foreground">{followingCount}</span> following
           </button>
-          <span className="text-border">•</span>
-          <span className="font-medium">
-            <span className="font-bold text-primary">{threadTotal}</span> {threadTotal === 1 ? "thread" : "threads"}
+          <span className="text-border">·</span>
+          <span>
+            <span className="font-bold text-foreground">{threadTotal}</span> {threadTotal === 1 ? "thread" : "threads"}
           </span>
-          <span className="text-border">•</span>
+          <span className="text-border">·</span>
           <span className="inline-flex items-center gap-1.5">
             <Calendar size={13} strokeWidth={2} />
             Joined {formatJoinDate(publicProfile.user.created_at)}

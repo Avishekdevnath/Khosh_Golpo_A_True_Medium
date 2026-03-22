@@ -18,11 +18,16 @@ import { useUserProfile } from "./useUserProfile";
 function ProfileSkeleton() {
   return (
     <div>
-      <Skeleton className="h-[220px] w-full" />
-      <div className="px-7 pb-7">
-        <Skeleton variant="circle" className="-mt-[60px] mb-4 size-[120px] rounded-full border-4 border-background" />
-        <Skeleton variant="text" className="mb-2.5 h-6 w-2/5" />
-        <Skeleton variant="text" className="mb-3.5 h-4 w-1/4" />
+      {/* Banner with overlapping avatar — mirrors ProfileHeader layout */}
+      <div className="relative w-full aspect-[4/1]">
+        <Skeleton className="absolute inset-0 w-full h-full" />
+        <div className="absolute bottom-0 left-6 translate-y-1/2 z-10">
+          <Skeleton variant="circle" className="size-[120px] rounded-full border-4 border-background" />
+        </div>
+      </div>
+      <div className="px-7 pt-[84px] pb-7 max-sm:px-4 max-sm:pt-[68px]">
+        <Skeleton variant="text" className="mb-2 h-8 w-2/5" />
+        <Skeleton variant="text" className="mb-3 h-4 w-1/4" />
         <Skeleton variant="text" className="mb-2 h-4 w-3/5" />
         <Skeleton variant="text" className="mb-6 h-4 w-2/5" />
         {[0, 1, 2].map((index) => (
