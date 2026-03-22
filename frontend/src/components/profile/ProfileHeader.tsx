@@ -62,15 +62,16 @@ export default function ProfileHeader({
     background: `linear-gradient(135deg, ${accentA}30 0%, ${accentB}22 58%, ${accentA}10 100%)`,
   };
 
+  const avatarCls = "rounded-full border-[5px] border-background object-cover shadow-xl";
   const avatarEl = publicProfile.user.avatar_url ? (
     <img
       src={publicProfile.user.avatar_url}
       alt={publicProfile.user.display_name}
-      className="size-[240px] rounded-full border-[6px] border-background object-cover shadow-xl max-sm:size-[160px]"
+      className={`${avatarCls} size-[96px] sm:size-[200px] md:size-[240px]`}
     />
   ) : (
     <div
-      className="grid size-[240px] place-items-center rounded-full border-[6px] border-background font-serif text-[72px] font-bold text-white shadow-xl max-sm:size-[160px] max-sm:text-[48px]"
+      className={`${avatarCls} grid place-items-center font-serif font-bold text-white size-[96px] text-[28px] sm:size-[200px] sm:text-[60px] md:size-[240px] md:text-[72px]`}
       style={{ background: `linear-gradient(135deg, ${accentA}, ${accentB})` }}
     >
       {initials(publicProfile.user.display_name)}
@@ -108,14 +109,14 @@ export default function ProfileHeader({
           </button>
         </div>
 
-        {/* Avatar — left-side, 1/3 protruding below banner */}
-        <div className="absolute bottom-0 left-[78px] translate-y-1/3 z-10 max-sm:left-4">
+        {/* Avatar — mobile: left-4 half-overlap; desktop: left-[78px] 1/3-overlap */}
+        <div className="absolute bottom-0 z-10 left-4 translate-y-1/2 sm:left-[78px] sm:translate-y-1/3">
           {avatarEl}
         </div>
       </div>
 
       {/* ── Profile info — pt accounts for avatar protrusion (60px half + 16px gap) ── */}
-      <div className="px-7 pt-[68px] pb-5 max-sm:px-4 max-sm:pt-[52px]">
+      <div className="px-4 pt-[64px] pb-5 sm:px-7 sm:pt-[68px]">
 
         {/* Action buttons row — right-aligned */}
         <div className="mb-5 flex items-center justify-end gap-3">
