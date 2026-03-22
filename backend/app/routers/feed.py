@@ -105,6 +105,15 @@ async def update_feed_preferences(
     if payload.muted_user_ids is not None:
         current_user.muted_users = [_parse_object_id(item, field_name="muted_user_id") for item in payload.muted_user_ids]
         changed_fields.append("muted_user_ids")
+    if payload.feed_explore_mode is not None:
+        current_user.feed_explore_mode = payload.feed_explore_mode
+        changed_fields.append("feed_explore_mode")
+    if payload.feed_following_priority is not None:
+        current_user.feed_following_priority = payload.feed_following_priority
+        changed_fields.append("feed_following_priority")
+    if payload.feed_include_own is not None:
+        current_user.feed_include_own = payload.feed_include_own
+        changed_fields.append("feed_include_own")
 
     if changed_fields:
         await current_user.save()
@@ -252,12 +261,20 @@ async def get_explore_feed(
     sort: Literal["recent", "trending"] = Query(default="recent"),
     cursor: str | None = Query(default=None),
     limit: int = Query(default=20, ge=1, le=50),
+    topics_only: bool = Query(default=False),
+    exclude_own: bool = Query(default=False),
+    following_priority: bool = Query(default=False),
     current_user: User | None = Depends(get_optional_current_user),
 ) -> FeedListResponse:
     base_filter: dict = {"is_deleted": False, "feed_suppressed": {"$ne": True}}
     muted_ids: set[str] = set()
     if current_user:
         muted_ids = {str(m) for m in current_user.muted_users}
+        if topics_only and current_user.interest_tags:
+            base_filter["$or"] = [
+                {"tags": {"$in": current_user.interest_tags}},
+                {"author_id": {"$in": current_user.following or []}},
+            ]
 
     offset = _decode_cursor(cursor)
 
@@ -282,6 +299,15 @@ async def get_explore_feed(
 
     if muted_ids:
         threads = [t for t in threads if str(t.author_id) not in muted_ids]
+
+    if exclude_own and current_user:
+        threads = [t for t in threads if str(t.author_id) != str(current_user.id)]
+
+    if following_priority and current_user and current_user.following:
+        following_set = {str(f) for f in current_user.following}
+        followed = [t for t in threads if str(t.author_id) in following_set]
+        rest = [t for t in threads if str(t.author_id) not in following_set]
+        threads = followed + rest
 
     author_lookup = await _load_author_lookup({t.author_id for t in threads})
     data = [_to_feed_item(t, author_lookup.get(str(t.author_id)), 0.0, []) for t in threads]
@@ -369,4 +395,7 @@ def _to_feed_preferences_out(user: User) -> FeedPreferencesOut:
         hidden_tags=user.hidden_tags,
         muted_user_ids=[str(item) for item in user.muted_users],
         topics_selected=user.topics_selected,
+        feed_explore_mode=user.feed_explore_mode,
+        feed_following_priority=user.feed_following_priority,
+        feed_include_own=user.feed_include_own,
     )
