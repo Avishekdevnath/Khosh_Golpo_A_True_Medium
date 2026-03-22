@@ -57,13 +57,7 @@ export default function ConversationListPanel({
   onStartConnection,
 }: ConversationListPanelProps) {
   return (
-    <section
-      className={[
-        "ws-panel flex flex-col min-w-0 min-h-0",
-        conversationId ? "max-[860px]:hidden flex" : "flex",
-      ].join(" ")}
-      style={{ width }}
-    >
+    <section className="ws-panel flex flex-col min-w-0 min-h-0">
       {/* Header */}
       <div className="flex items-center justify-between gap-3 px-5 pt-6 pb-4 shrink-0">
         <div>
