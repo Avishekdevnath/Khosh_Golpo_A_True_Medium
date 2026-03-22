@@ -18,10 +18,10 @@ import FeedTopicsSettings from "./FeedTopicsSettings";
 // ── Tab definitions ───────────────────────────────────────────────────────────
 
 const TABS: { value: Tab; label: string; icon: typeof UserIcon }[] = [
-  { value: "profile", label: "Profile",  icon: UserIcon     },
-  { value: "feed",    label: "Feed",     icon: Sparkles     },
-  { value: "password",label: "Password", icon: Key          },
-  { value: "activity",label: "Activity", icon: ClipboardList},
+  { value: "profile", label: "Account", icon: UserIcon },
+  { value: "feed", label: "Feed", icon: Sparkles },
+  { value: "password", label: "Password", icon: Key },
+  { value: "activity", label: "Activity", icon: ClipboardList },
 ];
 
 // ── Orchestrator ──────────────────────────────────────────────────────────────
@@ -46,7 +46,7 @@ export default function SettingsWorkspace() {
             <button
               type="button"
               onClick={() => router.back()}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[#252b40] bg-transparent px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-all duration-150 hover:text-foreground hover:border-[#3a4160] font-[inherit]"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-app-border bg-transparent px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-all duration-150 hover:text-foreground hover:border-border-strong hover:bg-card-hover font-[inherit]"
             >
               <ArrowLeft size={14} /> Back
             </button>
@@ -135,8 +135,10 @@ export default function SettingsWorkspace() {
                 total={s.activityTotal}
                 loading={s.activityLoading}
                 error={s.activityError}
+                actionPendingId={s.activityActionPendingId}
                 onCategoryChange={s.setActivityCategory}
                 onPageChange={s.setActivityPage}
+                onQuickAction={s.handleActivityQuickAction}
               />
             )}
           </div>

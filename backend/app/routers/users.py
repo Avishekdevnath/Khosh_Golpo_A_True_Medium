@@ -282,12 +282,7 @@ async def get_my_activity(
     current_user: User = Depends(get_current_user),
 ) -> UserActivityListResponse:
     category_key = category.strip().lower()
-    base_filter: dict[str, object] = {
-        "$or": [
-            {"actor_id": current_user.id},
-            {"target_id": current_user.id},
-        ]
-    }
+    base_filter: dict[str, object] = {"actor_id": current_user.id}
     actions = _activity_actions_for_category(category_key)
     if actions:
         base_filter["action"] = {"$in": actions}
@@ -404,7 +399,7 @@ async def get_saved_threads(
     ordered = [thread_map[tid] for tid in thread_ids if tid in thread_map]
 
     return ThreadListResponse(
-        data=[_to_thread_out(t) for t in ordered],
+        data=[_to_thread_out(t, saved_by_me=True) for t in ordered],
         page=page,
         limit=limit,
         total=total,
@@ -1195,6 +1190,16 @@ def _activity_actions_for_category(category: str) -> list[str] | None:
             "appeal_approved",
             "appeal_rejected",
         ]
+    if category == "engagement":
+        return [
+            "thread_liked",
+            "thread_unliked",
+            "post_liked",
+            "post_unliked",
+            "thread_saved",
+            "thread_unsaved",
+            "thread_shared",
+        ]
     if category == "account":
         return [
             "user_registered",
@@ -1232,7 +1237,7 @@ def _to_audit_log_out(log: AuditLog) -> AuditLogOut:
     )
 
 
-def _to_thread_out(thread: Thread) -> ThreadOut:
+def _to_thread_out(thread: Thread, saved_by_me: bool = False) -> ThreadOut:
     like_ids = [str(uid) for uid in thread.likes] if thread.likes else []
     return ThreadOut(
         id=str(thread.id),
@@ -1246,6 +1251,7 @@ def _to_thread_out(thread: Thread) -> ThreadOut:
         post_count=thread.post_count,
         like_count=len(like_ids),
         liked_by_me=False,
+        saved_by_me=saved_by_me,
         status=thread.status,
         is_pinned=thread.is_pinned,
         ai_score=thread.ai_score,

@@ -214,7 +214,7 @@ export default function NotificationsWorkspace() {
               <span className="block text-[10px] font-bold tracking-[0.1em] uppercase text-primary mb-1">
                 Inbox
               </span>
-              <h1 className="font-serif text-[28px] leading-[1.1] m-0 mb-[5px] text-[#e8eaf4]">
+              <h1 className="font-serif text-[28px] leading-[1.1] m-0 mb-[5px] text-foreground">
                 Notifications
               </h1>
               <p className="text-[12px] text-text-tertiary m-0">

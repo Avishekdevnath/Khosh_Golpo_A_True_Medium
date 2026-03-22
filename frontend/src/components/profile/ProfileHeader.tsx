@@ -80,6 +80,18 @@ export default function ProfileHeader({
 
   return (
     <>
+      {/* ── Mobile back bar (above banner) ── */}
+      <div className="flex items-center px-4 py-2 sm:hidden">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-foreground/70 hover:text-foreground transition-colors cursor-pointer"
+        >
+          <ArrowLeft size={15} strokeWidth={2} />
+          Back
+        </button>
+      </div>
+
       {/* ── Banner ── aspect-[4/1], overflow:visible so avatar can protrude */}
       <div className="relative w-full aspect-[4/1]">
 
@@ -97,8 +109,8 @@ export default function ProfileHeader({
           )}
         </div>
 
-        {/* Back button — top-left inside banner */}
-        <div className="absolute left-4 top-4 z-20">
+        {/* Back button — top-left inside banner, desktop only */}
+        <div className="absolute left-4 top-4 z-20 hidden sm:block">
           <button
             type="button"
             onClick={() => router.back()}
@@ -171,62 +183,51 @@ export default function ProfileHeader({
             )}
           </div>
 
-          {/* Mobile overflow menu */}
-          <div className="relative sm:hidden" ref={mobileMenuRef}>
-            <button
-              type="button"
-              onClick={onToggleMobileMenu}
-              aria-label="Profile actions"
-              className="grid size-9 place-items-center rounded-full border border-border bg-background text-foreground/60 transition-colors hover:text-foreground cursor-pointer"
-            >
-              <MoreHorizontal size={16} />
-            </button>
-
-            {mobileMenuOpen && (
-              <div className="absolute right-0 top-[calc(100%+8px)] z-50 min-w-[210px] rounded-[18px] border border-border bg-background p-1.5 shadow-xl">
-                {isOwnProfile ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => { onCloseMobileMenu(); onTogglePrivacy(); }}
-                      className="flex w-full items-center gap-2 rounded-[14px] px-3 py-2.5 text-[13px] text-foreground/70 transition-colors hover:bg-card-hover hover:text-foreground"
-                    >
-                      {isPrivate ? <Lock size={13} /> : <Globe size={13} />}
-                      {isPrivate ? "Make public" : "Make private"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { onCloseMobileMenu(); router.push("/profile/manage"); }}
-                      className="flex w-full items-center gap-2 rounded-[14px] px-3 py-2.5 text-[13px] text-foreground/70 transition-colors hover:bg-card-hover hover:text-foreground"
-                    >
-                      <Edit2 size={13} />
-                      Manage Profile
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <div onClick={onCloseMobileMenu}><ConnectionButton userId={publicProfile.user.id} /></div>
-                    <div onClick={onCloseMobileMenu}>
-                      <FollowButton
-                        userId={publicProfile.user.id}
-                        initialFollowing={isFollowing}
-                        followsYou={followsYou}
-                        onFollowChange={onFollowChange}
-                      />
-                    </div>
-                    {isAdmin && (
-                      <button
-                        type="button"
-                        onClick={() => { onCloseMobileMenu(); onOpenAdminEdit(); }}
-                        className="flex w-full items-center gap-2 rounded-[14px] px-3 py-2.5 text-[13px] text-foreground/70 transition-colors hover:bg-card-hover hover:text-foreground"
-                      >
-                        <Edit2 size={13} />
-                        Admin Edit
-                      </button>
-                    )}
-                  </>
+          {/* Mobile actions */}
+          <div className="flex items-center gap-2 sm:hidden">
+            {isOwnProfile ? (
+              <>
+                <button
+                  type="button"
+                  onClick={onTogglePrivacy}
+                  aria-label={isPrivate ? "Make public" : "Make private"}
+                  className="grid size-9 place-items-center rounded-full border border-border bg-background text-foreground/60 transition-colors hover:text-foreground cursor-pointer"
+                >
+                  {isPrivate ? <Lock size={14} strokeWidth={2} /> : <Globe size={14} strokeWidth={2} />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => router.push("/profile/manage")}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-[13px] font-semibold text-white transition-all hover:bg-primary/90 cursor-pointer"
+                >
+                  <Edit2 size={13} strokeWidth={2} />
+                  Edit
+                </button>
+              </>
+            ) : (
+              <>
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={onOpenAdminEdit}
+                    aria-label="Admin Edit"
+                    className="grid size-9 place-items-center rounded-full border border-border bg-background text-foreground/60 transition-colors hover:text-foreground cursor-pointer"
+                  >
+                    <Edit2 size={14} strokeWidth={2} />
+                  </button>
                 )}
-              </div>
+                <FollowButton
+                  userId={publicProfile.user.id}
+                  initialFollowing={isFollowing}
+                  followsYou={followsYou}
+                  onFollowChange={onFollowChange}
+                  iconOnly
+                />
+                <ConnectionButton
+                  userId={publicProfile.user.id}
+                  iconOnly
+                />
+              </>
             )}
           </div>
         </div>

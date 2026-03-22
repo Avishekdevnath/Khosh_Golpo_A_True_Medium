@@ -5,8 +5,11 @@ from app.core.auth import get_current_user
 from app.models.post import Post
 from app.models.thread import Thread
 from app.models.user import User, UserRole
+from app.models.audit_log import AuditSeverity
 from app.schemas.post import PostOut, PostUpdate
 from app.services.ai import score_content
+from app.services.audit import log_audit
+from app.services.content_deletion import soft_delete_post_subtree
 from app.services.mentions import merge_mentions
 
 router = APIRouter(prefix="/posts", tags=["posts"])
@@ -51,13 +54,24 @@ async def delete_post(post_id: str, current_user: User = Depends(get_current_use
     if post.author_id != current_user.id and current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not allowed to delete this post")
 
-    post.is_deleted = True
-    await post.save()
+    deleted_posts = await soft_delete_post_subtree(post)
 
     thread = await Thread.find_one({"_id": post.thread_id, "is_deleted": False})
-    if thread is not None and thread.post_count > 0:
-        thread.post_count -= 1
+    if thread is not None and deleted_posts:
+        thread.post_count = max(0, thread.post_count - len(deleted_posts))
         await thread.save()
+
+    await log_audit(
+        action="post_deleted",
+        actor_id=current_user.id,
+        target_type="post",
+        target_id=post.id,
+        severity=AuditSeverity.WARNING,
+        details={
+            "thread_id": str(post.thread_id),
+            "deleted_post_count": len(deleted_posts),
+        },
+    )
 
     return {"message": "Post deleted"}
 

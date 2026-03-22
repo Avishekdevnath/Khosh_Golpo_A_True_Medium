@@ -56,26 +56,26 @@ export default function FeedTopicsSettings() {
     <div className="w-full">
       {/* Section heading */}
       <h2 className="font-serif text-[18px] font-bold mb-1">Feed Topics</h2>
-      <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
+      <p className="text-sm text-text-secondary mb-5 leading-relaxed">
         Manage the topics that shape My Feed. If you skipped the topic picker before, you can set or reset it here any
         time.
       </p>
 
       {/* Status card */}
-      <div className="flex items-start justify-between gap-3.5 rounded-xl border border-app-border bg-gradient-to-b from-[rgba(16,19,29,0.96)] to-[rgba(12,15,24,0.96)] px-4 py-3.5 mb-[18px]">
+      <div className="flex items-start justify-between gap-3.5 rounded-xl border border-app-border bg-card px-4 py-3.5 mb-[18px]">
         <div className="min-w-0">
           <div className="inline-flex items-center gap-2 text-[14px] font-bold text-foreground mb-1.5">
             <Sparkles size={15} />
             My Feed setup
           </div>
-          <p className="m-0 text-[13px] text-muted-foreground leading-relaxed">{statusText}</p>
+          <p className="m-0 text-[13px] text-text-secondary leading-relaxed">{statusText}</p>
         </div>
         <div
           className={[
             "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wide whitespace-nowrap",
             hasTopics
-              ? "border-[rgba(61,214,140,0.3)] bg-[rgba(61,214,140,0.1)] text-[#7fe0ad]"
-              : "border-[#2b3654] bg-app-input text-muted-foreground",
+              ? "border-[rgba(61,214,140,0.3)] bg-[rgba(61,214,140,0.1)] text-green-700 dark:text-[#7fe0ad]"
+              : "border-app-border bg-card text-text-secondary",
           ].join(" ")}
         >
           {hasTopics && <CheckCircle2 size={13} />}
@@ -85,7 +85,7 @@ export default function FeedTopicsSettings() {
 
       {/* Error */}
       {error && (
-        <div className="flex items-center gap-1.5 rounded-lg border border-[rgba(240,107,107,0.2)] bg-[rgba(240,107,107,0.08)] px-3 py-2 text-[13px] text-[#f06b6b] mt-3.5">
+        <div className="flex items-center gap-1.5 rounded-lg border border-[rgba(240,107,107,0.2)] bg-[rgba(240,107,107,0.08)] px-3 py-2 text-[13px] text-red-700 dark:text-[#f06b6b] mt-3.5">
           {error}
         </div>
       )}
@@ -94,14 +94,14 @@ export default function FeedTopicsSettings() {
       {hasTopics && (
         <>
           <div className="flex items-center justify-between gap-3 mt-5 mb-2.5">
-            <span className="text-[12px] font-bold uppercase tracking-wider text-[#dbe0f0]">
+            <span className="text-[12px] font-bold uppercase tracking-wider text-foreground">
               Selected topics
             </span>
             <button
               type="button"
               onClick={() => void handleReset()}
               disabled={saving}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[#2b3654] bg-app-input px-2.5 py-1.5 text-[12px] font-semibold text-[#aab3cf] font-[inherit] transition-all duration-150 hover:border-accent-orange hover:text-[#f6c0a5] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-app-border bg-card px-2.5 py-1.5 text-[12px] font-semibold text-text-secondary font-[inherit] transition-all duration-150 hover:border-primary/25 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <RotateCcw size={13} />
               Reset topic setup
@@ -115,7 +115,7 @@ export default function FeedTopicsSettings() {
                 onClick={() => void handleToggle(topic)}
                 disabled={saving}
                 aria-label={`Remove ${topic}`}
-                className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(240,131,74,0.4)] bg-[rgba(240,131,74,0.12)] px-3 py-1.5 text-[13px] font-medium text-accent-orange font-[inherit] transition-all duration-150 hover:bg-[rgba(240,131,74,0.18)] hover:text-[#ffd3bd] disabled:opacity-60 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5 text-[13px] font-medium text-primary font-[inherit] transition-all duration-150 hover:bg-primary/15 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {topic}
                 <X size={11} />
@@ -127,7 +127,7 @@ export default function FeedTopicsSettings() {
 
       {/* Empty hint */}
       {!hasTopics && (
-        <div className="rounded-[10px] border border-[#252b40] bg-[#141a28] px-3.5 py-3 text-[13px] text-[#9aa4c0] leading-relaxed mt-2">
+        <div className="rounded-[10px] border border-app-border bg-card px-3.5 py-3 text-[13px] text-text-secondary leading-relaxed mt-2">
           Choose one or more topics below to personalize My Feed. Leaving this empty will keep the inline picker
           available on the Threads page.
         </div>
@@ -135,10 +135,10 @@ export default function FeedTopicsSettings() {
 
       {/* Available topics header */}
       <div className="flex items-center justify-between gap-3 mt-5 mb-2.5">
-        <span className="text-[12px] font-bold uppercase tracking-wider text-[#dbe0f0]">
+        <span className="text-[12px] font-bold uppercase tracking-wider text-foreground">
           Popular topics
         </span>
-        <span className="text-[11px] text-[#636f8d]">Changes save automatically</span>
+        <span className="text-[11px] text-muted-foreground">Changes save automatically</span>
       </div>
 
       {/* Topic chips */}
@@ -164,8 +164,8 @@ export default function FeedTopicsSettings() {
                   className={[
                     "inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-[13px] font-medium font-[inherit] transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed",
                     selected
-                      ? "border-accent-orange bg-[rgba(240,131,74,0.14)] text-accent-orange"
-                      : "border-[#2b3654] bg-app-input text-muted-foreground hover:border-accent-orange hover:text-foreground",
+                      ? "border-primary/25 bg-primary/10 text-primary"
+                      : "border-app-border bg-card text-text-secondary hover:border-primary/25 hover:text-foreground",
                   ].join(" ")}
                 >
                   <span>{topic.name}</span>
@@ -179,13 +179,13 @@ export default function FeedTopicsSettings() {
 
       {/* Empty available */}
       {!loading && availableTopics.length === 0 && (
-        <div className="rounded-[10px] border border-[#252b40] bg-[#141a28] px-3.5 py-3 text-[13px] text-[#9aa4c0] leading-relaxed mt-2">
+        <div className="rounded-[10px] border border-app-border bg-card px-3.5 py-3 text-[13px] text-text-secondary leading-relaxed mt-2">
           Popular topics are unavailable right now. You can try again later.
         </div>
       )}
 
       {/* Helper text */}
-      <p className="mt-3.5 text-[12px] text-[#636f8d] leading-relaxed">
+      <p className="mt-3.5 text-[12px] text-text-secondary leading-relaxed">
         Resetting topic setup clears saved feed topics and makes the topic picker appear again when you open My Feed in
         Threads.
       </p>

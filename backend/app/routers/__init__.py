@@ -11,9 +11,11 @@ from app.routers.feed import router as feed_router
 from app.routers.health import router as health_router
 from app.routers.messages import router as messages_router
 from app.routers.notifications import router as notifications_router
+from app.routers.profiles import router as profiles_router
 from app.routers.posts import router as posts_router
 from app.routers.threads import router as threads_router
 from app.routers.users import router as users_router
+from app.routers.admin_profiles import router as admin_profiles_router
 
 api_router = APIRouter()
 api_router.include_router(admin_router)
@@ -23,6 +25,7 @@ api_router.include_router(auth_router)
 api_router.include_router(ai_router)
 api_router.include_router(health_router)
 api_router.include_router(feed_router)
+api_router.include_router(profiles_router)
 api_router.include_router(threads_router)
 api_router.include_router(posts_router)
 api_router.include_router(users_router)
@@ -30,5 +33,6 @@ api_router.include_router(notifications_router)
 api_router.include_router(messages_router)
 api_router.include_router(channels_router)
 api_router.include_router(connections_router)
+api_router.include_router(admin_profiles_router)
 
 __all__ = ["api_router"]

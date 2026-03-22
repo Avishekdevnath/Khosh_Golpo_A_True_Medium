@@ -52,9 +52,10 @@ interface AvatarProps extends VariantProps<typeof avatarVariants> {
   name: string
   status?: "online" | "away" | "offline"
   className?: string
+  style?: React.CSSProperties
 }
 
-function Avatar({ src, name, size, status, className }: AvatarProps) {
+function Avatar({ src, name, size, status, className, style }: AvatarProps) {
   const [imgError, setImgError] = React.useState(false)
 
   return (
@@ -62,6 +63,7 @@ function Avatar({ src, name, size, status, className }: AvatarProps) {
       role="img"
       aria-label={status ? `${name} (${status})` : name}
       className={cn(avatarVariants({ size }), className)}
+      style={style}
     >
       {src && !imgError ? (
         <img

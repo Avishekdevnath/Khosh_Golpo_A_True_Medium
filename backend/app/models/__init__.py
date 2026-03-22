@@ -13,6 +13,15 @@ from app.models.post import Post
 from app.models.read_history import ReadHistory
 from app.models.saved_thread import SavedThread
 from app.models.thread import Thread
+from app.models.user_certification import UserCertification
+from app.models.user_contact_link import UserContactLink
+from app.models.user_education import UserEducation
+from app.models.user_experience import UserExperience
+from app.models.user_profile import UserProfile
+from app.models.user_profile_layout import UserProfileLayout
+from app.models.user_profile_visibility import UserProfileVisibility
+from app.models.user_project import UserProject
+from app.models.user_skill import UserSkill
 from app.models.user import User
 
 DOCUMENT_MODELS = [
@@ -33,6 +42,15 @@ DOCUMENT_MODELS = [
     BotConfig,
     SavedThread,
     ReadHistory,
+    UserProfile,
+    UserProfileVisibility,
+    UserProfileLayout,
+    UserExperience,
+    UserEducation,
+    UserProject,
+    UserSkill,
+    UserCertification,
+    UserContactLink,
 ]
 
 __all__ = [
@@ -53,5 +71,14 @@ __all__ = [
     "SavedThread",
     "Thread",
     "User",
+    "UserProfile",
+    "UserProfileVisibility",
+    "UserProfileLayout",
+    "UserExperience",
+    "UserEducation",
+    "UserProject",
+    "UserSkill",
+    "UserCertification",
+    "UserContactLink",
     "DOCUMENT_MODELS",
 ]

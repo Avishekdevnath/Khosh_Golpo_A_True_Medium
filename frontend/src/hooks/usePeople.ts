@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import useSWRInfinite from "swr/infinite";
 
 import { useAuthStore } from "@/store/authStore";
-import { getPeopleExplore, searchPeople } from "@/lib/peopleApi";
+import { getAllPeople, getPeopleExplore, searchPeople } from "@/lib/peopleApi";
 import type {
   PeopleCard,
   PeopleExploreResponse,
@@ -79,16 +79,46 @@ export function usePeopleSearch(options: UsePeopleSearchOptions) {
   };
 }
 
+export function useAllPeople(pageCount: number, limit = 20) {
+  type Key = readonly ["people-all", number, number];
+
+  const state = useSWRInfinite<{ data: PeopleCard[]; page: number; limit: number; total: number }>(
+    (index, prev) => {
+      if (prev && prev.data.length === 0) return null;
+      return ["people-all", index + 1, limit] as const;
+    },
+    (key) => {
+      const [, page, pageLimit] = key as Key;
+      return getAllPeople(page, pageLimit);
+    },
+    { revalidateOnFocus: false, persistSize: true },
+  );
+
+  const { setSize } = state;
+  useEffect(() => { void setSize(pageCount); }, [pageCount, setSize]);
+
+  const pages = state.data ?? [];
+  const data: PeopleCard[] = pages.flatMap(p => p.data);
+  const total = pages[0]?.total ?? 0;
+
+  return {
+    data,
+    total,
+    isLoading: state.isLoading && pages.length === 0,
+    isLoadingMore: state.isValidating && pages.length > 0,
+    error: state.error ?? null,
+    hasMore: data.length < total,
+    mutate: state.mutate,
+  };
+}
+
 export function usePeopleExplore(options: UsePeopleExploreOptions) {
   const { sort, pageCount, limit = 20 } = options;
-  const { isAuthenticated } = useAuthStore();
-  const enabled = isAuthenticated();
 
   type PeopleExploreKey = readonly ["people-explore", PeopleExploreSort, number, number];
 
   const state = useSWRInfinite<PeopleExploreResponse>(
     (index, previousPageData) => {
-      if (!enabled) return null;
       if (previousPageData && previousPageData.ranked.data.length === 0) return null;
       return ["people-explore", sort, index + 1, limit] as const;
     },
@@ -117,7 +147,7 @@ export function usePeopleExplore(options: UsePeopleExploreOptions) {
     sections,
     ranked,
     total,
-    isLoading: enabled ? state.isLoading && pages.length === 0 : false,
+    isLoading: state.isLoading && pages.length === 0,
     isLoadingMore: state.isValidating && pages.length > 0,
     error: state.error ?? null,
     hasMore: ranked.length < total,

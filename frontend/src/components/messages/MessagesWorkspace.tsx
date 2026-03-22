@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import PageLoader from "@/components/shared/PageLoader";
@@ -63,6 +63,7 @@ export default function MessagesWorkspace({ conversationId }: MessagesWorkspaceP
     createConversation,
     sendMessage,
     markRead,
+    refreshAll,
     blockUser,
     unblockUser,
   } = useMessages({ conversationId });
@@ -117,14 +118,20 @@ export default function MessagesWorkspace({ conversationId }: MessagesWorkspaceP
   }, [conversationId, createConversation, router, startTargetId]);
 
   // ── Mark read on view ─────────────────────────────────────────────────────
+  // Track last marked ID in a ref so we don't depend on unread_count,
+  // which polls on a slower 15s interval vs messages' 5s interval.
+
+  const lastMarkedIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!conversationId) return;
     const latestMessageId = messages[messages.length - 1]?.id;
-    if (!latestMessageId || !activeConversation || activeConversation.unread_count <= 0) return;
-    const timeoutId = window.setTimeout(() => { void markRead(conversationId, latestMessageId); }, 200);
+    if (!latestMessageId) return;
+    if (latestMessageId === lastMarkedIdRef.current) return;
+    lastMarkedIdRef.current = latestMessageId;
+    const timeoutId = window.setTimeout(() => { void markRead(conversationId, latestMessageId); }, 300);
     return () => window.clearTimeout(timeoutId);
-  }, [activeConversation, conversationId, markRead, messages]);
+  }, [conversationId, markRead, messages]);
 
   // ── Filtered lists ────────────────────────────────────────────────────────
 
@@ -137,14 +144,16 @@ export default function MessagesWorkspace({ conversationId }: MessagesWorkspaceP
   }, [conversations, listValue]);
 
   const filteredConnections = useMemo(() => {
+    // Exclude connections that already have an existing conversation
+    const existingParticipantIds = new Set(conversations.map((c) => c.other_participant.id));
     const source = listValue
       ? connections.filter((c) =>
           [c.connected_user_display_name ?? "", c.connected_user_username ?? ""]
             .join(" ").toLowerCase().includes(listValue),
         )
       : connections.slice(0, 6);
-    return source.filter((c) => c.connected_user_id !== user?.id);
-  }, [connections, listValue, user?.id]);
+    return source.filter((c) => c.connected_user_id !== user?.id && !existingParticipantIds.has(c.connected_user_id));
+  }, [connections, conversations, listValue, user?.id]);
 
   // ── Early return ──────────────────────────────────────────────────────────
 
@@ -267,6 +276,7 @@ export default function MessagesWorkspace({ conversationId }: MessagesWorkspaceP
       onSend={() => void handleSend()}
       onRetry={(content, id) => void handleSend(content, id)}
       onBack={() => router.push("/messages")}
+      onRefresh={refreshAll}
       onBlockToggle={() => void handleBlockToggle()}
       blockBusy={blockBusy}
       sending={sending}

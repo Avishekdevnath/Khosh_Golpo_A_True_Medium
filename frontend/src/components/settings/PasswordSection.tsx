@@ -16,8 +16,8 @@ function MsgBanner({ msg }: { msg: Msg }) {
       className={[
         "flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm mt-3.5",
         msg.type === "ok"
-          ? "bg-[rgba(61,214,140,0.08)] border border-[rgba(61,214,140,0.2)] text-[#3dd68c]"
-          : "bg-[rgba(240,107,107,0.08)] border border-[rgba(240,107,107,0.2)] text-[#f06b6b]",
+          ? "bg-[rgba(61,214,140,0.08)] border border-[rgba(61,214,140,0.2)] text-green-700 dark:text-[#3dd68c]"
+          : "bg-[rgba(240,107,107,0.08)] border border-[rgba(240,107,107,0.2)] text-red-700 dark:text-[#f06b6b]",
       ].join(" ")}
     >
       {msg.type === "ok" && <Check size={13} />}
@@ -49,7 +49,7 @@ function TextInput({
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
       autoComplete={autoComplete}
-      className="flex h-10 w-full rounded-md border border-app-border bg-app-input px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-accent-orange/40 focus:border-accent-orange transition-colors"
+      className="flex h-10 w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors"
     />
   );
 }
@@ -87,12 +87,12 @@ export function PasswordSection({
   return (
     <div className="w-full space-y-0">
       <h2 className="font-serif text-[18px] font-bold mb-1">Change Password</h2>
-      <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
+      <p className="text-sm text-text-secondary mb-5 leading-relaxed">
         Enter your current password, or provide a security answer (recovery code, favorite animal, or favorite person).
       </p>
 
       <FormField label="Current Password" htmlFor="current-password">
-        <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+        <div className="flex items-center gap-1.5 text-text-secondary mb-1">
           <Lock size={12} />
         </div>
         <PasswordInput
@@ -168,7 +168,7 @@ export function PasswordSection({
         type="button"
         disabled={pwSaving || !newPassword}
         onClick={onPasswordChange}
-        className="mt-5 inline-flex items-center gap-2 rounded-lg bg-gradient-to-br from-accent-orange to-[#e06c30] px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <Key size={14} />
         {pwSaving ? "Changing..." : "Change Password"}

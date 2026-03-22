@@ -24,6 +24,14 @@ export async function searchPeople(
   return apiGet(`/users/people/search?${params.toString()}`);
 }
 
+export async function getAllPeople(
+  page: number = 1,
+  limit: number = 20,
+): Promise<{ data: import("@/types/people").PeopleCard[]; page: number; limit: number; total: number }> {
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+  return apiGet(`/users/people/all?${params.toString()}`);
+}
+
 export async function getPeopleExplore(
   page: number = 1,
   limit: number = 20,

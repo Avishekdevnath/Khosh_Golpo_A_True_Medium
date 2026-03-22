@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, MessageSquareDashed, ShieldBan, ShieldOff } from "lucide-react";
+import { ArrowLeft, MessageSquareDashed, RefreshCw, ShieldBan, ShieldOff } from "lucide-react";
 import { Divider } from "@/components/ui/divider";
 import MessageBubble from "@/components/messages/MessageBubble";
 import MessageComposer from "@/components/messages/MessageComposer";
@@ -22,6 +22,7 @@ type ChatPanelProps = {
   onRetry: (content: string, id: string) => void;
   onBack: () => void;
   onBlockToggle: () => void;
+  onRefresh: () => Promise<void>;
   blockBusy: boolean;
   sending: boolean;
   blockedMessage: string | null;
@@ -86,11 +87,19 @@ export default function ChatPanel({
   onRetry,
   onBack,
   onBlockToggle,
+  onRefresh,
   blockBusy,
   sending,
   blockedMessage,
 }: ChatPanelProps) {
   const threadRef = useRef<HTMLDivElement>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    try { await onRefresh(); } finally { setRefreshing(false); }
+  };
 
   useEffect(() => {
     if (threadRef.current) {
@@ -161,6 +170,18 @@ export default function ChatPanel({
             {p.is_active ? "Online" : `@${p.username}`}
           </span>
         </div>
+
+        {/* Refresh button */}
+        <button
+          type="button"
+          onClick={() => void handleRefresh()}
+          disabled={refreshing}
+          aria-label="Refresh messages"
+          title="Refresh messages"
+          className="size-8 flex items-center justify-center rounded-full border border-border text-text-tertiary hover:bg-card-hover hover:text-foreground transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed shrink-0 cursor-pointer"
+        >
+          <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
+        </button>
 
         {/* Block button */}
         <button

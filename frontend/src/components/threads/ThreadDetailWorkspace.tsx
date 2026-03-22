@@ -12,9 +12,10 @@ import { useFollow } from "@/hooks/useFollow";
 import MoreFromAuthor from "@/components/threads/article/MoreFromAuthor";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api";
 import { profilePathFromUsername, toProfilePath } from "@/lib/profileRouting";
+import { shareThread } from "@/lib/shareThread";
 import { useAuthStore } from "@/store/authStore";
 import { useMentionSuggest } from "@/hooks/useMentionSuggest";
-import { avatarSeed, initials, relativeTime } from "@/lib/workspaceUtils";
+import { avatarSeed, initials, relativeTime, wasEdited } from "@/lib/workspaceUtils";
 import RichText from "@/components/shared/RichText";
 import ReportModal from "@/components/shared/ReportModal";
 import UserHoverCard from "@/components/shared/UserHoverCard";
@@ -108,13 +109,6 @@ function normalizeTagsInput(raw: string): string[] {
     if (!deduped.includes(tag)) deduped.push(tag);
   }
   return deduped.slice(0, 10);
-}
-
-function wasEdited(createdAt: string, updatedAt: string): boolean {
-  const created = new Date(createdAt).getTime();
-  const updated = new Date(updatedAt).getTime();
-  if (Number.isNaN(created) || Number.isNaN(updated)) return createdAt !== updatedAt;
-  return updated - created > 1000;
 }
 
 // ─── Follow button ────────────────────────────────────────────────────────────
@@ -418,6 +412,24 @@ export default function ThreadDetailWorkspace({
     const id = ++toastIdRef.current;
     setToasts(prev => [...prev, { id, message, type }]);
     setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3500);
+  }
+
+  async function handleShareThread() {
+    const result = await shareThread({
+      title: thread.title,
+      text: thread.body.slice(0, 180),
+      url: typeof window !== "undefined" ? window.location.href : `/threads/${thread.id}`,
+    });
+    if (result.kind === "error") {
+      showToast(result.message, "error");
+      return;
+    }
+    if (result.kind !== "cancelled") {
+      showToast(result.message);
+      if (user?.id) {
+        void apiPost(`threads/${thread.id}/share`, {}).catch(() => undefined);
+      }
+    }
   }
 
   function handleBackNavigation() {
@@ -756,7 +768,7 @@ export default function ThreadDetailWorkspace({
                 <button
                   type="button"
                   title="Share"
-                  onClick={() => { void navigator.clipboard?.writeText(window.location.href); showToast("Link copied!"); }}
+                  onClick={() => void handleShareThread()}
                   className="flex size-7 items-center justify-center rounded-full hover:bg-card-hover hover:text-foreground transition-colors"
                 >
                   <Share2 size={14} />
@@ -809,7 +821,7 @@ export default function ThreadDetailWorkspace({
                 <button
                   type="button"
                   title="Share"
-                  onClick={() => { void navigator.clipboard?.writeText(window.location.href); showToast("Link copied!"); }}
+                  onClick={() => void handleShareThread()}
                   className="flex size-7 items-center justify-center rounded-full hover:bg-card-hover hover:text-foreground transition-colors"
                 >
                   <Share2 size={14} />

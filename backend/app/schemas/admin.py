@@ -75,6 +75,30 @@ class AdminBulkModerationResponse(BaseModel):
     failed: int
 
 
+class AdminHardDeleteBulkItem(BaseModel):
+    content_type: Literal["thread", "post"]
+    content_id: str
+    reason: str | None = Field(default=None, max_length=300)
+
+
+class AdminHardDeleteBulkRequest(BaseModel):
+    actions: list[AdminHardDeleteBulkItem] = Field(min_length=1, max_length=100)
+
+
+class AdminHardDeleteBulkResult(BaseModel):
+    content_type: Literal["thread", "post"]
+    content_id: str
+    success: bool
+    error: str | None = None
+
+
+class AdminHardDeleteBulkResponse(BaseModel):
+    results: list[AdminHardDeleteBulkResult]
+    processed: int
+    succeeded: int
+    failed: int
+
+
 class AdminUserRoleUpdate(BaseModel):
     role: UserRole
     reason: str | None = Field(default=None, max_length=300)

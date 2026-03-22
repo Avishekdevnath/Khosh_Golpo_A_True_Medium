@@ -136,7 +136,11 @@ export default function RichText({
       </ReactMarkdown>
       <style jsx>{`
         /* ── Root ─────────────────────────────────────────── */
-        .rt-root { color: #c4cbe0; font-size: 13px; line-height: 1.65; }
+        .rt-root {
+          color: var(--text-primary, var(--foreground));
+          font-size: 13px;
+          line-height: 1.65;
+        }
 
         /* ── Paragraphs ───────────────────────────────────── */
         .rt-root :global(.rt-p)         { margin: 0 0 8px; }
@@ -144,28 +148,28 @@ export default function RichText({
         .rt-root :global(.rt-p-compact) { margin: 0; }
 
         /* ── Headings ─────────────────────────────────────── */
-        .rt-root :global(.rt-h1) { font-size: 18px; font-weight: 700; color: #e8eaf6; margin: 12px 0 6px; line-height: 1.3; }
-        .rt-root :global(.rt-h2) { font-size: 15px; font-weight: 700; color: #e8eaf6; margin: 10px 0 5px; line-height: 1.3; }
-        .rt-root :global(.rt-h3) { font-size: 13px; font-weight: 700; color: #e8eaf6; margin: 8px 0 4px; line-height: 1.3; }
+        .rt-root :global(.rt-h1) { font-size: 18px; font-weight: 700; color: var(--foreground); margin: 12px 0 6px; line-height: 1.3; }
+        .rt-root :global(.rt-h2) { font-size: 15px; font-weight: 700; color: var(--foreground); margin: 10px 0 5px; line-height: 1.3; }
+        .rt-root :global(.rt-h3) { font-size: 13px; font-weight: 700; color: var(--foreground); margin: 8px 0 4px; line-height: 1.3; }
 
         /* ── Inline ───────────────────────────────────────── */
-        .rt-root :global(.rt-strong) { font-weight: 700; color: #dde1f0; }
-        .rt-root :global(.rt-em)     { font-style: italic; color: #b8c0d8; }
-        .rt-root :global(.rt-del)    { text-decoration: line-through; color: #7a7f99; }
+        .rt-root :global(.rt-strong) { font-weight: 700; color: var(--foreground); }
+        .rt-root :global(.rt-em)     { font-style: italic; color: var(--text-secondary); }
+        .rt-root :global(.rt-del)    { text-decoration: line-through; color: var(--text-tertiary); }
 
         /* ── Code ─────────────────────────────────────────── */
         .rt-root :global(.rt-code-inline) {
-          background: #1e2235;
-          color: #f0834a;
+          background: var(--card-hover);
+          color: var(--accent-orange);
           font-family: 'Fira Code', 'Courier New', monospace;
           font-size: 12px;
           padding: 1px 5px;
           border-radius: 4px;
-          border: 1px solid #2a2f45;
+          border: 1px solid var(--app-border-strong);
         }
         .rt-root :global(.rt-pre) {
-          background: #10131d;
-          border: 1px solid #1e2235;
+          background: var(--card-hover);
+          border: 1px solid var(--border);
           border-radius: 6px;
           padding: 10px 12px;
           overflow-x: auto;
@@ -174,16 +178,16 @@ export default function RichText({
         .rt-root :global(.rt-code-block) {
           font-family: 'Fira Code', 'Courier New', monospace;
           font-size: 12px;
-          color: #a8d8a8;
+          color: var(--success);
           white-space: pre;
         }
 
         /* ── Blockquote ───────────────────────────────────── */
         .rt-root :global(.rt-blockquote) {
-          border-left: 3px solid #7c73f0;
+          border-left: 3px solid var(--primary);
           margin: 8px 0;
           padding: 4px 0 4px 12px;
-          color: #8a90aa;
+          color: var(--text-secondary);
           font-style: italic;
         }
 
@@ -199,15 +203,15 @@ export default function RichText({
 
         /* ── Links ────────────────────────────────────────── */
         .rt-root :global(.rt-link) {
-          color: #7c73f0;
+          color: var(--primary);
           text-decoration: underline;
           text-underline-offset: 2px;
         }
-        .rt-root :global(.rt-link:hover) { color: #a09af8; }
+        .rt-root :global(.rt-link:hover) { color: var(--accent-hover); }
 
         /* ── Mentions ─────────────────────────────────────── */
         .rt-root :global(.rt-mention) {
-          color: #f0834a;
+          color: var(--accent-orange);
           font-weight: 600;
           background: rgba(240, 131, 74, 0.12);
           border-radius: 3px;

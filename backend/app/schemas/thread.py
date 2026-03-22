@@ -1,8 +1,9 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
+from app.models.common import utc_isoformat
 from app.models.thread import ThreadStatus
 
 
@@ -31,6 +32,7 @@ class ThreadOut(BaseModel):
     post_count: int
     like_count: int = 0
     liked_by_me: bool = False
+    saved_by_me: bool = False
     status: ThreadStatus
     is_pinned: bool
     author_is_bot: bool = False
@@ -42,6 +44,10 @@ class ThreadOut(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_serializer("created_at", "updated_at")
+    def serialize_datetimes(self, value: datetime) -> str:
+        return utc_isoformat(value)
 
 
 class ThreadListResponse(BaseModel):

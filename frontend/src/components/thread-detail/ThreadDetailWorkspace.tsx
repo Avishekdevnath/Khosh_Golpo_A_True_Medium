@@ -4,8 +4,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { markThreadRead } from "@/lib/profileApi";
+import { apiPost } from "@/lib/api";
+import { shareThread } from "@/lib/shareThread";
 
-import WorkspaceShell from "@/components/app/WorkspaceShell";
 import RichText from "@/components/shared/RichText";
 import ReportModal from "@/components/shared/ReportModal";
 import { useAuthStore } from "@/store/authStore";
@@ -14,6 +15,7 @@ import { useThreadDetail, type PostNode, type ThreadOut } from "./useThreadDetai
 import ThreadHeader from "./ThreadHeader";
 import PostTree from "./PostTree";
 import ReplyComposer from "./ReplyComposer";
+import MoreFromAuthor from "@/components/threads/article/MoreFromAuthor";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -56,6 +58,7 @@ export default function ThreadDetailWorkspace({
     posts,
     userCache,
     handleThreadLike,
+    handleThreadSave,
     handleLike,
     saveThreadEdit,
     saveEdit,
@@ -125,6 +128,33 @@ export default function ThreadDetailWorkspace({
       return;
     }
     router.push("/threads");
+  }
+
+  async function handleSaveToggle() {
+    if (!user?.id) {
+      showToast("Sign in to save threads", "error");
+      return;
+    }
+    await handleThreadSave();
+  }
+
+  async function handleShareThread() {
+    const result = await shareThread({
+      title: thread.title,
+      text: thread.body.slice(0, 180),
+      url: typeof window !== "undefined" ? window.location.href : `/threads/${thread.id}`,
+    });
+
+    if (result.kind === "error") {
+      showToast(result.message, "error");
+      return;
+    }
+    if (result.kind !== "cancelled") {
+      showToast(result.message);
+      if (user?.id) {
+        void apiPost(`threads/${thread.id}/share`, {}).catch(() => undefined);
+      }
+    }
   }
 
   // ── Thread edit ────────────────────────────────────────────────────────────
@@ -203,45 +233,39 @@ export default function ThreadDetailWorkspace({
     await submitReport(reason, detail, reportTargetId, reportTargetType);
   }
 
+  // ── Author display (for MoreFromAuthor) ────────────────────────────────────
+  const cachedAuthor = userCache.get(thread.author_id);
+  const authorDisplay =
+    cachedAuthor?.display_name ?? thread.author_display_name ?? thread.author_id.slice(-4);
+
   // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
     <>
-      <WorkspaceShell wrapPanel={false}>
-        <section className="ws-panel relative flex flex-col">
-          <ThreadHeader
-            thread={thread}
-            userCache={userCache}
-            currentUserId={user?.id ?? null}
-            canEditThread={canEditThread}
-            isThreadOwner={isThreadOwner}
-            onBack={handleBackNavigation}
-            onLike={handleThreadLike}
-            onEditOpen={openThreadEdit}
-            onReport={() => {
-              setReportTargetId(thread.id);
-              setReportTargetType("thread");
-            }}
-          />
+      {/* ── Full-page article layout — no WorkspaceShell ── */}
+      <div className="flex flex-col flex-1 min-h-0 overflow-y-auto ws-scroll">
 
-          {/* Replies list */}
-          <div className="flex-1 px-5 py-3.5 ws-scroll overflow-y-auto">
-            <PostTree
-              posts={posts}
-              currentUserId={user?.id ?? null}
-              currentUsername={user?.username ?? null}
-              userCache={userCache}
-              onEdit={handleEdit}
-              onDelete={(id) => setDeleteConfirmId(id)}
-              onReply={(post) => setReplyToPost(post)}
-              onReport={(postId) => {
-                setReportTargetId(postId);
-                setReportTargetType("post");
-              }}
-              onLike={handleLike}
-            />
-          </div>
+        <ThreadHeader
+          thread={thread}
+          userCache={userCache}
+          currentUserId={user?.id ?? null}
+          canEditThread={canEditThread}
+          isThreadOwner={isThreadOwner}
+          onBack={handleBackNavigation}
+          onLike={handleThreadLike}
+          onSave={handleSaveToggle}
+          onShare={handleShareThread}
+          onEditOpen={openThreadEdit}
+          onReport={() => {
+            setReportTargetId(thread.id);
+            setReportTargetType("thread");
+          }}
+        />
 
+        {/* ── Responses section ── */}
+        <div className="max-w-[680px] mx-auto w-full px-5 sm:px-8 pb-24">
+
+          {/* Inline reply composer */}
           <ReplyComposer
             reply={reply}
             setReply={setReply}
@@ -255,8 +279,31 @@ export default function ThreadDetailWorkspace({
             currentUser={user ?? null}
             onSubmit={handleSubmitReply}
           />
-        </section>
-      </WorkspaceShell>
+
+          {/* Posts list */}
+          <PostTree
+            posts={posts}
+            currentUserId={user?.id ?? null}
+            currentUsername={user?.username ?? null}
+            userCache={userCache}
+            onEdit={handleEdit}
+            onDelete={(id) => setDeleteConfirmId(id)}
+            onReply={(post) => setReplyToPost(post)}
+            onReport={(postId) => {
+              setReportTargetId(postId);
+              setReportTargetType("post");
+            }}
+            onLike={handleLike}
+          />
+
+          {/* More from this author */}
+          <MoreFromAuthor
+            authorId={thread.author_id}
+            authorName={authorDisplay}
+            currentThreadId={thread.id}
+          />
+        </div>
+      </div>
 
       {/* ── Thread edit modal ── */}
       {threadEditOpen && (
@@ -456,7 +503,7 @@ export default function ThreadDetailWorkspace({
           role="presentation"
         >
           <div
-            className="w-[90%] max-w-[480px] bg-[#0f1117] border border-[#1c1f2e] rounded-[14px] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.4)]"
+            className="w-[90%] max-w-[400px] bg-[#0f1117] border border-[#1c1f2e] rounded-[14px] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.4)]"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"

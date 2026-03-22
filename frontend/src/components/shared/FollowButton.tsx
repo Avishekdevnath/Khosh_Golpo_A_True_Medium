@@ -5,6 +5,7 @@ interface FollowButtonProps {
   userId: string;
   initialFollowing?: boolean;
   followsYou?: boolean;
+  iconOnly?: boolean;
   onFollowChange?: (isFollowing: boolean, followersCount: number, followingCount: number) => void;
 }
 
@@ -12,6 +13,7 @@ export default function FollowButton({
   userId,
   initialFollowing = false,
   followsYou = false,
+  iconOnly = false,
   onFollowChange,
 }: FollowButtonProps) {
   const { isFollowing, loading, error, follow, unfollow } = useFollow(userId, initialFollowing);
@@ -26,29 +28,27 @@ export default function FollowButton({
     }
   };
 
+  const label = isFollowing ? "Following" : followsYou ? "Follow back" : "Follow";
+  const Icon = isFollowing ? UserCheck : UserPlus;
+
   return (
     <button
       onClick={() => void handleClick()}
       disabled={loading}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "6px",
-        padding: "8px 16px",
-        borderRadius: "8px",
-        fontSize: "14px",
-        fontWeight: "600",
-        border: `1px solid ${isFollowing ? "#7c73f0" : "#f0834a"}`,
-        background: isFollowing ? "rgba(124, 115, 240, 0.1)" : "rgba(240, 131, 74, 0.1)",
-        color: isFollowing ? "#b5a8f0" : "#f0834a",
-        cursor: loading ? "not-allowed" : "pointer",
-        opacity: loading ? 0.6 : 1,
-        transition: "all 0.2s ease",
-      }}
-      title={error || ""}
+      title={error || label}
+      aria-label={label}
+      className={[
+        "inline-flex items-center justify-center gap-1.5 rounded-full border transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer",
+        iconOnly
+          ? "size-9 shrink-0 p-0"
+          : "px-4 py-1.5 text-[13px] font-medium",
+        isFollowing
+          ? "border-border bg-card-hover text-foreground/60 hover:border-foreground hover:text-foreground"
+          : "border-primary/40 bg-primary/5 text-primary hover:bg-primary/10",
+      ].join(" ")}
     >
-      {isFollowing ? <UserCheck size={14} /> : <UserPlus size={14} />}
-      <span>{isFollowing ? "Following" : followsYou ? "Follow back" : "Follow"}</span>
+      <Icon size={iconOnly ? 15 : 13} />
+      {!iconOnly && <span>{label}</span>}
     </button>
   );
 }
