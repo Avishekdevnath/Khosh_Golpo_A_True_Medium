@@ -7,6 +7,7 @@ from app.routers.bot import router as bot_router
 from app.routers.ai import router as ai_router
 from app.routers.channels import router as channels_router
 from app.routers.connections import router as connections_router
+from app.routers.jobs import router as jobs_router
 from app.routers.feed import router as feed_router
 from app.routers.health import router as health_router
 from app.routers.messages import router as messages_router
@@ -30,5 +31,6 @@ api_router.include_router(notifications_router)
 api_router.include_router(messages_router)
 api_router.include_router(channels_router)
 api_router.include_router(connections_router)
+api_router.include_router(jobs_router)
 
 __all__ = ["api_router"]
