@@ -21,6 +21,12 @@ from app.models.notification import Notification, NotificationType
 from app.models.post import Post
 from app.models.thread import Thread, ThreadStatus
 from app.models.user import User, UserRole
+from app.models.user_certification import UserCertification
+from app.models.user_education import UserEducation
+from app.models.user_experience import UserExperience
+from app.models.user_profile import UserProfile
+from app.models.user_project import UserProject
+from app.models.user_skill import UserSkill
 from app.services.security import create_access_token, hash_password
 
 # ---------------------------------------------------------------------------
@@ -170,6 +176,164 @@ async def seed_database() -> None:
 
     bots = [bot_nova, bot_kai, bot_sage]
     print(f"✓  Created {len(bots)} bot users")
+
+    # ── 2b. USER PROFILES (no images — testing layout) ────────────────────────
+
+    profile_data = [
+        {
+            "user": demo,
+            "headline": "Software Explorer · Building cool things one commit at a time",
+            "about": "I use KhoshGolpo to learn, share, and connect with developers who actually care about their craft. Currently exploring FastAPI and React full-stack patterns.",
+            "location": "Dhaka, Bangladesh",
+            "website": "https://demo.example.com",
+            "skills": ["Python", "FastAPI", "React", "MongoDB", "Docker"],
+            "experience": [
+                {"title": "Junior Developer", "company": "Startup XYZ", "start_date": "2023-01", "is_current": True, "description": "Building internal tools and APIs."},
+            ],
+            "education": [
+                {"school": "BUET", "degree": "B.Sc. in Computer Science", "start_date": "2019-01", "end_date": "2023-06"},
+            ],
+            "projects": [
+                {"name": "KhoshGolpo Clone", "role": "Solo Developer", "description": "A Reddit-style community platform built with FastAPI and React 19.", "repo_url": "https://github.com/demo/khoshgolpo-clone", "start_date": "2024-01", "is_ongoing": True},
+            ],
+        },
+        {
+            "user": admin,
+            "headline": "Platform Admin · Keeping the community healthy and growing",
+            "about": "Running the KhoshGolpo platform. Interested in moderation systems, trust & safety, and developer communities.",
+            "location": "Chittagong, Bangladesh",
+            "website": "https://khoshgolpo.example.com",
+            "skills": ["Community Management", "Python", "DevOps", "MongoDB", "Trust & Safety"],
+            "experience": [
+                {"title": "Platform Administrator", "company": "KhoshGolpo", "start_date": "2024-01", "is_current": True, "description": "Managing platform operations, moderation, and developer experience."},
+                {"title": "Backend Engineer", "company": "Tech Solutions BD", "start_date": "2021-03", "end_date": "2023-12", "description": "Designed REST APIs and maintained PostgreSQL databases."},
+            ],
+            "education": [
+                {"school": "University of Dhaka", "degree": "M.Sc. in Information Technology", "start_date": "2019-01", "end_date": "2021-06"},
+            ],
+            "projects": [
+                {"name": "KhoshGolpo Platform", "role": "Admin & Co-builder", "description": "Community discussion platform with AI moderation, follow system, and rich profiles.", "project_url": "https://khoshgolpo.example.com", "start_date": "2024-01", "is_ongoing": True},
+            ],
+        },
+        {
+            "user": user1,
+            "headline": "Full-Stack Developer · Python & React · Open Source Contributor",
+            "about": "Passionate about writing clean, testable code. I believe great software is as much about communication and collaboration as it is about algorithms.\n\nCurrently deep in FastAPI microservices and React 19 Server Components.",
+            "location": "Sylhet, Bangladesh",
+            "website": "https://alice.dev",
+            "skills": ["Python", "FastAPI", "React", "TypeScript", "PostgreSQL", "Redis", "Docker", "GitHub Actions"],
+            "experience": [
+                {"title": "Software Engineer II", "company": "Brain Station 23", "start_date": "2022-06", "is_current": True, "description": "Lead developer on a SaaS analytics platform serving 50k+ daily active users."},
+                {"title": "Junior Software Engineer", "company": "Kona Software Lab", "start_date": "2021-01", "end_date": "2022-05", "description": "Built and maintained REST APIs for a fintech product."},
+            ],
+            "education": [
+                {"school": "SUST", "degree": "B.Sc. in Computer Science & Engineering", "start_date": "2017-01", "end_date": "2021-01"},
+            ],
+            "certifications": [
+                {"name": "AWS Certified Developer – Associate", "issuer": "Amazon Web Services", "issue_date": "2023-04"},
+            ],
+            "projects": [
+                {"name": "OpenThread", "role": "Lead Developer", "description": "An open-source discussion platform with AI moderation. 200+ GitHub stars.", "repo_url": "https://github.com/alice/openthread", "project_url": "https://openthread.dev", "start_date": "2023-06", "is_ongoing": True},
+                {"name": "FastAPI Boilerplate", "role": "Author", "description": "A production-ready FastAPI starter with JWT auth, MongoDB, and Docker.", "repo_url": "https://github.com/alice/fastapi-boilerplate", "start_date": "2022-11", "end_date": "2023-02"},
+            ],
+        },
+        {
+            "user": user2,
+            "headline": "UI/UX Designer & Frontend Developer · Figma · Tailwind CSS",
+            "about": "I live at the intersection of design and code. I care deeply about accessibility, micro-interactions, and building interfaces that feel delightful to use.\n\nFigma is my second home. Tailwind CSS is my superpower.",
+            "location": "Rajshahi, Bangladesh",
+            "website": "https://bobdesigns.io",
+            "skills": ["Figma", "UI/UX Design", "Tailwind CSS", "React", "Framer Motion", "Accessibility", "Design Systems"],
+            "experience": [
+                {"title": "Senior UI/UX Designer", "company": "Therap BD", "start_date": "2023-03", "is_current": True, "description": "Owning the design system and leading frontend design for core product modules."},
+                {"title": "Product Designer", "company": "Freelance", "start_date": "2020-06", "end_date": "2023-02", "description": "Delivered end-to-end design for 12+ client products across fintech, edtech, and healthcare."},
+            ],
+            "education": [
+                {"school": "North South University", "degree": "B.Sc. in Computer Science", "start_date": "2016-01", "end_date": "2020-01"},
+            ],
+            "projects": [
+                {"name": "DesignKit UI", "role": "Creator & Maintainer", "description": "A Figma-to-Tailwind component library used by 500+ designers. Includes 80+ components with dark mode support.", "project_url": "https://designkit.io", "repo_url": "https://github.com/bob/designkit-ui", "start_date": "2022-03", "is_ongoing": True},
+                {"name": "A11y Checker", "role": "Developer", "description": "Browser extension that audits web pages for WCAG 2.1 accessibility violations in real-time.", "repo_url": "https://github.com/bob/a11y-checker", "start_date": "2021-08", "end_date": "2022-01"},
+            ],
+        },
+        {
+            "user": user3,
+            "headline": "DevOps Engineer · AWS Certified · Infrastructure as Code",
+            "about": "I make deployments boring — in the best possible way. CI/CD pipelines, Kubernetes clusters, Terraform configs. If it can be automated, I've probably automated it.",
+            "location": "Khulna, Bangladesh",
+            "website": "https://carol.cloud",
+            "skills": ["AWS", "Kubernetes", "Terraform", "Docker", "CI/CD", "Python", "Ansible", "GitHub Actions", "Prometheus"],
+            "experience": [
+                {"title": "Senior DevOps Engineer", "company": "DataSoft Systems", "start_date": "2021-09", "is_current": True, "description": "Managing cloud infrastructure for 30+ microservices on AWS EKS."},
+                {"title": "Systems Engineer", "company": "SSL Wireless", "start_date": "2019-04", "end_date": "2021-08", "description": "Linux server administration and network monitoring."},
+            ],
+            "education": [
+                {"school": "CUET", "degree": "B.Sc. in Electrical & Electronic Engineering", "start_date": "2015-01", "end_date": "2019-01"},
+            ],
+            "certifications": [
+                {"name": "AWS Certified Solutions Architect – Professional", "issuer": "Amazon Web Services", "issue_date": "2022-08"},
+                {"name": "Certified Kubernetes Administrator (CKA)", "issuer": "CNCF", "issue_date": "2023-01"},
+            ],
+            "projects": [
+                {"name": "InfraKit", "role": "Author", "description": "Terraform modules for spinning up production-ready AWS EKS clusters with autoscaling, monitoring, and VPC setup.", "repo_url": "https://github.com/carol/infrakit", "start_date": "2022-05", "is_ongoing": True},
+                {"name": "PipelineBot", "role": "Solo Developer", "description": "Slack bot that reports CI/CD pipeline status, failure summaries, and deployment diffs directly in team channels.", "repo_url": "https://github.com/carol/pipelinebot", "start_date": "2021-11", "end_date": "2022-03"},
+            ],
+        },
+        {
+            "user": mahesh,
+            "headline": "Senior Instructor · AI/ML · CS Education · Author",
+            "about": "10+ years teaching Computer Science and Machine Learning. I believe the best engineers are the ones who can explain things simply.\n\nI write about AI, pedagogy, and the future of tech education. Occasionally I'm wrong about things, and I appreciate being told so.",
+            "location": "Dhaka, Bangladesh",
+            "website": "https://maheshdevnath.com",
+            "skills": ["Machine Learning", "Python", "PyTorch", "TensorFlow", "Data Science", "Teaching", "Curriculum Design", "NLP", "Computer Vision"],
+            "experience": [
+                {"title": "Senior Instructor – AI/ML", "company": "Bohubrihi", "start_date": "2020-01", "is_current": True, "description": "Created and deliver the AI/ML learning path — 20,000+ enrolled learners."},
+                {"title": "Lecturer", "company": "BRAC University", "start_date": "2016-08", "end_date": "2019-12", "description": "Taught Data Structures, Algorithms, and Intro to Machine Learning."},
+            ],
+            "education": [
+                {"school": "BUET", "degree": "M.Sc. in Computer Science (ML specialisation)", "start_date": "2014-01", "end_date": "2016-06"},
+                {"school": "BUET", "degree": "B.Sc. in Computer Science & Engineering", "start_date": "2009-01", "end_date": "2013-12"},
+            ],
+            "certifications": [
+                {"name": "Deep Learning Specialization", "issuer": "Coursera / DeepLearning.AI", "issue_date": "2021-03"},
+            ],
+            "projects": [
+                {"name": "BanglaNLP", "role": "Lead Researcher", "description": "An open dataset and NLP toolkit for Bengali language processing — tokenisation, POS tagging, and sentiment analysis. 500+ GitHub stars.", "repo_url": "https://github.com/mahesh/bangla-nlp", "project_url": "https://bangla-nlp.org", "start_date": "2021-06", "is_ongoing": True},
+                {"name": "CS101 Open Course", "role": "Author & Instructor", "description": "A free, self-paced computer science course in Bengali. 15,000+ learners on YouTube.", "project_url": "https://youtube.com/@maheshdevnath", "start_date": "2020-03", "is_ongoing": True},
+                {"name": "MLFlow Dashboard", "role": "Developer", "description": "A lightweight experiment tracking dashboard built on top of MLflow with team collaboration features.", "repo_url": "https://github.com/mahesh/mlflow-dashboard", "start_date": "2022-09", "end_date": "2023-04"},
+            ],
+        },
+    ]
+
+    for pd in profile_data:
+        user = pd["user"]
+
+        profile = UserProfile(
+            user_id=user.id,
+            headline=pd.get("headline"),
+            about=pd.get("about"),
+            location=pd.get("location"),
+            website=pd.get("website"),
+            completion_percent=85,
+        )
+        await profile.insert()
+
+        for i, name in enumerate(pd.get("skills", [])):
+            await UserSkill(user_id=user.id, name=name, sort_order=i).insert()
+
+        for i, exp in enumerate(pd.get("experience", [])):
+            await UserExperience(user_id=user.id, sort_order=i, **exp).insert()
+
+        for i, edu in enumerate(pd.get("education", [])):
+            await UserEducation(user_id=user.id, sort_order=i, **edu).insert()
+
+        for i, cert in enumerate(pd.get("certifications", [])):
+            await UserCertification(user_id=user.id, sort_order=i, **cert).insert()
+
+        for i, proj in enumerate(pd.get("projects", [])):
+            await UserProject(user_id=user.id, sort_order=i, **proj).insert()
+
+    print(f"✓  Seeded rich profile data for {len(profile_data)} users (no images)")
 
     # ── 3. CHANNELS ──────────────────────────────────────────────────────────
 
