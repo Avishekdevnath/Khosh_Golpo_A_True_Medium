@@ -163,9 +163,9 @@ function PostItem({
     (currentUserId !== null && currentUserId === post.author_id) ||
     (currentUsername !== null && post.author_username === currentUsername);
 
-  // DEBUG — remove after fix
   return (
-    <div className="post-item">
+    <div className="flex gap-3 py-5 group">
+      {/* Avatar */}
       <UserHoverCard
         userId={post.author_id}
         username={username || ""}
@@ -173,14 +173,20 @@ function PostItem({
         bio={null}
         isBot={post.author_is_bot}
       >
-        <Link href={profileHref} className="post-av-link" aria-label={`Open profile of ${displayName}`}>
-          <div className="post-av" style={{ background: `linear-gradient(135deg,${a1},${a2})` }}>
+        <Link href={profileHref} aria-label={`Profile of ${displayName}`}>
+          <div
+            className="w-8 h-8 rounded-full shrink-0 mt-0.5 flex items-center justify-center text-[11px] font-bold text-white"
+            style={{ background: `linear-gradient(135deg,${a1},${a2})` }}
+          >
             {initials(displayName)}
           </div>
         </Link>
       </UserHoverCard>
-      <div className="post-body">
-        <div className="post-head">
+
+      {/* Body */}
+      <div className="flex-1 min-w-0">
+        {/* Head */}
+        <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5 mb-2">
           <UserHoverCard
             userId={post.author_id}
             username={username || ""}
@@ -188,83 +194,110 @@ function PostItem({
             bio={null}
             isBot={post.author_is_bot}
           >
-            <Link href={profileHref} className="post-author-link">
-              <span className="post-author">{displayName}</span>
-              {username && <span className="post-username">@{username}</span>}
+            <Link
+              href={profileHref}
+              className="flex items-center gap-1.5 rounded px-1 -ml-1 hover:bg-primary/10 transition-colors"
+            >
+              <span className="text-[13px] font-semibold text-foreground">{displayName}</span>
+              {username && (
+                <span className="text-[11px] text-text-tertiary">@{username}</span>
+              )}
               {post.author_is_bot && (
-                <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 5px", borderRadius: 4, border: "1px solid rgba(129,140,248,0.5)", color: "#a5b4fc", background: "rgba(129,140,248,0.1)", letterSpacing: "0.04em" }}>BOT</span>
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded border border-purple-500/40 text-purple-400 bg-purple-500/10 tracking-wide">
+                  BOT
+                </span>
               )}
             </Link>
           </UserHoverCard>
-          <span className="post-time">{relativeTime(post.created_at)}</span>
-          {post.is_flagged && <span className="post-flag">flagged</span>}
+          <span className="text-[11px] text-text-tertiary">{relativeTime(post.created_at)}</span>
+          {post.is_flagged && (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 uppercase tracking-wide">
+              flagged
+            </span>
+          )}
         </div>
-        <RichText content={post.content} variant="full" />
-        <div className="post-actions">
+
+        {/* Content */}
+        <div className="text-[14px] leading-relaxed text-foreground">
+          <RichText content={post.content} variant="full" />
+        </div>
+
+        {/* Actions — visible on hover */}
+        <div className="flex items-center gap-0.5 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             type="button"
-            className={post.liked_by_me ? "like liked" : "like"}
-            onClick={() => currentUserId && onLike(post.id)}
             title={currentUserId ? (post.liked_by_me ? "Unlike" : "Like") : "Sign in to like"}
+            onClick={() => currentUserId && onLike(post.id)}
+            className={`flex items-center gap-1 text-[12px] px-2 py-1 rounded-md transition-colors ${
+              post.liked_by_me
+                ? "text-red-400"
+                : "text-text-tertiary hover:text-foreground hover:bg-card-hover"
+            }`}
           >
             <Heart size={11} fill={post.liked_by_me ? "currentColor" : "none"} />
             {post.like_count > 0 ? post.like_count : "Like"}
           </button>
+
           {currentUserId && (
-            <button type="button" onClick={() => onReply(post)}>
+            <button
+              type="button"
+              onClick={() => onReply(post)}
+              className="flex items-center gap-1 text-[12px] px-2 py-1 rounded-md text-text-tertiary hover:text-foreground hover:bg-card-hover transition-colors"
+            >
               <CornerDownRight size={11} /> Reply
             </button>
           )}
+
           {isOwner && (
             <>
-              <button type="button" onClick={() => onEdit(post.id, post.content)}>
+              <button
+                type="button"
+                onClick={() => onEdit(post.id, post.content)}
+                className="flex items-center gap-1 text-[12px] px-2 py-1 rounded-md text-text-tertiary hover:text-foreground hover:bg-card-hover transition-colors"
+              >
                 <Pencil size={11} /> Edit
               </button>
-              <button type="button" className="danger" onClick={() => onDelete(post.id)}>
+              <button
+                type="button"
+                onClick={() => onDelete(post.id)}
+                className="flex items-center gap-1 text-[12px] px-2 py-1 rounded-md text-text-tertiary hover:text-red-400 hover:bg-red-500/10 transition-colors"
+              >
                 <Trash2 size={11} /> Delete
               </button>
             </>
           )}
+
           {currentUserId && !isOwner && (
-            <button type="button" className="report" onClick={() => onReport(post.id)}>
+            <button
+              type="button"
+              onClick={() => onReport(post.id)}
+              className="flex items-center gap-1 text-[12px] px-2 py-1 rounded-md text-text-tertiary hover:text-primary hover:bg-primary/10 transition-colors"
+            >
               <Flag size={11} /> Report
             </button>
           )}
         </div>
+
+        {/* Children (nested replies) */}
         {post.children.length > 0 && (
-          <div className="post-children">
+          <div className="mt-4 pl-4 border-l-2 border-border">
             {post.children.map(child => (
-              <PostItem key={child.id} post={child} currentUserId={currentUserId}
+              <PostItem
+                key={child.id}
+                post={child}
+                currentUserId={currentUserId}
                 currentUsername={currentUsername}
-                userCache={userCache} onEdit={onEdit} onDelete={onDelete} onReply={onReply} onReport={onReport} onLike={onLike} />
+                userCache={userCache}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onReply={onReply}
+                onReport={onReport}
+                onLike={onLike}
+              />
             ))}
           </div>
         )}
       </div>
-      <style jsx>{`
-        .post-item { display: flex; gap: 10px; padding: 10px; border-radius: 10px; transition: background 0.15s; }
-        .post-item:hover { background: rgba(21,25,39,0.6); }
-        .post-av-link { display: inline-flex; text-decoration: none; border-radius: 999px; }
-        .post-av-link:focus-visible { outline: 2px solid rgba(14,165,233,0.45); outline-offset: 1px; }
-        .post-av { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; margin-top: 2px; }
-        .post-body { flex: 1; min-width: 0; }
-        .post-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
-        .post-author-link { display: flex; align-items: center; gap: 6px; text-decoration: none; cursor: pointer; border-radius: 6px; padding: 2px 6px; transition: all 0.15s; }
-        .post-author-link:hover { background: rgba(14, 165, 233, 0.12); }
-        .post-author { font-size: 13px; font-weight: 600; color: var(--text, #e4e8f4); }
-        .post-username { font-size: 11px; color: var(--muted, #9ba3be); }
-        .post-time { font-size: 11px; color: var(--muted, #9ba3be); }
-        .post-flag { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #ef4444; background: rgba(239,68,68,0.12); border-radius: 5px; padding: 2px 6px; }
-        .post-actions { display: flex; gap: 6px; margin-top: 6px; }
-        .post-actions button { border: none; background: transparent; color: rgba(99,111,141,0.5); font-size: 11px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; padding: 3px 6px; border-radius: 5px; transition: all 0.15s; font-family: inherit; }
-        .post-item:hover .post-actions button { color: var(--muted, #9ba3be); }
-        .post-actions button:hover { color: var(--text, #e4e8f4); background: #1a1d2a; }
-        .post-actions button.danger:hover { color: #ef4444; background: rgba(239,68,68,0.12); }
-        .post-actions button.report:hover { color: #0EA5E9; background: rgba(14,165,233,0.12); }
-        .post-actions button.liked { color: #ef4444; }
-        .post-actions button.liked:hover { color: #ef4444; background: rgba(239,68,68,0.12); }
-        .post-children { margin-left: 8px; padding-left: 14px; border-left: 2px solid var(--app-border, #1c1f2e); margin-top: 4px; }
-      `}</style>
     </div>
   );
 }
@@ -813,138 +846,189 @@ export default function ThreadDetailWorkspace({
 
         </article>
 
-        {/* Replies */}
-        <div className="replies-section ws-scroll">
-          <div className="replies-header">
-            <span>Replies</span>
-            <span className="replies-count">{posts.length}</span>
-          </div>
+          {/* ── Responses ── */}
+          <div id="responses" className="max-w-[720px] mx-auto px-5 sm:px-8 mb-10">
+            <h2
+              className="text-2xl font-bold text-foreground mb-6"
+              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+            >
+              Responses ({thread.post_count})
+            </h2>
 
-          {posts.length === 0 && (
-            <div className="empty">
-              <MessageSquare size={24} strokeWidth={1.2} />
-              <span>No replies yet — start the conversation!</span>
-            </div>
-          )}
-
-          <div className="posts-list">
-            {posts.map(p => (
-              <PostItem key={p.id} post={p} currentUserId={user?.id ?? null}
-                currentUsername={user?.username ?? null}
-                userCache={userCache} onEdit={handleEdit} onDelete={handleDelete} onReply={handleReply} onReport={openPostReport} onLike={handleLike} />
-            ))}
-          </div>
-        </div>
-
-        {/* Reply composer */}
-        <div className="reply-bar">
-          {replyErr && <div className="reply-err">{replyErr}</div>}
-          {replyToPost && (
-            <div className="reply-to-banner">
-              <CornerDownRight size={12} />
-              <span>Replying to <strong>{replyToName}</strong></span>
-              <span className="reply-to-preview">{replyToPost.content.slice(0, 60)}{replyToPost.content.length > 60 ? "…" : ""}</span>
-              <button type="button" className="reply-to-cancel" onClick={() => setReplyToPost(null)}>
-                <X size={12} />
-              </button>
-            </div>
-          )}
-          {user ? (
-            <>
-              <div className="reply-row">
-                <div className="reply-user-av" style={{ background: `linear-gradient(135deg,${sav1},${sav2})` }}>
-                  {initials(sidebarName)}
-                </div>
-                <div className="reply-input-wrap">
-                  <div className="composer-tabs">
-                    <button type="button" className={`composer-tab${!replyPreview ? " active" : ""}`} onClick={() => setReplyPreview(false)}>Write</button>
-                    <button type="button" className={`composer-tab${replyPreview ? " active" : ""}`} onClick={() => setReplyPreview(true)} disabled={!reply.trim()}>Preview</button>
+            {/* Inline compose box */}
+            {user ? (
+              <div className="mb-8">
+                {replyErr && (
+                  <p className="text-[12px] text-red-400 mb-2">{replyErr}</p>
+                )}
+                {replyToPost && (
+                  <div className="flex items-center gap-2 mb-2 px-3 py-2 rounded-lg bg-card-hover border border-border text-[12px] text-text-secondary">
+                    <CornerDownRight size={11} className="shrink-0" />
+                    <span>Replying to <strong className="text-foreground">{replyToName}</strong></span>
+                    <span className="truncate flex-1 opacity-60">{replyToPost.content.slice(0, 60)}{replyToPost.content.length > 60 ? "…" : ""}</span>
+                    <button type="button" onClick={() => setReplyToPost(null)} className="shrink-0 text-text-tertiary hover:text-foreground transition-colors">
+                      <X size={12} />
+                    </button>
                   </div>
-                  {replyPreview ? (
-                    <div className="composer-preview">
-                      <RichText content={reply} variant="full" />
+                )}
+                <div className="flex items-start gap-3">
+                  <div
+                    className="w-8 h-8 rounded-full shrink-0 mt-1 flex items-center justify-center text-[11px] font-bold text-white"
+                    style={{ background: `linear-gradient(135deg,${sav1},${sav2})` }}
+                  >
+                    {initials(sidebarName)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    {/* Write / Preview tabs */}
+                    <div className="flex gap-3 mb-2 border-b border-border">
+                      <button
+                        type="button"
+                        onClick={() => setReplyPreview(false)}
+                        className={`pb-1.5 text-[12px] font-medium border-b-2 -mb-px transition-colors ${!replyPreview ? "border-foreground text-foreground" : "border-transparent text-text-tertiary hover:text-foreground"}`}
+                      >
+                        Write
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setReplyPreview(true)}
+                        disabled={!reply.trim()}
+                        className={`pb-1.5 text-[12px] font-medium border-b-2 -mb-px transition-colors disabled:opacity-40 ${replyPreview ? "border-foreground text-foreground" : "border-transparent text-text-tertiary hover:text-foreground"}`}
+                      >
+                        Preview
+                      </button>
                     </div>
-                  ) : (
-                    <textarea
-                      ref={replyRef}
-                      className="reply-input"
-                      placeholder={replyToPost ? `Reply to ${replyToName}…` : "Write a reply…"}
-                      value={reply}
-                      onChange={handleReplyChange}
-                      rows={2}
-                      maxLength={2000}
-                      onKeyDown={e => {
-                        if (mention.onKeyDown(e, insertMention)) return;
-                        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) submitReply();
-                      }}
-                      onBlur={() => setTimeout(mention.close, 150)}
-                    />
-                  )}
-                  {!replyPreview && mention.isOpen && (
-                    <div className="mention-dropdown">
-                      {mention.suggestions.length > 0 ? (
-                        mention.suggestions.map((s, i) => (
-                          <button
-                            key={s.username}
-                            type="button"
-                            className={`mention-item${i === mention.selectedIdx ? " selected" : ""}`}
-                            onMouseDown={e => { e.preventDefault(); insertMention(i); }}
-                          >
-                            <span className="mention-dn">{s.display_name}</span>
-                            <span className="mention-un">@{s.username}</span>
-                          </button>
-                        ))
-                      ) : (
-                        <p className="mention-hint">
-                          {mention.query === "" ? "Type a username to search…" : "No users found"}
-                        </p>
-                      )}
+                    {replyPreview ? (
+                      <div className="min-h-[80px] text-[14px] leading-relaxed text-foreground">
+                        <RichText content={reply} variant="full" />
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <textarea
+                          ref={replyRef}
+                          className="w-full bg-transparent border-b border-border resize-none text-[14px] text-foreground placeholder:text-text-tertiary outline-none py-1 leading-relaxed min-h-[60px]"
+                          placeholder={replyToPost ? `Reply to ${replyToName}…` : "What are your thoughts?"}
+                          value={reply}
+                          onChange={handleReplyChange}
+                          rows={3}
+                          maxLength={2000}
+                          onKeyDown={e => {
+                            if (mention.onKeyDown(e, insertMention)) return;
+                            if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) submitReply();
+                          }}
+                          onBlur={() => setTimeout(mention.close, 150)}
+                        />
+                        {mention.isOpen && (
+                          <div className="absolute left-0 top-full z-20 mt-1 w-56 rounded-lg border border-border bg-[#0f1117] shadow-xl overflow-hidden">
+                            {mention.suggestions.length > 0 ? (
+                              mention.suggestions.map((s, i) => (
+                                <button
+                                  key={s.username}
+                                  type="button"
+                                  className={`w-full text-left flex items-center gap-2 px-3 py-2 text-[13px] transition-colors ${i === mention.selectedIdx ? "bg-primary/10 text-primary" : "text-foreground hover:bg-card-hover"}`}
+                                  onMouseDown={e => { e.preventDefault(); insertMention(i); }}
+                                >
+                                  <span className="font-medium">{s.display_name}</span>
+                                  <span className="text-text-tertiary text-[11px]">@{s.username}</span>
+                                </button>
+                              ))
+                            ) : (
+                              <p className="px-3 py-2 text-[12px] text-text-tertiary">
+                                {mention.query === "" ? "Type a username…" : "No users found"}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-[11px] text-text-tertiary opacity-60">
+                        **bold** *italic* `code` · Ctrl+Enter
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] text-text-tertiary">{reply.length}/2000</span>
+                        <button
+                          type="button"
+                          disabled={posting || !reply.trim()}
+                          onClick={submitReply}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary text-white text-[12px] font-medium disabled:opacity-40 hover:bg-primary/90 transition-colors"
+                        >
+                          <Send size={11} />
+                          {posting ? "Sending…" : "Reply"}
+                        </button>
+                      </div>
                     </div>
-                  )}
-                  <div className="reply-footer-row">
-                    <span className="reply-fmt">**bold** *italic* `code` &gt; quote</span>
-                    <span className="reply-hint">{reply.length}/2000 · Ctrl+Enter</span>
                   </div>
                 </div>
-                <button type="button" className="send-btn" disabled={posting || !reply.trim()} onClick={submitReply}>
-                  <Send size={14} />
-                </button>
               </div>
-            </>
-          ) : (
-            <div className="sign-in-prompt">
-              <Link href="/login" style={{ color: "#0EA5E9", textDecoration: "none", fontWeight: 700 }}>Sign in</Link>
-              <span> to join the conversation</span>
-            </div>
-          )}
-        </div>
+            ) : (
+              <p className="mb-8 text-[14px] text-text-secondary">
+                <Link href="/login" className="text-primary font-semibold hover:underline">Sign in</Link>
+                {" to join the conversation"}
+              </p>
+            )}
+
+            {/* Posts list */}
+            {posts.length === 0 ? (
+              <div className="flex flex-col items-center gap-3 py-12 text-text-tertiary">
+                <MessageSquare size={28} strokeWidth={1.2} />
+                <p className="text-[13px]">No replies yet — start the conversation!</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-border">
+                {posts.map(p => (
+                  <PostItem
+                    key={p.id}
+                    post={p}
+                    currentUserId={user?.id ?? null}
+                    currentUsername={user?.username ?? null}
+                    userCache={userCache}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onReply={handleReply}
+                    onReport={openPostReport}
+                    onLike={handleLike}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* ── More from this author ── */}
+          <div className="max-w-[720px] mx-auto px-5 sm:px-8 pb-16">
+            <MoreFromAuthor
+              authorId={thread.author_id}
+              authorName={authorDisplay}
+              currentThreadId={thread.id}
+            />
+          </div>
         </div>
       </div>
 
       {/* Thread edit modal */}
       {threadEditOpen && (
-        <div className="modal-overlay" onClick={() => setThreadEditOpen(false)} role="presentation">
-          <div className="modal" onClick={e => e.stopPropagation()}
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setThreadEditOpen(false)} role="presentation">
+          <div className="w-full max-w-[480px] bg-[#0f1117] border border-[#1c1f2e] rounded-xl p-6 shadow-2xl flex flex-col gap-4" onClick={e => e.stopPropagation()}
             role="dialog" aria-modal="true" aria-labelledby="thread-edit-modal-title">
-            <h3 id="thread-edit-modal-title">Edit thread</h3>
-            <label htmlFor="thread-edit-title">Title</label>
+            <h3 id="thread-edit-modal-title" className="text-[16px] font-semibold text-foreground m-0">Edit thread</h3>
+            <label htmlFor="thread-edit-title" className="text-[12px] font-medium text-text-secondary">Title</label>
             <input
               id="thread-edit-title"
               value={threadEditTitle}
               onChange={e => setThreadEditTitle(e.target.value)}
               maxLength={160}
+              className="w-full bg-[#151927] border border-[#1c1f2e] rounded-lg px-3 py-2 text-[14px] text-foreground outline-none focus:border-primary/50 transition-colors"
             />
-            <div className="modal-label-row">
-              <label htmlFor="thread-edit-body">Body</label>
+            <div className="flex items-center justify-between gap-3">
+              <label htmlFor="thread-edit-body" className="text-[12px] font-medium text-text-secondary">Body</label>
               {canEditThreadBody && (
-                <div className="composer-tabs composer-tabs-sm">
-                  <button type="button" className={`composer-tab${!threadEditPreview ? " active" : ""}`} onClick={() => setThreadEditPreview(false)}>Write</button>
-                  <button type="button" className={`composer-tab${threadEditPreview ? " active" : ""}`} onClick={() => setThreadEditPreview(true)} disabled={!threadEditBody.trim()}>Preview</button>
+                <div className="flex gap-3 border-b border-border">
+                  <button type="button" onClick={() => setThreadEditPreview(false)} className={`pb-1.5 text-[12px] font-medium border-b-2 -mb-px transition-colors ${!threadEditPreview ? "border-foreground text-foreground" : "border-transparent text-text-tertiary hover:text-foreground"}`}>Write</button>
+                  <button type="button" onClick={() => setThreadEditPreview(true)} disabled={!threadEditBody.trim()} className={`pb-1.5 text-[12px] font-medium border-b-2 -mb-px transition-colors disabled:opacity-40 ${threadEditPreview ? "border-foreground text-foreground" : "border-transparent text-text-tertiary hover:text-foreground"}`}>Preview</button>
                 </div>
               )}
             </div>
             {threadEditPreview && canEditThreadBody ? (
-              <div className="composer-preview composer-preview-modal">
+              <div className="min-h-[120px] bg-[#151927] border border-[#1c1f2e] rounded-lg px-3 py-2 text-[14px] leading-relaxed text-foreground">
                 <RichText content={threadEditBody} variant="full" />
               </div>
             ) : (
@@ -954,23 +1038,25 @@ export default function ThreadDetailWorkspace({
                 onChange={e => setThreadEditBody(e.target.value)}
                 rows={6}
                 disabled={!canEditThreadBody}
+                className="w-full bg-[#151927] border border-[#1c1f2e] rounded-lg px-3 py-2 text-[14px] text-foreground outline-none focus:border-primary/50 transition-colors resize-none disabled:opacity-60"
               />
             )}
             {!canEditThreadBody && (
-              <p className="modal-note">Body is locked after the first reply. You can still update title and tags.</p>
+              <p className="text-[12px] text-text-tertiary">Body is locked after the first reply. You can still update title and tags.</p>
             )}
-            <label htmlFor="thread-edit-tags">Tags</label>
+            <label htmlFor="thread-edit-tags" className="text-[12px] font-medium text-text-secondary">Tags</label>
             <input
               id="thread-edit-tags"
               value={threadEditTags}
               onChange={e => setThreadEditTags(e.target.value)}
               placeholder="career, fastapi, interview"
+              className="w-full bg-[#151927] border border-[#1c1f2e] rounded-lg px-3 py-2 text-[14px] text-foreground outline-none focus:border-primary/50 transition-colors"
             />
-            <div className="modal-actions">
-              <button type="button" className="btn-ghost" onClick={() => setThreadEditOpen(false)}>Cancel</button>
+            <div className="flex justify-end gap-2 mt-2">
+              <button type="button" className="px-4 py-2 rounded-lg text-[13px] text-text-secondary hover:bg-card-hover transition-colors" onClick={() => setThreadEditOpen(false)}>Cancel</button>
               <button
                 type="button"
-                className="btn-primary"
+                className="px-4 py-2 rounded-lg text-[13px] bg-primary text-white font-medium hover:bg-primary/90 disabled:opacity-40 transition-colors"
                 disabled={threadEditSaving || !threadEditTitle.trim() || !threadEditBody.trim()}
                 onClick={saveThreadEdit}
               >
@@ -983,26 +1069,26 @@ export default function ThreadDetailWorkspace({
 
       {/* Edit modal */}
       {editId && (
-        <div className="modal-overlay" onClick={() => setEditId(null)} role="presentation">
-          <div className="modal" onClick={e => e.stopPropagation()}
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setEditId(null)} role="presentation">
+          <div className="w-full max-w-[480px] bg-[#0f1117] border border-[#1c1f2e] rounded-xl p-6 shadow-2xl flex flex-col gap-4" onClick={e => e.stopPropagation()}
             role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
-            <div className="modal-label-row" style={{ marginBottom: 10 }}>
-              <h3 id="edit-modal-title" style={{ margin: 0 }}>Edit reply</h3>
-              <div className="composer-tabs composer-tabs-sm">
-                <button type="button" className={`composer-tab${!editPreview ? " active" : ""}`} onClick={() => setEditPreview(false)}>Write</button>
-                <button type="button" className={`composer-tab${editPreview ? " active" : ""}`} onClick={() => setEditPreview(true)} disabled={!editText.trim()}>Preview</button>
+            <div className="flex items-center justify-between gap-3">
+              <h3 id="edit-modal-title" className="text-[16px] font-semibold text-foreground m-0">Edit reply</h3>
+              <div className="flex gap-3 border-b border-border">
+                <button type="button" onClick={() => setEditPreview(false)} className={`pb-1.5 text-[12px] font-medium border-b-2 -mb-px transition-colors ${!editPreview ? "border-foreground text-foreground" : "border-transparent text-text-tertiary hover:text-foreground"}`}>Write</button>
+                <button type="button" onClick={() => setEditPreview(true)} disabled={!editText.trim()} className={`pb-1.5 text-[12px] font-medium border-b-2 -mb-px transition-colors disabled:opacity-40 ${editPreview ? "border-foreground text-foreground" : "border-transparent text-text-tertiary hover:text-foreground"}`}>Preview</button>
               </div>
             </div>
             {editPreview ? (
-              <div className="composer-preview composer-preview-modal">
+              <div className="min-h-[120px] bg-[#151927] border border-[#1c1f2e] rounded-lg px-3 py-2 text-[14px] leading-relaxed text-foreground">
                 <RichText content={editText} variant="full" />
               </div>
             ) : (
-              <textarea value={editText} onChange={e => setEditText(e.target.value)} rows={5} />
+              <textarea value={editText} onChange={e => setEditText(e.target.value)} rows={5} className="w-full bg-[#151927] border border-[#1c1f2e] rounded-lg px-3 py-2 text-[14px] text-foreground outline-none focus:border-primary/50 transition-colors resize-none" />
             )}
-            <div className="modal-actions">
-              <button type="button" className="btn-ghost" onClick={() => setEditId(null)}>Cancel</button>
-              <button type="button" className="btn-primary" disabled={editSaving || !editText.trim()} onClick={saveEdit}>
+            <div className="flex justify-end gap-2 mt-2">
+              <button type="button" className="px-4 py-2 rounded-lg text-[13px] text-text-secondary hover:bg-card-hover transition-colors" onClick={() => setEditId(null)}>Cancel</button>
+              <button type="button" className="px-4 py-2 rounded-lg text-[13px] bg-primary text-white font-medium hover:bg-primary/90 disabled:opacity-40 transition-colors" disabled={editSaving || !editText.trim()} onClick={saveEdit}>
                 {editSaving ? "Saving…" : "Save"}
               </button>
             </div>
@@ -1012,16 +1098,16 @@ export default function ThreadDetailWorkspace({
 
       {/* Delete confirmation modal */}
       {deleteConfirmId && (
-        <div className="modal-overlay" onClick={() => setDeleteConfirmId(null)} role="presentation">
-          <div className="modal" onClick={e => e.stopPropagation()}
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setDeleteConfirmId(null)} role="presentation">
+          <div className="w-full max-w-[480px] bg-[#0f1117] border border-[#1c1f2e] rounded-xl p-6 shadow-2xl flex flex-col gap-4" onClick={e => e.stopPropagation()}
             role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
-            <h3 id="delete-modal-title">Delete reply</h3>
-            <p style={{ fontSize: 13, color: "var(--muted, #9ba3be)", margin: "0 0 16px", lineHeight: 1.6 }}>
+            <h3 id="delete-modal-title" className="text-[16px] font-semibold text-foreground m-0">Delete reply</h3>
+            <p className="text-[13px] text-text-secondary leading-relaxed">
               Are you sure you want to delete this reply? This action cannot be undone.
             </p>
-            <div className="modal-actions">
-              <button type="button" className="btn-ghost" onClick={() => setDeleteConfirmId(null)}>Cancel</button>
-              <button type="button" className="btn-danger" onClick={confirmDelete}>Delete</button>
+            <div className="flex justify-end gap-2 mt-2">
+              <button type="button" className="px-4 py-2 rounded-lg text-[13px] text-text-secondary hover:bg-card-hover transition-colors" onClick={() => setDeleteConfirmId(null)}>Cancel</button>
+              <button type="button" className="px-4 py-2 rounded-lg text-[13px] bg-red-500/15 text-red-400 border border-red-500/30 font-medium hover:bg-red-500/25 transition-colors" onClick={confirmDelete}>Delete</button>
             </div>
           </div>
         </div>
@@ -1037,248 +1123,21 @@ export default function ThreadDetailWorkspace({
       )}
 
       {/* Toast container */}
-      <div className="toast-container" aria-live="polite">
+      <div className="fixed bottom-4 right-4 z-[200] flex flex-col gap-2 pointer-events-none" aria-live="polite">
         {toasts.map(t => (
-          <div key={t.id} className={`toast toast-${t.type}`}>{t.message}</div>
+          <div
+            key={t.id}
+            className={`pointer-events-auto px-4 py-2.5 rounded-lg text-[13px] font-medium shadow-xl border ${
+              t.type === "success"
+                ? "bg-green-500/15 border-green-500/30 text-green-400"
+                : "bg-red-500/15 border-red-500/30 text-red-400"
+            }`}
+          >
+            {t.message}
+          </div>
         ))}
       </div>
 
-      <style jsx>{`
-        /* ── Root ── */
-        /* ── Content ── */
-        .content {
-          position: relative;
-          display: flex;
-          flex-direction: column;
-        }
-
-        /* Top bar */
-        .top-bar {
-          display: flex; align-items: center; gap: 10px;
-          padding: 12px 16px; border-bottom: 1px solid var(--app-border, #1c1f2e); flex-shrink: 0;
-        }
-        .back-btn {
-          border: 1px solid var(--app-border, #1c1f2e); background: var(--app-input, #151821); color: var(--muted, #9ba3be);
-          border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600;
-          display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
-          transition: all 0.15s; flex-shrink: 0;
-        }
-        .back-btn:hover { color: var(--text, #e4e8f4); border-color: #2d3450; }
-        .top-bar-title {
-          flex: 1; font-size: 13px; font-weight: 600; color: var(--muted, #9ba3be);
-          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
-        .status-pill { border-radius: 7px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 10px; flex-shrink: 0; }
-
-        /* Thread block */
-        .thread-block { padding: 18px 20px; border-bottom: 1px solid var(--app-border, #1c1f2e); flex-shrink: 0; }
-        .thread-row { display: flex; gap: 14px; }
-        .thread-av-link { display: inline-flex; text-decoration: none; border-radius: 999px; }
-        .thread-av-link:focus-visible { outline: 2px solid rgba(14,165,233,0.45); outline-offset: 1px; }
-        .thread-av { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0; }
-        .thread-info { flex: 1; min-width: 0; }
-        .thread-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
-        .thread-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .thread-author-link { display: flex; align-items: center; gap: 6px; text-decoration: none; cursor: pointer; border-radius: 6px; padding: 2px 6px; transition: all 0.15s; }
-        .thread-author-link:hover { background: rgba(14, 165, 233, 0.12); }
-        .thread-author { font-size: 13px; font-weight: 600; color: var(--text, #e4e8f4); }
-        .thread-username { font-size: 11px; color: var(--muted, #9ba3be); }
-        .thread-time { font-size: 11px; color: var(--muted, #9ba3be); }
-        .thread-edited { font-size: 10px; color: var(--muted, #9ba3be); border: 1px solid var(--app-border, #1c1f2e); background: var(--app-card-hover, #181b27); border-radius: 999px; padding: 1px 7px; font-weight: 600; }
-        .thread-head-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-        .thread-menu-btn {
-          border: 1px solid var(--app-border, #1c1f2e); background: var(--app-input, #151821); color: var(--muted, #9ba3be);
-          border-radius: 8px; width: 30px; height: 30px; display: grid; place-items: center;
-          cursor: pointer; transition: all 0.15s; flex-shrink: 0;
-        }
-        .thread-menu-btn:hover { color: var(--text, #e4e8f4); border-color: #2d3450; background: #1a1f30; }
-        .thread-title { font-family: var(--serif),serif; font-size: 22px; line-height: 1.25; margin: 0 0 10px; color: var(--text, #e4e8f4); }
-        .thread-body { font-size: 13px; line-height: 1.75; color: var(--text, #e4e8f4); white-space: pre-wrap; margin: 0 0 12px; }
-        .thread-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
-        .tag {
-          border: 1px solid rgba(129,140,248,0.25); color: #818CF8;
-          background: rgba(129,140,248,0.1); border-radius: 999px;
-          font-size: 10px; font-weight: 600; padding: 2px 8px;
-          cursor: pointer; transition: all 0.15s; font-family: inherit;
-        }
-        .tag:hover { background: rgba(129,140,248,0.2); border-color: rgba(129,140,248,0.4); }
-        .thread-stats { display: flex; gap: 14px; color: var(--muted, #9ba3be); font-size: 12px; align-items: center; }
-        .thread-stats span { display: inline-flex; align-items: center; gap: 5px; }
-        .thread-like { border: none; background: transparent; color: var(--muted, #9ba3be); font-size: 12px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; padding: 3px 8px; border-radius: 6px; transition: all 0.15s; font-family: inherit; }
-        .thread-like:hover { color: #ef4444; background: rgba(239,68,68,0.1); }
-        .thread-like.liked { color: #ef4444; }
-        .thread-like.liked:hover { background: rgba(239,68,68,0.1); }
-
-        /* Replies section */
-        .replies-section { flex: 1; padding: 14px 20px; }
-        .replies-header {
-          display: flex; align-items: center; gap: 8px;
-          font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
-          text-transform: uppercase; color: #545c7a; margin-bottom: 14px;
-        }
-        .replies-count {
-          background: var(--app-card-hover, #181b27); border: 1px solid var(--app-border, #1c1f2e); border-radius: 99px;
-          font-size: 10px; padding: 1px 7px; color: var(--muted, #9ba3be);
-          text-transform: none; letter-spacing: 0; font-weight: 600;
-        }
-        .empty {
-          border: 1px dashed #2a3150; border-radius: 11px; color: var(--muted, #9ba3be);
-          font-size: 13px; text-align: center; padding: 28px 16px;
-          display: flex; flex-direction: column; align-items: center; gap: 10px;
-        }
-        .posts-list { display: flex; flex-direction: column; gap: 2px; }
-
-        /* Post item */
-        .post-item {
-          display: flex; gap: 10px; padding: 10px;
-          border-radius: 10px; transition: background 0.15s;
-        }
-        .post-item:hover { background: rgba(21,25,39,0.6); }
-        .post-av-link { display: inline-flex; text-decoration: none; border-radius: 999px; }
-        .post-av-link:focus-visible { outline: 2px solid rgba(14,165,233,0.45); outline-offset: 1px; }
-        .post-av { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; margin-top: 2px; }
-        .post-body { flex: 1; min-width: 0; }
-        .post-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
-        .post-author-link { display: flex; align-items: center; gap: 6px; text-decoration: none; cursor: pointer; border-radius: 6px; padding: 2px 6px; transition: all 0.15s; }
-        .post-author-link:hover { background: rgba(14, 165, 233, 0.12); }
-        .post-author { font-size: 13px; font-weight: 600; color: var(--text, #e4e8f4); }
-        .post-username { font-size: 11px; color: var(--muted, #9ba3be); }
-        .post-time { font-size: 11px; color: var(--muted, #9ba3be); }
-        .post-flag { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #ef4444; background: rgba(239,68,68,0.12); border-radius: 5px; padding: 2px 6px; }
-        .thread-body-rt { margin: 0 0 12px; }
-        .post-actions { display: flex; gap: 6px; margin-top: 6px; }
-        .post-actions button { border: none; background: transparent; color: rgba(99,111,141,0.5); font-size: 11px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; padding: 3px 6px; border-radius: 5px; transition: all 0.15s; font-family: inherit; }
-        .post-item:hover .post-actions button { color: var(--muted, #9ba3be); }
-        .post-actions button:hover { color: var(--text, #e4e8f4); background: #1a1d2a; }
-        .post-actions button.danger:hover { color: #ef4444; background: rgba(239,68,68,0.12); }
-        .post-actions button.report:hover { color: #0EA5E9; background: rgba(14,165,233,0.12); }
-        .post-actions button.liked { color: #ef4444; }
-        .post-actions button.liked:hover { color: #ef4444; background: rgba(239,68,68,0.12); }
-        .post-children { margin-left: 8px; padding-left: 14px; border-left: 2px solid var(--app-border, #1c1f2e); margin-top: 4px; }
-
-        /* Reply bar */
-        .reply-bar { border-top: 1px solid var(--app-border, #1c1f2e); padding: 14px 20px 16px; flex-shrink: 0; background: var(--app-panel, #0f1117); }
-        .reply-err { border: 1px solid rgba(239,68,68,0.35); background: rgba(239,68,68,0.1); color: #fca5a5; border-radius: 8px; padding: 6px 10px; font-size: 12px; margin-bottom: 8px; }
-        .reply-to-banner {
-          display: flex; align-items: center; gap: 8px;
-          background: rgba(129,140,248,0.08); border: 1px solid rgba(129,140,248,0.2);
-          border-radius: 8px; padding: 6px 10px; margin-bottom: 8px;
-          font-size: 12px; color: #a5b4fc;
-        }
-        .reply-to-preview { color: var(--muted, #9ba3be); font-size: 11px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .reply-to-cancel { border: none; background: transparent; color: var(--muted, #9ba3be); cursor: pointer; display: flex; padding: 2px; border-radius: 4px; transition: all 0.15s; flex-shrink: 0; }
-        .reply-to-cancel:hover { color: var(--text, #e4e8f4); background: #1a1d2a; }
-        .reply-row { display: flex; gap: 10px; align-items: flex-start; }
-        .reply-user-av { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; margin-top: 2px; }
-        .reply-input-wrap { position: relative; flex: 1; border: 1.5px solid var(--app-border, #1c1f2e); border-radius: 12px; background: var(--app-input, #151821); transition: border-color 0.15s; }
-        .reply-input-wrap:focus-within { border-color: #0EA5E9; }
-        .reply-input {
-          width: 100%; box-sizing: border-box;
-          background: transparent; border: none; outline: none;
-          color: var(--text, #e4e8f4); font-size: 13px; padding: 10px 12px;
-          font-family: inherit; line-height: 1.6; resize: none;
-          min-height: 64px; overflow: hidden;
-        }
-        .reply-input::placeholder { color: #3d4460; }
-        .reply-footer-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px 8px; border-top: 1px solid #1a1f2e; }
-        .reply-hint { font-size: 10px; color: #2e3450; }
-        .reply-fmt { font-size: 10px; color: #2e3450; font-family: 'Courier New', monospace; letter-spacing: 0.02em; }
-        .send-btn {
-          width: 34px; height: 34px; border-radius: 9px; border: none;
-          background: #0EA5E9; color: #fff; display: grid; place-items: center;
-          cursor: pointer; flex-shrink: 0; margin-top: 2px;
-          box-shadow: 0 3px 10px rgba(14,165,233,0.28); transition: opacity 0.15s, transform 0.1s;
-        }
-        .send-btn:hover:not(:disabled) { opacity: 0.88; transform: scale(1.05); }
-        .send-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
-        .sign-in-prompt { text-align: center; padding: 14px; font-size: 13px; color: var(--muted, #9ba3be); border: 1px dashed var(--app-border, #1c1f2e); border-radius: 10px; }
-        .mention-dropdown {
-          position: absolute; bottom: calc(100% + 6px); left: 0; right: 0;
-          background: var(--app-panel, #0f1117); border: 1px solid var(--app-border, #1c1f2e); border-radius: 10px;
-          overflow: hidden; z-index: 60; box-shadow: 0 4px 20px rgba(0,0,0,0.45);
-        }
-        .mention-item {
-          width: 100%; display: flex; align-items: center; gap: 8px;
-          padding: 8px 12px; background: transparent; border: none; border-bottom: 1px solid var(--app-input, #151821);
-          text-align: left; cursor: pointer; transition: background 0.1s;
-        }
-        .mention-item:last-child { border-bottom: none; }
-        .mention-item:hover, .mention-item.selected { background: var(--app-input, #151821); }
-        .mention-dn { font-size: 13px; color: var(--text, #e4e8f4); font-weight: 500; font-family: inherit; }
-        .mention-un { font-size: 11px; color: #5a6480; margin-left: auto; font-family: inherit; }
-        .mention-hint { margin: 0; padding: 10px 12px; font-size: 12px; color: #5a6480; font-style: italic; }
-
-        /* Composer Write/Preview toggle */
-        .composer-tabs {
-          display: flex; align-items: center; gap: 0;
-          border-bottom: 1px solid #1a1f2e; padding: 0 4px;
-          background: transparent;
-        }
-        .composer-tab {
-          border: none; background: transparent; cursor: pointer;
-          font-size: 11px; font-weight: 600; color: #3d4460;
-          padding: 7px 10px;
-          transition: color 0.15s; font-family: inherit;
-          border-bottom: 2px solid transparent; margin-bottom: -1px;
-        }
-        .composer-tab:hover:not(:disabled) { color: #7a849e; }
-        .composer-tab.active { color: #0EA5E9; border-bottom-color: #0EA5E9; }
-        .composer-tab:disabled { opacity: 0.3; cursor: not-allowed; }
-        .composer-fmt { display: none; }
-        .composer-preview {
-          min-height: 64px; background: transparent; padding: 10px 12px;
-          width: 100%; box-sizing: border-box;
-        }
-        .composer-tabs-sm { margin-left: auto; }
-        .modal-label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-        .modal-label-row label { margin-bottom: 0 !important; }
-        .composer-preview-modal {
-          min-height: 120px; background: var(--app-input, #151821); border: 1.5px solid var(--app-border, #1c1f2e);
-          border-radius: 10px; padding: 10px 12px; margin-bottom: 10px;
-          width: 100%; box-sizing: border-box;
-        }
-
-        /* Modal */
-        .modal-overlay { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); }
-        .modal { width: 90%; max-width: 480px; background: var(--app-panel, #0f1117); border: 1px solid var(--app-border, #1c1f2e); border-radius: 14px; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
-        .modal h3 { font-family: var(--serif),serif; font-size: 18px; margin: 0 0 14px; }
-        .modal label { display: block; font-size: 11px; color: var(--muted, #9ba3be); font-weight: 700; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
-        .modal input { width: 100%; box-sizing: border-box; background: var(--app-input, #151821); border: 1.5px solid var(--app-border, #1c1f2e); border-radius: 10px; color: var(--text, #e4e8f4); font-size: 13px; padding: 10px 12px; outline: none; font-family: inherit; line-height: 1.5; transition: border-color 0.15s; margin-bottom: 10px; }
-        .modal input:focus { border-color: #0EA5E9; }
-        .modal textarea { width: 100%; box-sizing: border-box; background: var(--app-input, #151821); border: 1.5px solid var(--app-border, #1c1f2e); border-radius: 10px; color: var(--text, #e4e8f4); font-size: 13px; padding: 10px 12px; outline: none; font-family: inherit; line-height: 1.5; resize: vertical; transition: border-color 0.15s; }
-        .modal textarea:focus { border-color: #0EA5E9; }
-        .modal textarea:disabled { opacity: 0.6; cursor: not-allowed; }
-        .modal-note { font-size: 11px; color: var(--muted, #9ba3be); margin: 8px 0 12px; line-height: 1.5; }
-        .modal-actions { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; }
-        .btn-ghost { border: 1px solid var(--app-border, #1c1f2e); background: var(--app-input, #151821); color: var(--muted, #9ba3be); border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
-        .btn-ghost:hover { color: var(--text, #e4e8f4); border-color: #2d3450; }
-        .btn-primary { border: none; background: #0EA5E9; color: #fff; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(14,165,233,0.3); transition: opacity 0.15s; }
-        .btn-primary:hover:not(:disabled) { opacity: 0.88; }
-        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
-        .btn-danger { border: none; background: #ef4444; color: #fff; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(239,68,68,0.3); transition: opacity 0.15s; }
-        .btn-danger:hover { opacity: 0.88; }
-
-        /* Toasts */
-        .toast-container {
-          position: fixed; bottom: 24px; right: 24px; z-index: 100;
-          display: flex; flex-direction: column; gap: 8px; pointer-events: none;
-        }
-        .toast {
-          padding: 10px 16px; border-radius: 10px; font-size: 13px; font-weight: 600;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.35); animation: toast-in 0.2s ease;
-        }
-        .toast-success { background: rgba(61,214,140,0.12); border: 1px solid rgba(61,214,140,0.3); color: #3dd68c; }
-        .toast-error { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; }
-        @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-
-        /* ── Responsive ── */
-        @media (max-width: 860px) {
-          .content { min-height: calc(100vh - 56px); }
-          .replies-section { flex: 1; }
-          .reply-bar { position: sticky; bottom: 0; background: var(--app-panel, #0f1117); z-index: 5; }
-          .post-actions { opacity: 1; }
-        }
-      `}</style>
     </>
   );
 }
