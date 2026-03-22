@@ -40,6 +40,9 @@ class FeedPreferencesOut(BaseModel):
     hidden_tags: list[str] = Field(default_factory=list)
     muted_user_ids: list[str] = Field(default_factory=list)
     topics_selected: bool = False
+    feed_explore_mode: bool = True
+    feed_following_priority: bool = False
+    feed_include_own: bool = True
 
 
 class PopularTopicOut(BaseModel):
@@ -65,6 +68,9 @@ class FeedPreferencesUpdate(BaseModel):
     interest_tags: list[str] | None = None
     hidden_tags: list[str] | None = None
     muted_user_ids: list[str] | None = None
+    feed_explore_mode: bool | None = None
+    feed_following_priority: bool | None = None
+    feed_include_own: bool | None = None
 
 
 class FeedInterestUpdate(BaseModel):
