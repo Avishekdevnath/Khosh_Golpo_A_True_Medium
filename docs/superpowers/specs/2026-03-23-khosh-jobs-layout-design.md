@@ -51,18 +51,39 @@ app/
 └── (jobs)/
     ├── layout.tsx              ← JobsShell (fully independent, no AppShell)
     └── jobs/
-        ├── page.tsx            → Browse
-        ├── [id]/page.tsx       → Browse with job selected (static segments take priority)
-        ├── saved/page.tsx      → Saved jobs
-        ├── my/page.tsx         → My Posted Jobs
+        ├── page.tsx            → Browse (list + detail via `?job=<id>` query param)
+        ├── [id]/page.tsx       → SEO/share canonical page (SSR job detail; client-side redirects to `/jobs?job=<id>`)
+        ├── saved/page.tsx      → Saved jobs (list + detail via `?job=<id>`)
+        ├── my/page.tsx         → My Posted Jobs (list + detail via `?job=<id>`)
         ├── post/page.tsx       → Post a Job form (create mode); also handles edit mode via `?edit=<id>` query param
-        ├── pipeline/page.tsx   → Kanban Pipeline
-        └── applications/page.tsx → My Applications (candidate)
+        ├── pipeline/page.tsx   → Kanban Pipeline (rail + board via `?job=<id>` to select which job's pipeline)
+        └── applications/page.tsx → My Applications (list + detail via `?app=<id>`)
 ```
 
 > URLs remain `/jobs/*`. Route groups (`(jobs)`) are a Next.js layout-scoping mechanism only and do not appear in the URL.
 
 > **Route priority note:** Next.js gives static segments (`/jobs/saved`, `/jobs/my`, `/jobs/post`, `/jobs/pipeline`, `/jobs/applications`) priority over the dynamic segment (`/jobs/[id]`). The `[id]` page only matches when no static segment matches. Do not add logic to `[id]/page.tsx` that attempts to handle these named routes — they will never reach it.
+
+### URL State Pattern
+
+All three-panel pages use **query params** to track the selected item in the URL:
+
+| Page | Query param | Example |
+|---|---|---|
+| Browse | `?job=<id>` | `/jobs?job=67abc123` |
+| Saved | `?job=<id>` | `/jobs/saved?job=67abc123` |
+| My Posts | `?job=<id>` | `/jobs/my?job=67abc123` |
+| Pipeline | `?job=<id>` | `/jobs/pipeline?job=67abc123` (selects which job's pipeline to show) |
+| Applications | `?app=<id>` | `/jobs/applications?app=67abc123` |
+
+This pattern ensures:
+- Selected item survives browser refresh
+- Deep-linkable and shareable URLs
+- No page transitions when clicking list items (just param update)
+- Browser back/forward cycles through selections
+
+**`/jobs/[id]` — canonical deep-link page:**
+This route exists solely for SEO and external sharing (e.g. posting a job link on social media). It SSR-renders the full job detail as a standalone page. On the client, after hydration, it redirects to `/jobs?job=<id>` to enter the three-panel Browse experience. Do NOT use this route for in-app navigation — all in-app job clicks update the `?job=` query param instead.
 
 ---
 
@@ -454,7 +475,10 @@ When tapping a job card on mobile (navigating to full-screen detail), the detail
 |---|---|
 | `app/(app)/jobs/*` | **DELETE** — entire subtree (page.tsx, [id]/page.tsx, saved/, my/, post/, pipeline/, applications/) moved to `(jobs)` route group |
 | `frontend/src/components/jobs/JobDetailPanel.tsx` | Add `break-words` class to the description `<div>` (line ~206 — `whitespace-pre-wrap` already present, only `break-words` is missing) |
-| `frontend/src/components/jobs/JobsWorkspace.tsx` | **Replace entirely** — current component owns tab state, filter state, selectedJob state, useJobs/useSavedJobs hooks, and handleApplied callback. All of this moves to the new page-level components (`app/(jobs)/jobs/page.tsx` etc.). `JobsWorkspace.tsx` can be deleted once pages are implemented. |
+| `frontend/src/components/jobs/JobsWorkspace.tsx` | **DELETE** — replaced by page-level components under `app/(jobs)/jobs/`. State (tab, filter, selectedJob, hooks) moves to individual pages. |
+| `frontend/src/components/jobs/MyJobsWorkspace.tsx` | **DELETE** — replaced by `app/(jobs)/jobs/my/page.tsx` + `MyJobDetailPanel.tsx` |
+| `frontend/src/components/jobs/MyApplicationsWorkspace.tsx` | **DELETE** — replaced by `app/(jobs)/jobs/applications/page.tsx` |
+| `frontend/src/components/jobs/ApplicationPipelineBoard.tsx` | **DELETE** — replaced by the new `KanbanBoard.tsx` + `KanbanColumn.tsx` + `KanbanCard.tsx` trio. The new components add: jobs rail for multi-job switching, stage-colored column headers, richer card anatomy (days in pipeline, transition count, Move dropdown with View Profile), and rejected-column toggle. |
 
 ---
 
