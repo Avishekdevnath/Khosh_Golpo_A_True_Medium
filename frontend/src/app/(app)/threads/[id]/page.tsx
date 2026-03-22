@@ -20,6 +20,7 @@ type ThreadOut = {
   liked_by_me: boolean;
   status: "open" | "closed" | "archived";
   is_deleted: boolean;
+  image_url?: string | null;
   created_at: string;
   updated_at: string;
 };
