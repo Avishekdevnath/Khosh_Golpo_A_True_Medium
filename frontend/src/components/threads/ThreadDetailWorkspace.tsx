@@ -42,6 +42,7 @@ type ThreadOut = {
   status: ThreadStatus;
   created_at: string;
   updated_at: string;
+  image_url?: string | null;
 };
 
 type PostNode = {

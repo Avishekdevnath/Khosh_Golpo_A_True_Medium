@@ -37,6 +37,7 @@ class ThreadOut(BaseModel):
     ai_score: float | None = None
     is_flagged: bool = False
     is_deleted: bool
+    image_url: str | None = None
     created_at: datetime
     updated_at: datetime
 

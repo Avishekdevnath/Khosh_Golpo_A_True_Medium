@@ -28,6 +28,7 @@ class Thread(Document):
     ai_score: float | None = None
     is_flagged: bool = False
     is_deleted: bool = False
+    image_url: str | None = None
 
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
