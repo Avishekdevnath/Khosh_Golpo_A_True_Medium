@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft, CornerDownRight, Flag, Heart, MessageSquare, MoreHorizontal, Pencil,
-  Send, Trash2, X,
+  Send, Share2, Trash2, X,
 } from "lucide-react";
 
-import WorkspaceShell from "@/components/app/WorkspaceShell";
+import { useFollow } from "@/hooks/useFollow";
+import MoreFromAuthor from "@/components/threads/article/MoreFromAuthor";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api";
 import { profilePathFromUsername, toProfilePath } from "@/lib/profileRouting";
 import { useAuthStore } from "@/store/authStore";
@@ -114,6 +115,28 @@ function wasEdited(createdAt: string, updatedAt: string): boolean {
   const updated = new Date(updatedAt).getTime();
   if (Number.isNaN(created) || Number.isNaN(updated)) return createdAt !== updatedAt;
   return updated - created > 1000;
+}
+
+// ─── Follow button ────────────────────────────────────────────────────────────
+
+function FollowButton({ authorId, size = "sm" }: { authorId: string; size?: "sm" | "md" }) {
+  const { isFollowing, loading, follow, unfollow } = useFollow(authorId);
+  const base = size === "md"
+    ? "px-4 py-1.5 text-[13px] rounded-full font-medium border transition-colors"
+    : "px-3 py-1 text-[12px] rounded-full font-medium border transition-colors";
+  return (
+    <button
+      type="button"
+      disabled={loading}
+      onClick={() => void (isFollowing ? unfollow() : follow())}
+      className={`${base} ${isFollowing
+        ? "border-border text-text-secondary hover:border-destructive hover:text-destructive"
+        : "border-primary text-primary hover:bg-primary hover:text-white"
+      } disabled:opacity-50`}
+    >
+      {loading ? "…" : isFollowing ? "Following" : "Follow"}
+    </button>
+  );
 }
 
 // ─── Post item ────────────────────────────────────────────────────────────────
@@ -553,111 +576,240 @@ export default function ThreadDetailWorkspace({
 
   return (
     <>
-      <WorkspaceShell wrapPanel={false}>
-        <section className="ws-panel content">
+      {/* ── Article page — standalone layout ── */}
+      <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
 
-        {/* Top bar — back + title breadcrumb + status */}
-        <header className="top-bar">
-          <button type="button" className="back-btn" onClick={handleBackNavigation}>
-            <ArrowLeft size={15} /> Back
+        {/* Sticky back bar */}
+        <div className="shrink-0 sticky top-0 z-10 bg-background/90 backdrop-blur-sm border-b border-border flex items-center gap-3 px-4 h-[49px]">
+          <button
+            type="button"
+            onClick={handleBackNavigation}
+            className="flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-foreground transition-colors shrink-0"
+          >
+            <ArrowLeft size={14} />
+            <span>Back</span>
           </button>
-          <span className="top-bar-title">{thread.title}</span>
-          <span className="status-pill" style={{ color: tone.text, background: tone.bg }}>
+          <span className="flex-1 min-w-0 text-[13px] text-text-secondary truncate hidden sm:block">
+            {thread.title}
+          </span>
+          <span
+            className="shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-full"
+            style={{ color: tone.text, background: tone.bg }}
+          >
             {tone.label}
           </span>
-        </header>
+        </div>
 
-        {/* Thread body block */}
-        <div className="thread-block">
-          <div className="thread-row">
-            <UserHoverCard
-              userId={thread.author_id}
-              username={authorUsername || ""}
-              displayName={authorDisplay}
-              bio={null}
+        {/* Scrollable article */}
+        <div className="flex-1 overflow-y-auto ws-scroll">
+          <article className="max-w-[720px] mx-auto px-5 sm:px-8 pt-10 pb-16">
+
+            {/* ── Title ── */}
+            <h1
+              className="text-[2.25rem] sm:text-[2.75rem] font-bold leading-[1.15] text-foreground mb-4 tracking-tight"
+              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
             >
-              <Link href={authorProfileHref} className="thread-av-link" aria-label={`Open profile of ${authorDisplay}`}>
-                <div className="thread-av" style={{ background: `linear-gradient(135deg,${av1},${av2})` }}>
-                  {initials(authorDisplay)}
-                </div>
-              </Link>
-            </UserHoverCard>
-            <div className="thread-info">
-              <div className="thread-head">
-                <div className="thread-meta">
-                  <UserHoverCard
-                    userId={thread.author_id}
-                    username={authorUsername || ""}
-                    displayName={authorDisplay}
-                    bio={null}
-                  >
-                    <Link href={authorProfileHref} className="thread-author-link">
-                      <span className="thread-author">{authorDisplay}</span>
-                      {authorUsername && <span className="thread-username">@{authorUsername}</span>}
-                    </Link>
-                  </UserHoverCard>
-                  <span className="thread-time">{relativeTime(thread.created_at)}</span>
-                  {threadWasEdited && <span className="thread-edited">Edited {relativeTime(thread.updated_at)}</span>}
-                </div>
-                <div className="thread-head-actions">
+              {thread.title}
+            </h1>
+
+            {/* ── Tags ── */}
+            {thread.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-6">
+                {thread.tags.map(t => (
                   <button
+                    key={t}
                     type="button"
-                    className={thread.liked_by_me ? "thread-like liked" : "thread-like"}
-                    onClick={handleThreadLike}
-                    title={user ? (thread.liked_by_me ? "Unlike" : "Like this thread") : "Sign in to like"}
+                    onClick={() => router.push(`/threads?tag=${encodeURIComponent(t)}`)}
+                    className="text-[12px] text-text-secondary bg-card-hover border border-border rounded-full px-3 py-1 hover:text-foreground hover:border-border-strong transition-colors"
                   >
-                    <Heart size={13} fill={thread.liked_by_me ? "currentColor" : "none"} />
-                    {thread.like_count > 0 ? thread.like_count : "Like"}
+                    #{t}
                   </button>
-                  {user && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button type="button" className="thread-menu-btn" aria-label="Thread options" title="Thread options">
-                        <MoreHorizontal size={14} />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      align="end"
-                      sideOffset={6}
-                      className="w-40 border-[#1c1f2e] bg-[#0f1117] text-[#e4e8f4]"
-                    >
-                      {canEditThread && (
-                        <DropdownMenuItem onClick={openThreadEdit}>
-                          <Pencil size={12} /> Edit thread
-                        </DropdownMenuItem>
-                      )}
-                      {!isThreadOwner && (
-                        <DropdownMenuItem onClick={openThreadReport} className="text-[#0EA5E9] focus:text-[#0EA5E9] focus:bg-sky-500/10">
-                          <Flag size={12} /> Report thread
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                ))}
+              </div>
+            )}
+
+            {/* ── Author row ── */}
+            <div className="flex items-center gap-3 mb-5">
+              <UserHoverCard
+                userId={thread.author_id}
+                username={authorUsername || ""}
+                displayName={authorDisplay}
+                bio={null}
+              >
+                <Link href={authorProfileHref} aria-label={`Profile of ${authorDisplay}`}>
+                  <div
+                    className="w-10 h-10 rounded-full shrink-0 flex items-center justify-center text-[13px] font-bold text-white"
+                    style={{ background: `linear-gradient(135deg,${av1},${av2})` }}
+                  >
+                    {initials(authorDisplay)}
+                  </div>
+                </Link>
+              </UserHoverCard>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <Link href={authorProfileHref} className="text-[14px] font-semibold text-foreground hover:underline">
+                    {authorDisplay}
+                  </Link>
+                  {authorUsername && (
+                    <span className="text-[12px] text-text-tertiary">@{authorUsername}</span>
                   )}
                 </div>
+                <p className="text-[12px] text-text-tertiary mt-0.5">
+                  {relativeTime(thread.created_at)}
+                  {threadWasEdited && (
+                    <span className="ml-2 italic">· edited {relativeTime(thread.updated_at)}</span>
+                  )}
+                  {" · "}
+                  {thread.post_count}{" "}
+                  {thread.post_count === 1 ? "reply" : "replies"}
+                </p>
               </div>
-              <h1 className="thread-title">{thread.title}</h1>
-              <RichText content={thread.body} variant="full" className="thread-body-rt" />
-              {thread.tags.length > 0 && (
-                <div className="thread-tags">
-                  {thread.tags.map(t => (
-                    <button
-                      key={t}
-                      type="button"
-                      className="tag"
-                      onClick={() => router.push(`/threads?tag=${encodeURIComponent(t)}`)}
-                    >
-                      #{t}
-                    </button>
-                  ))}
-                </div>
+
+              {user && user.id !== thread.author_id && (
+                <FollowButton authorId={thread.author_id} />
               )}
-              <div className="thread-stats">
-                <span><MessageSquare size={13} /> {thread.post_count} {thread.post_count === 1 ? "reply" : "replies"}</span>
+
+              {user && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className="flex size-7 items-center justify-center rounded-full text-text-tertiary hover:bg-card-hover hover:text-foreground transition-colors"
+                      aria-label="Thread options"
+                    >
+                      <MoreHorizontal size={14} />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" sideOffset={6} className="w-44 border-[#1c1f2e] bg-[#0f1117] text-[#e4e8f4]">
+                    {canEditThread && (
+                      <DropdownMenuItem onClick={openThreadEdit}>
+                        <Pencil size={12} /> Edit thread
+                      </DropdownMenuItem>
+                    )}
+                    {!isThreadOwner && (
+                      <DropdownMenuItem onClick={openThreadReport} className="text-[#0EA5E9] focus:text-[#0EA5E9] focus:bg-sky-500/10">
+                        <Flag size={12} /> Report thread
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
+
+            {/* ── Top reaction bar ── */}
+            <div className="flex items-center justify-between border-t border-b border-border py-2.5 mb-8">
+              <div className="flex items-center gap-5">
+                <button
+                  type="button"
+                  onClick={handleThreadLike}
+                  title={user ? (thread.liked_by_me ? "Unlike" : "Like") : "Sign in to like"}
+                  className={`flex items-center gap-1.5 text-[13px] transition-colors ${
+                    thread.liked_by_me ? "text-red-400" : "text-text-secondary hover:text-foreground"
+                  }`}
+                >
+                  <Heart size={15} fill={thread.liked_by_me ? "currentColor" : "none"} />
+                  <span>{thread.like_count > 0 ? thread.like_count : "Like"}</span>
+                </button>
+                <a
+                  href="#responses"
+                  className="flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-foreground transition-colors"
+                >
+                  <MessageSquare size={15} />
+                  <span>{thread.post_count}</span>
+                </a>
+              </div>
+              <div className="flex items-center gap-2 text-text-tertiary">
+                <button
+                  type="button"
+                  title="Share"
+                  onClick={() => { void navigator.clipboard?.writeText(window.location.href); showToast("Link copied!"); }}
+                  className="flex size-7 items-center justify-center rounded-full hover:bg-card-hover hover:text-foreground transition-colors"
+                >
+                  <Share2 size={14} />
+                </button>
               </div>
             </div>
-          </div>
-        </div>
+
+            {/* ── Hero image (only if image_url exists) ── */}
+            {thread.image_url && (
+              <div className="mb-8 -mx-5 sm:-mx-8 overflow-hidden rounded-sm">
+                <img
+                  src={thread.image_url}
+                  alt=""
+                  className="w-full object-cover max-h-[420px]"
+                />
+              </div>
+            )}
+
+            {/* ── Article body ── */}
+            <div
+              className="mb-10 text-[19px] leading-[1.75] text-foreground [&_p]:mb-5 [&_p:last-child]:mb-0 [&_blockquote]:border-l-[3px] [&_blockquote]:border-border [&_blockquote]:pl-5 [&_blockquote]:italic [&_blockquote]:text-text-secondary [&_code]:text-[0.85em] [&_pre]:overflow-x-auto"
+              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+            >
+              <RichText content={thread.body} variant="full" className="thread-body-rt" />
+            </div>
+
+            {/* ── Bottom reaction bar ── */}
+            <div className="flex items-center justify-between border-t border-b border-border py-2.5 mb-10">
+              <div className="flex items-center gap-5">
+                <button
+                  type="button"
+                  onClick={handleThreadLike}
+                  title={user ? (thread.liked_by_me ? "Unlike" : "Like") : "Sign in to like"}
+                  className={`flex items-center gap-1.5 text-[13px] transition-colors ${
+                    thread.liked_by_me ? "text-red-400" : "text-text-secondary hover:text-foreground"
+                  }`}
+                >
+                  <Heart size={15} fill={thread.liked_by_me ? "currentColor" : "none"} />
+                  <span>{thread.like_count > 0 ? thread.like_count : "Like"}</span>
+                </button>
+                <a
+                  href="#responses"
+                  className="flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-foreground transition-colors"
+                >
+                  <MessageSquare size={15} />
+                  <span>{thread.post_count}</span>
+                </a>
+              </div>
+              <div className="flex items-center gap-2 text-text-tertiary">
+                <button
+                  type="button"
+                  title="Share"
+                  onClick={() => { void navigator.clipboard?.writeText(window.location.href); showToast("Link copied!"); }}
+                  className="flex size-7 items-center justify-center rounded-full hover:bg-card-hover hover:text-foreground transition-colors"
+                >
+                  <Share2 size={14} />
+                </button>
+              </div>
+            </div>
+
+            {/* ── Author bio card ── */}
+            <div className="border border-border rounded-xl p-6 mb-12">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <Link href={authorProfileHref}>
+                    <div
+                      className="w-14 h-14 rounded-full shrink-0 flex items-center justify-center text-[16px] font-bold text-white"
+                      style={{ background: `linear-gradient(135deg,${av1},${av2})` }}
+                    >
+                      {initials(authorDisplay)}
+                    </div>
+                  </Link>
+                  <div>
+                    <Link href={authorProfileHref} className="text-[15px] font-bold text-foreground hover:underline block">
+                      {authorDisplay}
+                    </Link>
+                    {authorUsername && (
+                      <span className="text-[12.5px] text-text-tertiary">@{authorUsername}</span>
+                    )}
+                  </div>
+                </div>
+                {user && user.id !== thread.author_id && (
+                  <FollowButton authorId={thread.author_id} size="md" />
+                )}
+              </div>
+            </div>
 
         {/* Replies */}
         <div className="replies-section ws-scroll">
@@ -764,8 +916,9 @@ export default function ThreadDetailWorkspace({
             </div>
           )}
         </div>
-        </section>
-      </WorkspaceShell>
+          </article>
+        </div>
+      </div>
 
       {/* Thread edit modal */}
       {threadEditOpen && (
