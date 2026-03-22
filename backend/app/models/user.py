@@ -35,6 +35,12 @@ class User(Document):
     interest_tags: list[str] = Field(default_factory=list)
     hidden_tags: list[str] = Field(default_factory=list)
     topics_selected: bool = False
+
+    # Feed customization preferences
+    feed_explore_mode: bool = True        # True = show all threads; False = topics + following only
+    feed_following_priority: bool = False  # True = show following threads first
+    feed_include_own: bool = True          # False = hide user's own threads from feed
+
     admin_notes: list[AdminNote] = Field(default_factory=list)
 
     # Recovery / security questions (all stored hashed)
