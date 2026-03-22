@@ -66,11 +66,11 @@ export default function ProfileHeader({
     <img
       src={publicProfile.user.avatar_url}
       alt={publicProfile.user.display_name}
-      className="size-[200px] rounded-full border-[5px] border-background object-cover shadow-xl max-sm:size-[140px]"
+      className="size-[240px] rounded-full border-[6px] border-background object-cover shadow-xl max-sm:size-[160px]"
     />
   ) : (
     <div
-      className="grid size-[200px] place-items-center rounded-full border-[5px] border-background font-serif text-[60px] font-bold text-white shadow-xl max-sm:size-[140px] max-sm:text-[42px]"
+      className="grid size-[240px] place-items-center rounded-full border-[6px] border-background font-serif text-[72px] font-bold text-white shadow-xl max-sm:size-[160px] max-sm:text-[48px]"
       style={{ background: `linear-gradient(135deg, ${accentA}, ${accentB})` }}
     >
       {initials(publicProfile.user.display_name)}
@@ -108,17 +108,17 @@ export default function ProfileHeader({
           </button>
         </div>
 
-        {/* Avatar — right-side, 1/3 protruding below banner, upper feel */}
-        <div className="absolute bottom-0 right-8 translate-y-1/3 z-10 max-sm:right-4">
+        {/* Avatar — left-side, 1/3 protruding below banner */}
+        <div className="absolute bottom-0 left-7 translate-y-1/3 z-10 max-sm:left-4">
           {avatarEl}
         </div>
       </div>
 
       {/* ── Profile info — pt accounts for avatar protrusion (60px half + 16px gap) ── */}
-      <div className="px-7 pt-[88px] pb-7 max-sm:px-4 max-sm:pt-[64px]">
+      <div className="px-7 pt-[100px] pb-7 max-sm:px-4 max-sm:pt-[72px]">
 
-        {/* Action buttons row — left-aligned, avatar is on the right */}
-        <div className="mb-5 flex items-center justify-start gap-3">
+        {/* Action buttons row — right-aligned */}
+        <div className="mb-5 flex items-center justify-end gap-3">
           {isPrivate && (
             <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-border bg-background/80 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-foreground">
               <Lock size={11} strokeWidth={2.5} />
