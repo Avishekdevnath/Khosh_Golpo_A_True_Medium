@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+
 import { useRouter } from "next/navigation";
 
 import { useAuthStore } from "@/store/authStore";
@@ -13,6 +14,9 @@ import { DetailPanel, CreatePanel } from "@/components/threads/ThreadDetailPanel
 import { useThreadsPage, createEmptyTabState } from "@/components/threads/useThreadsPage";
 import type { TabKey, ThreadOut } from "@/components/threads/useThreadsPage";
 import type { SortMode } from "@/types/feed";
+import DiscoveryPanel from "@/components/threads/DiscoveryPanel";
+import { useFeedPreferences } from "@/hooks/useFeedPreferences";
+import FeedCustomizePanel from "@/components/threads/FeedCustomizePanel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -27,11 +31,17 @@ export default function ThreadsWorkspace() {
   // Layout state
   const [rightPanel, setRightPanel] = useState<RightPanel>("detail");
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
+  const [customizeOpen, setCustomizeOpen] = useState(false);
+
+  // Feed preferences (logged-in only)
+  const { prefs, saving: prefsSaving, savePrefs } = useFeedPreferences();
 
   // Filter state
-  const [tab, setTab] = useState<TabKey>("MyFeed");
+  const [tab, setTab] = useState<TabKey>("Explore");
   const [sortMode, setSortMode] = useState<SortMode>("recent");
-  const [topicsSkipped, setTopicsSkipped] = useState(false);
+  const [topicsSkipped, setTopicsSkipped] = useState(() =>
+    typeof window !== "undefined" && localStorage.getItem("kg_topics_skipped") === "true"
+  );
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const searchInputId = useId();
@@ -39,15 +49,10 @@ export default function ThreadsWorkspace() {
   const { selectedTopics, topicsSelected, availableTopics, loading: topicsLoading, saving: topicsSaving, saveTopics } = useUserTopics();
 
   const tabOptions: Array<{ key: TabKey; label: string }> = [
-    { key: "MyFeed", label: selectedTopics.length > 0 ? `My Feed (${selectedTopics.length})` : "My Feed" },
-    { key: "Following", label: "Following" },
     { key: "Explore", label: "Explore" },
-    { key: "Mine", label: "Mine" },
   ];
 
-  const enabledTabs = user?.id
-    ? tabOptions.map(t => t.key)
-    : tabOptions.filter(t => t.key !== "Mine" && t.key !== "MyFeed").map(t => t.key);
+  const enabledTabs: TabKey[] = ["Explore"];
 
   // Debounce search
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -59,6 +64,13 @@ export default function ThreadsWorkspace() {
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [search]);
 
+  // Build explore options from user prefs (guests get defaults — no filtering)
+  const exploreOptions = user?.id ? {
+    topicsOnly: !prefs.feed_explore_mode && prefs.interest_tags.length > 0,
+    excludeOwn: !prefs.feed_include_own,
+    followingPriority: prefs.feed_following_priority,
+  } : {};
+
   // Data + mutations via hook
   const {
     tabState,
@@ -69,7 +81,7 @@ export default function ThreadsWorkspace() {
     handleThreadCreated: hookThreadCreated,
     handleThreadUpdated,
     handleThreadDeleted,
-  } = useThreadsPage(tab, setTab, sortMode, debouncedSearch, topicsSelected, topicsSkipped, setTopicsSkipped);
+  } = useThreadsPage(tab, setTab, sortMode, debouncedSearch, topicsSelected, topicsSkipped, setTopicsSkipped, topicsLoading, exploreOptions);
 
   // Resizable columns (desktop only)
   const { width: listW, onDragStart: onListDragStart } = useDragResize(420, 420, 600);
@@ -99,11 +111,29 @@ export default function ThreadsWorkspace() {
     });
   }, [tab]);
 
+  // Reset Explore tab when feed preferences change so the feed reloads
+  const prevPrefsRef = useRef(prefs);
+  useEffect(() => {
+    const prev = prevPrefsRef.current;
+    const changed =
+      prev.feed_explore_mode !== prefs.feed_explore_mode ||
+      prev.feed_following_priority !== prefs.feed_following_priority ||
+      prev.feed_include_own !== prefs.feed_include_own ||
+      prev.interest_tags.join() !== prefs.interest_tags.join();
+    if (changed) {
+      setTabBucket("Explore", () => createEmptyTabState());
+    }
+    prevPrefsRef.current = prefs;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefs]);
+
   // Derived
   const currentTabState = tabState[tab];
   const threads = currentTabState.threads;
-  const loading = currentTabState.loading || !currentTabState.hasFetched;
-  const initialLoad = loading && threads.length === 0;
+  // Don't count "waiting for topic selection" as a loading state — it should render the topic picker, not a spinner
+  const awaitingTopicSelection = tab === "MyFeed" && !topicsLoading && !topicsSelected && !topicsSkipped;
+  const loading = currentTabState.loading || (!currentTabState.hasFetched && !awaitingTopicSelection);
+  const initialLoad = loading && threads.length === 0 && !topicsLoading;
   const detailOpen = activeThreadId !== null || rightPanel === "create";
   const contentColumns = detailOpen ? `${listW}px 6px 1fr` : "1fr";
   const activeThread = threads.find(t => t.id === activeThreadId) ?? null;
@@ -150,6 +180,7 @@ export default function ThreadsWorkspace() {
   if (initialLoad) return <PageLoader />;
 
   return (
+    <div className="flex flex-1 min-h-0 overflow-hidden">
     <WorkspaceShell wrapPanel={false} sidebarProps={{ hideChannels: true }} contentColumns={contentColumns}>
 
         {/* ── Thread list panel ── */}
@@ -160,8 +191,6 @@ export default function ThreadsWorkspace() {
           sortMode={sortMode}
           setSortMode={setSortMode}
           search={search}
-          setSearch={setSearch}
-          searchInputId={searchInputId}
           tabState={tabState}
           topRefreshing={topRefreshing}
           activeThreadId={activeThreadId}
@@ -177,11 +206,13 @@ export default function ThreadsWorkspace() {
           onLoadMore={loadMore}
           onSaveTopics={(topics) => { void saveTopics(topics); }}
           onSkipTopics={() => {
+            localStorage.setItem("kg_topics_skipped", "true");
             setTopicsSkipped(true);
             setTabBucket("MyFeed", () => createEmptyTabState());
           }}
           setTabBucket={setTabBucket}
           listPanelRef={listPanelRef}
+          onOpenCustomize={user?.id ? () => setCustomizeOpen(v => !v) : undefined}
         />
 
         {/* ── Drag handle ── */}
@@ -217,5 +248,28 @@ export default function ThreadsWorkspace() {
           </aside>
         )}
     </WorkspaceShell>
+
+      {/* ── Discovery panel (xl screens) ── */}
+      {!detailOpen && (
+        <DiscoveryPanel
+          onTagClick={(tag) => {
+            setSearch(tag);
+            handleTabClick("Explore");
+          }}
+        />
+      )}
+
+      {/* ── Feed customize panel ── */}
+      {user?.id && (
+        <FeedCustomizePanel
+          open={customizeOpen}
+          onClose={() => setCustomizeOpen(false)}
+          prefs={prefs}
+          saving={prefsSaving}
+          availableTopics={availableTopics}
+          onSave={(patch) => { void savePrefs(patch); }}
+        />
+      )}
+    </div>
   );
 }

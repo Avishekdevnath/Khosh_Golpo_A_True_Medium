@@ -297,6 +297,9 @@ async def get_explore_feed(
             .to_list()
         )
 
+    # Capture DB-fetch count before post-fetch filtering for correct cursor arithmetic
+    raw_count = len(threads)
+
     if muted_ids:
         threads = [t for t in threads if str(t.author_id) not in muted_ids]
 
@@ -311,7 +314,7 @@ async def get_explore_feed(
 
     author_lookup = await _load_author_lookup({t.author_id for t in threads})
     data = [_to_feed_item(t, author_lookup.get(str(t.author_id)), 0.0, []) for t in threads]
-    next_cursor = _encode_cursor(offset + limit) if len(threads) == limit else None
+    next_cursor = _encode_cursor(offset + limit) if raw_count == limit else None
     return FeedListResponse(data=data, limit=limit, next_cursor=next_cursor, mode="home")
 
 

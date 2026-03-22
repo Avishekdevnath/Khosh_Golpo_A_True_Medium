@@ -5,19 +5,12 @@ import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useRef } from "react";
 import {
   Bookmark,
-  Clock,
-  Compass,
-  FileText,
   Heart,
   MessageSquare,
   MoreHorizontal,
-  Newspaper,
   PenLine,
   RefreshCw,
-  Search,
-  TrendingUp,
-  UserCheck,
-  X,
+  SlidersHorizontal,
 } from "lucide-react";
 
 import { useAuthStore } from "@/store/authStore";
@@ -40,8 +33,6 @@ export type ThreadListPanelProps = {
   sortMode: SortMode;
   setSortMode: (mode: SortMode) => void;
   search: string;
-  setSearch: (s: string) => void;
-  searchInputId: string;
   tabState: Record<TabKey, TabState>;
   topRefreshing: Record<TabKey, boolean>;
   activeThreadId: string | null;
@@ -59,16 +50,11 @@ export type ThreadListPanelProps = {
   onSkipTopics: () => void;
   setTabBucket: (tabKey: TabKey, next: (state: TabState) => TabState) => void;
   listPanelRef: React.RefObject<HTMLDivElement | null>;
+  onOpenCustomize?: () => void;
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const TAB_ICONS: Record<TabKey, React.ComponentType<{ size?: number; className?: string }>> = {
-  MyFeed:    Newspaper,
-  Following: UserCheck,
-  Explore:   Compass,
-  Mine:      FileText,
-};
 
 function formatDate(value: string): string {
   const d = new Date(value);
@@ -146,8 +132,6 @@ export default function ThreadListPanel({
   sortMode,
   setSortMode,
   search,
-  setSearch,
-  searchInputId,
   tabState,
   topRefreshing,
   activeThreadId,
@@ -165,14 +149,10 @@ export default function ThreadListPanel({
   onSkipTopics,
   setTabBucket,
   listPanelRef,
+  onOpenCustomize,
 }: ThreadListPanelProps) {
   const { user } = useAuthStore();
-  const tabButtonRefs = useRef<Record<TabKey, HTMLButtonElement | null>>({
-    MyFeed: null,
-    Following: null,
-    Explore: null,
-    Mine: null,
-  });
+  const tabButtonRefs = useRef<Partial<Record<TabKey, HTMLButtonElement | null>>>({});
 
   const currentTabState = tabState[tab];
   const threads = currentTabState.threads;
@@ -207,95 +187,45 @@ export default function ThreadListPanel({
       {/* ── Sticky tab bar ── */}
       <div className="shrink-0 bg-background sticky top-0 z-10">
 
-        {/* Search bar — Mine tab only */}
-        {tab === "Mine" && (
-          <div className="px-6 pt-3">
-            <label
-              className="flex cursor-text items-center gap-2 rounded-full border border-border bg-card px-4 py-2 transition-all duration-150 focus-within:border-primary focus-within:shadow-[0_0_0_3px_rgba(14,165,233,0.1)]"
-              htmlFor={searchInputId}
-            >
-              <Search size={13} className="shrink-0 text-text-tertiary" aria-hidden="true" />
-              <input
-                id={searchInputId}
-                placeholder="Search your threads..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="flex-1 border-none bg-transparent font-sans text-[13px] text-foreground outline-none placeholder:text-text-tertiary"
-              />
-              {search && (
-                <button
-                  type="button"
-                  aria-label="Clear search"
-                  onClick={() => setSearch("")}
-                  className="flex cursor-pointer border-none bg-transparent p-0.5 text-text-tertiary transition-colors hover:text-foreground"
-                >
-                  <X size={11} />
-                </button>
-              )}
-            </label>
-          </div>
-        )}
 
-        {/* Tabs row */}
+        {/* Tabs row — hidden when only one tab */}
         <div className="flex items-center px-6" role="tablist" aria-label="Thread filters">
-          {tabOptions.map(({ key, label }) => {
-            const TabIcon = TAB_ICONS[key];
-            return (
-              <button
-                key={key}
-                type="button"
-                className={`whitespace-nowrap border-x-0 border-t-0 border-b-2 bg-transparent p-0 py-[14px] mr-4 sm:mr-6 font-sans text-[14px] transition-all duration-150 focus-visible:rounded outline-offset-2 focus-visible:outline-2 focus-visible:outline-primary/45 disabled:cursor-not-allowed disabled:opacity-40 ${
-                  tab === key
-                    ? "border-b-foreground text-foreground font-medium"
-                    : "border-b-transparent text-text-secondary font-normal hover:text-foreground"
-                }`}
-                onClick={() => onTabClick(key)}
-                onKeyDown={e => handleTabKeyDown(e, key)}
-                ref={node => { tabButtonRefs.current[key] = node; }}
-                role="tab"
-                id={`threads-tab-${key.toLowerCase()}`}
-                aria-selected={tab === key}
-                aria-controls="threads-list-panel"
-                tabIndex={tab === key ? 0 : -1}
-                disabled={(key === "Mine" || key === "MyFeed") && !user?.id}
-                title={label}
-              >
-                <TabIcon size={16} className="sm:hidden" />
-                <span className="hidden sm:inline">{label}</span>
-              </button>
-            );
-          })}
-
-          {/* Sort + refresh + compose */}
-          <div className="ml-auto flex items-center gap-1 py-2">
+          {tabOptions.length > 1 && tabOptions.map(({ key, label }) => (
             <button
+              key={key}
               type="button"
-              className="flex size-7 items-center justify-center rounded-md text-text-tertiary transition-all duration-150 hover:bg-card-hover hover:text-foreground"
-              onClick={onNewThreadClick}
-              title="New thread"
-              aria-label="New thread"
+              className={`whitespace-nowrap border-x-0 border-t-0 border-b-2 bg-transparent p-0 py-[14px] mr-5 font-sans text-[13.5px] transition-all duration-150 focus-visible:rounded outline-offset-2 focus-visible:outline-2 focus-visible:outline-primary/45 disabled:cursor-not-allowed disabled:opacity-40 ${
+                tab === key
+                  ? "border-b-foreground text-foreground font-semibold"
+                  : "border-b-transparent text-text-secondary font-normal hover:text-foreground"
+              }`}
+              onClick={() => onTabClick(key)}
+              onKeyDown={e => handleTabKeyDown(e, key)}
+              ref={node => { tabButtonRefs.current[key] = node; }}
+              role="tab"
+              id={`threads-tab-${key.toLowerCase()}`}
+              aria-selected={tab === key}
+              aria-controls="threads-list-panel"
+              tabIndex={tab === key ? 0 : -1}
+              disabled={key === "MyFeed" && !user?.id}
+              title={label}
             >
-              <PenLine size={13} />
+              {label}
             </button>
+          ))}
+
+          {/* Actions */}
+          <div className="ml-auto flex items-center gap-1 py-2">
             {isSortableTab && (
-              <>
-                <button
-                  type="button"
-                  className={`flex size-7 items-center justify-center rounded-md transition-all duration-150 ${sortMode === "recent" ? "bg-primary/10 text-primary" : "text-text-tertiary hover:bg-card-hover hover:text-foreground"}`}
-                  onClick={() => setSortMode("recent")}
-                  title="Most Recent"
-                >
-                  <Clock size={13} />
-                </button>
-                <button
-                  type="button"
-                  className={`flex size-7 items-center justify-center rounded-md transition-all duration-150 ${sortMode === "trending" ? "bg-primary/10 text-primary" : "text-text-tertiary hover:bg-card-hover hover:text-foreground"}`}
-                  onClick={() => setSortMode("trending")}
-                  title="Trending"
-                >
-                  <TrendingUp size={13} />
-                </button>
-              </>
+              <select
+                value={sortMode}
+                onChange={e => setSortMode(e.target.value as SortMode)}
+                className="h-7 rounded-md border border-border bg-transparent px-2 font-sans text-[12px] text-text-secondary cursor-pointer transition-colors hover:border-border-strong hover:text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+                aria-label="Sort threads"
+              >
+                <option value="recent">Recent</option>
+                <option value="trending">Trending</option>
+              </select>
             )}
             {isFeedTab && (
               <button
@@ -309,6 +239,26 @@ export default function ThreadListPanel({
                 <RefreshCw size={13} className={topRefreshing[tab] ? "animate-spin" : undefined} />
               </button>
             )}
+            {onOpenCustomize && (
+              <button
+                type="button"
+                className="flex size-7 items-center justify-center rounded-md text-text-tertiary transition-all duration-150 hover:bg-card-hover hover:text-foreground"
+                onClick={onOpenCustomize}
+                title="Customize feed"
+                aria-label="Customize feed"
+              >
+                <SlidersHorizontal size={13} />
+              </button>
+            )}
+            <button
+              type="button"
+              className="flex size-7 items-center justify-center rounded-md text-text-tertiary transition-all duration-150 hover:bg-card-hover hover:text-foreground"
+              onClick={onNewThreadClick}
+              title="New thread"
+              aria-label="New thread"
+            >
+              <PenLine size={13} />
+            </button>
           </div>
         </div>
       </div>
@@ -336,8 +286,8 @@ export default function ThreadListPanel({
               availableTopics={availableTopics}
               loading={topicsLoading}
               saving={topicsSaving}
-              onSave={async (topics) => {
-                await onSaveTopics(topics);
+              onSave={(topics) => {
+                onSaveTopics(topics);
                 setTabBucket("MyFeed", () => createEmptyTabState());
               }}
               onSkip={onSkipTopics}

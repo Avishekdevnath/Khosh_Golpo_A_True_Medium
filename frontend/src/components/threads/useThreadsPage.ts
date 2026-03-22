@@ -131,6 +131,12 @@ export type UseThreadsPageReturn = {
   mineAuthorId: string;
 };
 
+export type ExploreOptions = {
+  topicsOnly?: boolean;
+  excludeOwn?: boolean;
+  followingPriority?: boolean;
+};
+
 export function useThreadsPage(
   tab: TabKey,
   setTab: (tab: TabKey) => void,
@@ -139,6 +145,8 @@ export function useThreadsPage(
   topicsSelected: boolean,
   topicsSkipped: boolean,
   setTopicsSkipped: (v: boolean) => void,
+  topicsLoading: boolean,
+  exploreOptions: ExploreOptions = {},
 ): Omit<UseThreadsPageReturn, "tab" | "setTab" | "sortMode" | "setSortMode" | "topicsSkipped" | "setTopicsSkipped"> {
   const { user } = useAuthStore();
 
@@ -183,7 +191,7 @@ export function useThreadsPage(
       return { threads, total: threads.length, nextCursor: res.next_cursor, page: 1 };
     }
     if (tabKey === "Explore") {
-      const res = await getExploreFeed(sortMode, { limit: PAGE_SIZE });
+      const res = await getExploreFeed(sortMode, { limit: PAGE_SIZE, ...exploreOptions });
       const threads = toThreadOutList(res.data);
       return { threads, total: threads.length, nextCursor: res.next_cursor, page: 1 };
     }
@@ -226,11 +234,12 @@ export function useThreadsPage(
   // Auto-fetch on tab switch
   useEffect(() => {
     if (tab === "Mine") return;
-    if (tab === "MyFeed" && !topicsSelected && !topicsSkipped) return;
+    if (tab === "MyFeed" && topicsLoading) return; // wait for topics to resolve
+    if (tab === "MyFeed" && !topicsSelected && !topicsSkipped) return; // show topic picker
     if (tabState[tab].hasFetched) return;
     void loadFirstPage(tab);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, tabState.MyFeed.hasFetched, tabState.Following.hasFetched, tabState.Explore.hasFetched, topicsSelected, topicsSkipped]);
+  }, [tab, tabState.MyFeed.hasFetched, tabState.Following.hasFetched, tabState.Explore.hasFetched, topicsSelected, topicsSkipped, topicsLoading]);
 
   // Reload MyFeed/Explore when sortMode changes
   useEffect(() => {
@@ -251,7 +260,7 @@ export function useThreadsPage(
 
   // Redirect away from protected tabs when logged out
   useEffect(() => {
-    if (!user?.id && (tab === "Mine" || tab === "MyFeed")) {
+    if (!user?.id && (tab === "Mine" || tab === "MyFeed" || tab === "Following")) {
       setTab("Explore");
     }
   }, [tab, user?.id, setTab]);
@@ -291,7 +300,7 @@ export function useThreadsPage(
         nextThreads = toThreadOutList(res.data);
         nextCursor = res.next_cursor;
       } else if (tab === "Explore") {
-        const res = await getExploreFeed(sortMode, { cursor: current.nextCursor, limit: PAGE_SIZE });
+        const res = await getExploreFeed(sortMode, { cursor: current.nextCursor, limit: PAGE_SIZE, ...exploreOptions });
         nextThreads = toThreadOutList(res.data);
         nextCursor = res.next_cursor;
       } else {
