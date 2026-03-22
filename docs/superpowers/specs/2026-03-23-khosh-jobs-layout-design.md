@@ -52,14 +52,17 @@ app/
     ├── layout.tsx              ← JobsShell (fully independent, no AppShell)
     └── jobs/
         ├── page.tsx            → Browse
-        ├── [id]/page.tsx       → Browse with job selected
+        ├── [id]/page.tsx       → Browse with job selected (static segments take priority)
         ├── saved/page.tsx      → Saved jobs
         ├── my/page.tsx         → My Posted Jobs
+        ├── post/page.tsx       → Post a Job form
         ├── pipeline/page.tsx   → Kanban Pipeline
         └── applications/page.tsx → My Applications (candidate)
 ```
 
 > URLs remain `/jobs/*`. Route groups (`(jobs)`) are a Next.js layout-scoping mechanism only and do not appear in the URL.
+
+> **Route priority note:** Next.js gives static segments (`/jobs/saved`, `/jobs/my`, `/jobs/post`, `/jobs/pipeline`, `/jobs/applications`) priority over the dynamic segment (`/jobs/[id]`). The `[id]` page only matches when no static segment matches. Do not add logic to `[id]/page.tsx` that attempts to handle these named routes — they will never reach it.
 
 ---
 
@@ -71,7 +74,7 @@ app/
 <JobsShell>
   <JobsTopBar />                   ← sticky h-14, contextual per route
   <div class="flex h-[calc(100dvh-3.5rem)]">
-    <JobsSidebar />                ← w-[220px] desktop; w-[56px] on pipeline; hidden on mobile
+    <JobsSidebar />                ← w-[220px] at ≥1280px non-pipeline; w-[56px] at 860–1279px OR pipeline route; hidden on mobile
     <main class="flex-1 overflow-hidden">
       {children}
     </main>
@@ -163,10 +166,12 @@ Applies to Browse, Saved, and Applied routes.
 | `860–1279px` | `56px` | `320px` | `flex-1` (~500px+) |
 | `<860px` | hidden | full-screen (list or detail) | full-screen (list or detail) |
 
+> **Width change from existing code:** `JobsWorkspace.tsx` currently uses `w-[320px]`. This spec deliberately reduces the list panel to `w-[300px]` to give the detail panel more breathing room. This is an intentional design decision.
+
 **List Panel (`w-[300px]`, independently scrollable):**
 
 - Sticky list header: result count + `[Filters]` button; when filters are active the button reads `[Filters · 2]` (count of active filters).
-- Filters open in a **slide-in drawer from the left** on desktop; **bottom sheet** on mobile.
+- Filters open in a **slide-down panel within the list column** on desktop (drops below the list header, pushes cards down); **bottom sheet** on mobile.
 - `JobCard` list — clicking a card updates the URL to `?job=<id>` and highlights the card.
 - On initial page load, the first job is auto-selected (no empty detail state on first visit).
 
@@ -239,7 +244,17 @@ Pipeline breaks the list/detail split pattern and uses its own three-zone layout
 
 **Kanban Card behavior:**
 
-- `[Move ▼]` dropdown: "View Profile" listed first, then a divider, then valid next stages only (respects the `STAGE_TRANSITIONS` map — no illegal transitions shown).
+- `[Move ▼]` dropdown: "View Profile" listed first, then a divider, then valid next stages only. Valid transitions are defined in `backend/app/models/job_application.py` and must be mirrored as a frontend constant in `frontend/src/lib/jobsApi.ts`:
+  ```
+  applied    → screening, rejected
+  screening  → interview, rejected
+  interview  → offer, rejected
+  offer      → hired, rejected
+  hired      → (terminal)
+  rejected   → (terminal)
+  withdrawn  → (terminal)
+  ```
+  Do not show terminal-stage targets that the current stage cannot transition to.
 - **Terminal stages** (Hired / Rejected): replace `[Move ▼]` with a status badge — no move action available.
 
 **Stage transition animation:**
@@ -282,6 +297,29 @@ Three items only — no overflow menu.
 - Kanban columns collapse into **accordion sections**.
 - `Applied` accordion defaults open; others closed.
 - Cards within each accordion use the same anatomy as desktop Kanban cards.
+
+### 6. Empty States
+
+Each sub-page must define its own empty state. The detail panel empty state is only shown when the job list itself is empty.
+
+| Page | Empty State |
+|---|---|
+| Browse (no results) | Centered icon + "No jobs found" + "Clear filters" button |
+| Browse (list empty, no filters) | Centered icon + "No jobs posted yet" |
+| Saved (no saved jobs) | Centered Bookmark icon + "No saved jobs yet" + "Browse Jobs" CTA |
+| My Posts (never posted) | Centered Briefcase icon + "You haven't posted any jobs" + "+ Post a Job" CTA |
+| Applied (no applications) | Centered FileText icon + "No applications yet" + "Browse Jobs" CTA |
+| Pipeline (no applicants for selected job) | Centered Users icon + "No applicants yet for this job" |
+
+---
+
+### 7. Mobile Back Navigation
+
+On mobile (`<860px`), within-Jobs navigation uses the tab bar. The `← KhoshGolpo` in the top bar always navigates to `/threads` (exit Jobs entirely).
+
+When a user deep-links directly to a sub-page (e.g. `/jobs/pipeline`) on mobile with no prior navigation history, the tab bar provides the navigation context — there is no additional back button needed within the Jobs shell itself.
+
+When tapping a job card on mobile (navigating to full-screen detail), the detail view renders a `← Back` button that calls `router.back()` — returning to whichever list the user came from (Browse, Saved, or Applied), not a hardcoded route.
 
 ---
 
@@ -344,6 +382,7 @@ Three items only — no overflow menu.
 | `app/(jobs)/jobs/saved/page.tsx` | Saved jobs |
 | `app/(jobs)/jobs/my/page.tsx` | My Posted Jobs |
 | `app/(jobs)/jobs/pipeline/page.tsx` | Kanban Pipeline |
+| `app/(jobs)/jobs/post/page.tsx` | Post a Job form |
 | `app/(jobs)/jobs/applications/page.tsx` | My Applications (candidate) |
 | `frontend/src/components/jobs/layout/JobsShell.tsx` | Shell wrapper component |
 | `frontend/src/components/jobs/layout/JobsTopBar.tsx` | Contextual top bar |
@@ -358,9 +397,9 @@ Three items only — no overflow menu.
 
 | File | Change |
 |---|---|
-| `app/(app)/jobs/*` | **DELETE** — entire subtree moved to `(jobs)` route group |
-| `frontend/src/components/jobs/JobDetailPanel.tsx` | Add `whitespace-pre-wrap break-words` to description container |
-| `frontend/src/components/jobs/JobsWorkspace.tsx` | Refactor: extract list panel logic into `JobsListPanel`; keep existing sub-components |
+| `app/(app)/jobs/*` | **DELETE** — entire subtree (page.tsx, [id]/page.tsx, saved/, my/, post/, pipeline/, applications/) moved to `(jobs)` route group |
+| `frontend/src/components/jobs/JobDetailPanel.tsx` | Add `break-words` class to the description `<div>` (line ~206 — `whitespace-pre-wrap` already present, only `break-words` is missing) |
+| `frontend/src/components/jobs/JobsWorkspace.tsx` | **Replace entirely** — current component owns tab state, filter state, selectedJob state, useJobs/useSavedJobs hooks, and handleApplied callback. All of this moves to the new page-level components (`app/(jobs)/jobs/page.tsx` etc.). `JobsWorkspace.tsx` can be deleted once pages are implemented. |
 
 ---
 
