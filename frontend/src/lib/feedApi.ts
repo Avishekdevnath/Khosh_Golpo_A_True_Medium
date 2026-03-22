@@ -10,6 +10,14 @@ import type {
   SortMode,
 } from "@/types/feed";
 
+export type ExploreFeedOptions = {
+  limit?: number;
+  cursor?: string;
+  topicsOnly?: boolean;
+  excludeOwn?: boolean;
+  followingPriority?: boolean;
+};
+
 function withCursor(path: string, limit: number, cursor?: string | null): string {
   const params = new URLSearchParams({ limit: String(limit) });
   if (cursor) {
@@ -31,7 +39,14 @@ export async function getFeedPreferences(): Promise<FeedPreferences> {
   return apiGet<FeedPreferences>("feed/preferences");
 }
 
-export async function updateFeedPreferences(payload: FeedPreferencesUpdate): Promise<FeedPreferences> {
+export async function updateFeedPreferences(payload: Partial<{
+  interest_tags: string[];
+  hidden_tags: string[];
+  muted_user_ids: string[];
+  feed_explore_mode: boolean;
+  feed_following_priority: boolean;
+  feed_include_own: boolean;
+}>): Promise<FeedPreferences> {
   return apiPatch<FeedPreferences>("feed/preferences", payload);
 }
 
@@ -62,9 +77,13 @@ export async function getMyFeed(
 
 export async function getExploreFeed(
   sort: SortMode = "recent",
-  options: { cursor?: string | null; limit?: number } = {},
+  options: ExploreFeedOptions = {},
 ): Promise<FeedListResponse> {
-  const params = new URLSearchParams({ sort, limit: String(options.limit ?? 20) });
-  if (options.cursor) params.set("cursor", options.cursor);
+  const { limit = 20, cursor, topicsOnly, excludeOwn, followingPriority } = options;
+  const params = new URLSearchParams({ sort, limit: String(limit) });
+  if (cursor) params.set("cursor", cursor);
+  if (topicsOnly) params.set("topics_only", "true");
+  if (excludeOwn) params.set("exclude_own", "true");
+  if (followingPriority) params.set("following_priority", "true");
   return apiGet<FeedListResponse>(`feed/explore?${params.toString()}`);
 }
