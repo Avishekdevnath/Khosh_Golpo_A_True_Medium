@@ -811,6 +811,8 @@ export default function ThreadDetailWorkspace({
               </div>
             </div>
 
+        </article>
+
         {/* Replies */}
         <div className="replies-section ws-scroll">
           <div className="replies-header">
@@ -916,7 +918,6 @@ export default function ThreadDetailWorkspace({
             </div>
           )}
         </div>
-          </article>
         </div>
       </div>
 
