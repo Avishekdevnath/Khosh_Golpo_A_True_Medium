@@ -58,6 +58,9 @@ export interface FeedPreferencesUpdate {
   interest_tags?: string[];
   hidden_tags?: string[];
   muted_user_ids?: string[];
+  feed_explore_mode?: boolean;
+  feed_following_priority?: boolean;
+  feed_include_own?: boolean;
 }
 
 export interface FeedExplainResponse {
