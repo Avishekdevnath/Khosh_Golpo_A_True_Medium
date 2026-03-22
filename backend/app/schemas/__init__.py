@@ -160,3 +160,17 @@ __all__ = [
     "UserOut",
     "UserUpdate",
 ]
+
+from app.schemas.job import (
+    JobPostCreate,
+    JobPostUpdate,
+    JobPostOut,
+    JobListResponse,
+    ApplicationCreate,
+    StageMove,
+    ApplicationOut,
+    ApplicationListResponse,
+    MyApplicationOut,
+    JobReportCreate,
+    JobReportOut,
+)
