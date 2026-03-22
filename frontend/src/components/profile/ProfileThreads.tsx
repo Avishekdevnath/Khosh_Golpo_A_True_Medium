@@ -6,7 +6,8 @@ import { MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
-import type { ThreadOut, UserOut } from "./useUserProfile";
+import type { ThreadOut } from "@/lib/profileApi";
+import type { ProfileUserSummary } from "@/lib/profileViewModel";
 import { relativeTime } from "@/lib/workspaceUtils";
 
 // ─── Thread status config ──────────────────────────────────────────────────────
@@ -87,7 +88,7 @@ interface ProfileThreadsProps {
   threads: ThreadOut[];
   threadTotal: number;
   threadsLoading: boolean;
-  profileUser: UserOut;
+  profileUser: ProfileUserSummary;
   isOwnProfile: boolean;
 }
 

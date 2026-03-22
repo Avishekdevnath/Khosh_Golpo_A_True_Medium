@@ -1,92 +1,40 @@
-// frontend/src/components/profile/useUserProfile.ts
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+
 import { apiGet, apiPatch } from "@/lib/api";
 import { getFollowStatus } from "@/lib/followApi";
 import {
-  getUserReplies,
+  getPublicProfile,
   getSavedThreads,
-  getReadHistory,
-  setProfilePrivacy,
+  getUserReplies,
+  type PublicProfilePayload,
+  type ThreadListResponse,
+  type ThreadOut,
+  updateProfileBasics,
 } from "@/lib/profileApi";
+import type { ProfileTabKey } from "@/lib/profileViewModel";
 
-// ─── Shared types ──────────────────────────────────────────────────────────────
-
-export type UserOut = {
-  id: string;
-  username: string;
-  email: string;
-  display_name: string;
-  bio: string | null;
-  role: "member" | "moderator" | "admin";
-  is_active: boolean;
-  is_bot?: boolean;
-  is_private?: boolean;
-  is_locked?: boolean;
-  avatar_seed?: string[];
-  first_name?: string | null;
-  last_name?: string | null;
-  gender?: string | null;
-  created_at: string;
-  updated_at: string;
-};
-
-export type ThreadOut = {
-  id: string;
-  title: string;
-  body: string;
-  tags: string[];
-  author_id: string;
-  post_count: number;
-  status: "open" | "closed" | "archived";
-  is_deleted: boolean;
-  created_at: string;
-  updated_at: string;
-};
-
-export type ThreadListResponse = {
-  data: ThreadOut[];
-  page: number;
-  limit: number;
-  total: number;
-};
-
-export type ProfileTab = "threads" | "replies" | "saved" | "history";
-
-// ─── Hook ─────────────────────────────────────────────────────────────────────
+export type ProfileTab = ProfileTabKey;
 
 export interface UseUserProfileReturn {
-  profileUser: UserOut | null;
+  publicProfile: PublicProfilePayload | null;
+  profileUser: PublicProfilePayload["user"] | null;
   threads: ThreadOut[];
   threadTotal: number;
   loading: boolean;
   error: string | null;
   threadsLoading: boolean;
-
-  // Tabs
   activeTab: ProfileTab;
   setActiveTab: (tab: ProfileTab) => void;
-
-  // Replies tab
   replies: ThreadOut[];
   repliesLoading: boolean;
   repliesLoaded: boolean;
-
-  // Saved tab
   savedThreads: ThreadOut[];
   savedLoading: boolean;
   savedLoaded: boolean;
-
-  // History tab
-  readHistory: ThreadOut[];
-  historyLoading: boolean;
-  historyLoaded: boolean;
-
-  // Privacy
   isPrivate: boolean;
   togglePrivacy: () => Promise<void>;
-
   isFollowing: boolean;
   followsYou: boolean;
   followersCount: number;
@@ -94,8 +42,6 @@ export interface UseUserProfileReturn {
   setIsFollowing: (v: boolean) => void;
   setFollowersCount: (v: number) => void;
   setFollowingCount: (v: number) => void;
-
-  // Admin edit
   adminEditOpen: boolean;
   editDisplayName: string;
   editBio: string;
@@ -106,8 +52,6 @@ export interface UseUserProfileReturn {
   setEditDisplayName: (v: string) => void;
   setEditBio: (v: string) => void;
   handleAdminEditSave: () => Promise<void>;
-
-  // Followers modal
   followersModalOpen: boolean;
   followingModalOpen: boolean;
   modalType: "followers" | "following";
@@ -115,8 +59,6 @@ export interface UseUserProfileReturn {
   openFollowingModal: () => void;
   closeFollowersModal: () => void;
   closeFollowingModal: () => void;
-
-  // Mobile menu
   mobileMenuOpen: boolean;
   mobileMenuRef: React.RefObject<HTMLDivElement | null>;
   toggleMobileMenu: () => void;
@@ -124,35 +66,22 @@ export interface UseUserProfileReturn {
 }
 
 export function useUserProfile(userId: string, currentUserId?: string): UseUserProfileReturn {
-  const [profileUser, setProfileUser] = useState<UserOut | null>(null);
+  const [publicProfile, setPublicProfile] = useState<PublicProfilePayload | null>(null);
   const [threads, setThreads] = useState<ThreadOut[]>([]);
   const [threadTotal, setThreadTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [threadsLoading, setThreadsLoading] = useState(false);
 
-  // Tabs
-  const [activeTab, setActiveTab] = useState<ProfileTab>("threads");
-
-  // Replies
+  const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
   const [replies, setReplies] = useState<ThreadOut[]>([]);
   const [repliesLoading, setRepliesLoading] = useState(false);
   const [repliesLoaded, setRepliesLoaded] = useState(false);
-
-  // Saved
   const [savedThreads, setSavedThreads] = useState<ThreadOut[]>([]);
   const [savedLoading, setSavedLoading] = useState(false);
   const [savedLoaded, setSavedLoaded] = useState(false);
 
-  // History
-  const [readHistory, setReadHistory] = useState<ThreadOut[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [historyLoaded, setHistoryLoaded] = useState(false);
-
-  // Privacy
   const [isPrivate, setIsPrivate] = useState(false);
-
-  // Own profile ref — set after profile loads
   const isOwnProfileRef = useRef(false);
 
   const [isFollowing, setIsFollowing] = useState(false);
@@ -173,19 +102,37 @@ export function useUserProfile(userId: string, currentUserId?: string): UseUserP
   const [editSaving, setEditSaving] = useState(false);
   const [editMsg, setEditMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
+  const profileUser = publicProfile?.user ?? null;
+  const canViewActivity = publicProfile?.viewer.can_view_activity ?? true;
+
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
-  const toggleMobileMenu = useCallback(() => setMobileMenuOpen(o => !o), []);
+  const toggleMobileMenu = useCallback(() => setMobileMenuOpen((open) => !open), []);
+
+  const loadPublicProfile = useCallback(async () => {
+    const payload = await getPublicProfile(userId);
+    setPublicProfile(payload);
+    setIsPrivate(payload.user.is_private);
+    isOwnProfileRef.current = Boolean(currentUserId && currentUserId === payload.user.id);
+    setEditDisplayName(payload.user.display_name);
+    setEditBio(payload.user.bio ?? "");
+    return payload;
+  }, [currentUserId, userId]);
 
   useEffect(() => {
     if (!mobileMenuOpen) return;
-    function handleClickOutside(e: MouseEvent) {
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
+
+    function handleClickOutside(event: MouseEvent) {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
         setMobileMenuOpen(false);
       }
     }
-    function handleEscape(e: KeyboardEvent) {
-      if (e.key === "Escape") setMobileMenuOpen(false);
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMobileMenuOpen(false);
+      }
     }
+
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleEscape);
     return () => {
@@ -194,190 +141,202 @@ export function useUserProfile(userId: string, currentUserId?: string): UseUserP
     };
   }, [mobileMenuOpen]);
 
-  // ─── Main profile load ────────────────────────────────────────────────────
-
   useEffect(() => {
     let cancelled = false;
+
     setLoading(true);
     setError(null);
-    setProfileUser(null);
+    setPublicProfile(null);
     setThreads([]);
     setThreadTotal(0);
-    // Reset lazy tabs on user change
     setRepliesLoaded(false);
     setSavedLoaded(false);
-    setHistoryLoaded(false);
     setReplies([]);
     setSavedThreads([]);
-    setReadHistory([]);
+    setActiveTab("overview");
 
     async function load() {
       try {
-        const u = await apiGet<UserOut>(`users/${encodeURIComponent(userId)}`);
+        const profile = await loadPublicProfile();
         if (cancelled) return;
-        setProfileUser(u);
-        setIsPrivate(u.is_private ?? false);
-
-        // Determine own profile
-        isOwnProfileRef.current = Boolean(
-          currentUserId ? currentUserId === u.id : false
-        );
 
         try {
-          const fs = await getFollowStatus(u.id);
+          const followState = await getFollowStatus(profile.user.id);
           if (!cancelled) {
-            setIsFollowing(fs.is_following);
-            setFollowsYou(fs.follows_you);
-            setFollowersCount(fs.followers_count);
-            setFollowingCount(fs.following_count);
+            setIsFollowing(followState.is_following);
+            setFollowsYou(followState.follows_you);
+            setFollowersCount(followState.followers_count);
+            setFollowingCount(followState.following_count);
           }
         } catch {
-          // Non-fatal
+          // Non-fatal.
         }
 
-        setThreadsLoading(true);
-        try {
-          const t = await apiGet<ThreadListResponse>(
-            `threads?author_id=${encodeURIComponent(u.id)}&limit=10&sort=newest`
-          );
-          if (!cancelled) { setThreads(t.data); setThreadTotal(t.total); }
-        } catch {
-          // Non-fatal
-        } finally {
-          if (!cancelled) setThreadsLoading(false);
+        if (profile.viewer.can_view_activity) {
+          setThreadsLoading(true);
+          try {
+            const threadResponse = await apiGet<ThreadListResponse>(
+              `threads?author_id=${encodeURIComponent(profile.user.id)}&limit=10&sort=newest`
+            );
+            if (!cancelled) {
+              setThreads(threadResponse.data);
+              setThreadTotal(threadResponse.total);
+            }
+          } catch {
+            if (!cancelled) {
+              setThreads([]);
+              setThreadTotal(0);
+            }
+          } finally {
+            if (!cancelled) {
+              setThreadsLoading(false);
+            }
+          }
         }
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load profile");
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Failed to load profile");
+        }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
     void load();
-    return () => { cancelled = true; };
-  }, [userId, currentUserId]);
-
-  // ─── Lazy: replies tab ────────────────────────────────────────────────────
+    return () => {
+      cancelled = true;
+    };
+  }, [loadPublicProfile]);
 
   useEffect(() => {
-    if (activeTab !== "replies" || repliesLoaded || !profileUser) return;
+    if (!profileUser || activeTab !== "replies" || repliesLoaded || !canViewActivity) return;
     let cancelled = false;
     setRepliesLoading(true);
-    getUserReplies(profileUser.id).then(res => {
-      if (!cancelled) { setReplies(res.data); setRepliesLoaded(true); }
-    }).catch(() => {
-      if (!cancelled) setRepliesLoaded(true);
-    }).finally(() => {
-      if (!cancelled) setRepliesLoading(false);
-    });
-    return () => { cancelled = true; };
-  }, [activeTab, repliesLoaded, profileUser]);
-
-  // ─── Lazy: saved tab ──────────────────────────────────────────────────────
+    getUserReplies(profileUser.id)
+      .then((response) => {
+        if (cancelled) return;
+        setReplies(response.data);
+        setRepliesLoaded(true);
+      })
+      .catch(() => {
+        if (!cancelled) setRepliesLoaded(true);
+      })
+      .finally(() => {
+        if (!cancelled) setRepliesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, canViewActivity, profileUser, repliesLoaded]);
 
   useEffect(() => {
-    if (activeTab !== "saved" || savedLoaded || !isOwnProfileRef.current) return;
+    if (activeTab !== "saved" || !isOwnProfileRef.current || savedLoaded) return;
     let cancelled = false;
     setSavedLoading(true);
-    getSavedThreads().then(res => {
-      if (!cancelled) { setSavedThreads(res.data); setSavedLoaded(true); }
-    }).catch(() => {
-      if (!cancelled) setSavedLoaded(true);
-    }).finally(() => {
-      if (!cancelled) setSavedLoading(false);
-    });
-    return () => { cancelled = true; };
+    getSavedThreads()
+      .then((response) => {
+        if (cancelled) return;
+        setSavedThreads(response.data);
+        setSavedLoaded(true);
+      })
+      .catch(() => {
+        if (!cancelled) setSavedLoaded(true);
+      })
+      .finally(() => {
+        if (!cancelled) setSavedLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [activeTab, savedLoaded]);
 
-  // ─── Lazy: history tab ────────────────────────────────────────────────────
+  const togglePrivacy = useCallback(async () => {
+    await updateProfileBasics({ is_private: !isPrivate });
+    const refreshed = await loadPublicProfile();
+    setIsPrivate(refreshed.user.is_private);
+  }, [isPrivate, loadPublicProfile]);
 
-  useEffect(() => {
-    if (activeTab !== "history" || historyLoaded || !isOwnProfileRef.current) return;
-    let cancelled = false;
-    setHistoryLoading(true);
-    getReadHistory().then(res => {
-      if (!cancelled) { setReadHistory(res.data); setHistoryLoaded(true); }
-    }).catch(() => {
-      if (!cancelled) setHistoryLoaded(true);
-    }).finally(() => {
-      if (!cancelled) setHistoryLoading(false);
-    });
-    return () => { cancelled = true; };
-  }, [activeTab, historyLoaded]);
-
-  // ─── Privacy toggle ───────────────────────────────────────────────────────
-
-  async function togglePrivacy() {
-    const prev = isPrivate;
-    const next = !prev;
-    setIsPrivate(next);
-    try {
-      await setProfilePrivacy(next);
-    } catch {
-      // Revert on error
-      setIsPrivate(prev);
-    }
-  }
-
-  // ─── Admin edit ───────────────────────────────────────────────────────────
-
-  function openAdminEdit() {
+  const openAdminEdit = useCallback(() => {
     if (!profileUser) return;
     setEditDisplayName(profileUser.display_name);
     setEditBio(profileUser.bio ?? "");
     setEditMsg(null);
     setAdminEditOpen(true);
-  }
+  }, [profileUser]);
 
-  function closeAdminEdit() {
+  const closeAdminEdit = useCallback(() => {
     setAdminEditOpen(false);
-  }
+    setEditMsg(null);
+  }, []);
 
-  async function handleAdminEditSave() {
-    if (!profileUser || !editDisplayName.trim()) return;
+  const handleAdminEditSave = useCallback(async () => {
+    if (!profileUser) return;
+
     setEditSaving(true);
     setEditMsg(null);
     try {
-      const updated = await apiPatch<UserOut>(`admin/users/${profileUser.id}/profile`, {
+      const updated = await apiPatch<typeof profileUser>(`admin/users/${profileUser.id}/profile`, {
         display_name: editDisplayName.trim(),
         bio: editBio.trim() || null,
       });
-      setProfileUser(updated);
+
+      setPublicProfile((previous) =>
+        previous
+          ? {
+              ...previous,
+              user: {
+                ...previous.user,
+                display_name: updated.display_name,
+                bio: updated.bio,
+              },
+            }
+          : previous
+      );
       setEditMsg({ type: "ok", text: "Profile updated" });
-      setTimeout(() => setAdminEditOpen(false), 800);
-    } catch {
-      setEditMsg({ type: "err", text: "Failed to update profile" });
+      setAdminEditOpen(false);
+    } catch (error) {
+      setEditMsg({
+        type: "err",
+        text: error instanceof Error ? error.message : "Failed to update profile",
+      });
     } finally {
       setEditSaving(false);
     }
-  }
+  }, [editBio, editDisplayName, profileUser]);
+
+  const openFollowersModal = useCallback(() => {
+    setModalType("followers");
+    setFollowersModalOpen(true);
+  }, []);
+
+  const openFollowingModal = useCallback(() => {
+    setModalType("following");
+    setFollowingModalOpen(true);
+  }, []);
+
+  const closeFollowersModal = useCallback(() => setFollowersModalOpen(false), []);
+  const closeFollowingModal = useCallback(() => setFollowingModalOpen(false), []);
 
   return {
+    publicProfile,
     profileUser,
     threads,
     threadTotal,
     loading,
     error,
     threadsLoading,
-
     activeTab,
     setActiveTab,
-
     replies,
     repliesLoading,
     repliesLoaded,
-
     savedThreads,
     savedLoading,
     savedLoaded,
-
-    readHistory,
-    historyLoading,
-    historyLoaded,
-
     isPrivate,
     togglePrivacy,
-
     isFollowing,
     followsYou,
     followersCount,
@@ -385,7 +344,6 @@ export function useUserProfile(userId: string, currentUserId?: string): UseUserP
     setIsFollowing,
     setFollowersCount,
     setFollowingCount,
-
     adminEditOpen,
     editDisplayName,
     editBio,
@@ -396,15 +354,13 @@ export function useUserProfile(userId: string, currentUserId?: string): UseUserP
     setEditDisplayName,
     setEditBio,
     handleAdminEditSave,
-
     followersModalOpen,
     followingModalOpen,
     modalType,
-    openFollowersModal: () => { setModalType("followers"); setFollowersModalOpen(true); },
-    openFollowingModal: () => { setModalType("following"); setFollowingModalOpen(true); },
-    closeFollowersModal: () => setFollowersModalOpen(false),
-    closeFollowingModal: () => setFollowingModalOpen(false),
-
+    openFollowersModal,
+    openFollowingModal,
+    closeFollowersModal,
+    closeFollowingModal,
     mobileMenuOpen,
     mobileMenuRef,
     toggleMobileMenu,
