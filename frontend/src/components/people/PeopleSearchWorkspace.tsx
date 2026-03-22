@@ -2,15 +2,15 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LoaderCircle } from "lucide-react";
+import Link from "next/link";
+import { LoaderCircle, Search, Users } from "lucide-react";
 
-import PeopleCard from "@/components/people/PeopleCard";
 import PeopleWorkspaceShell from "@/components/people/PeopleWorkspaceShell";
-import SearchStatePanel from "@/components/people/SearchStatePanel";
-import { SearchInput } from "@/components/ui/search-input";
-import { FilterChips } from "@/components/ui/filter-chips";
-import { LoadMoreButton } from "@/components/ui/load-more-button";
+import ConnectionButton from "@/components/shared/ConnectionButton";
+import FollowButton from "@/components/shared/FollowButton";
 import { usePeopleSearch } from "@/hooks/usePeople";
+import { avatarSeed, initials } from "@/lib/workspaceUtils";
+import { canonicalProfilePath } from "@/lib/profileRouting";
 import type { PeopleRelationshipFilter, PeopleSearchSort } from "@/types/people";
 
 const SORT_OPTIONS: Array<{ value: PeopleSearchSort; label: string }> = [
@@ -42,10 +42,10 @@ function parsePage(v: string | null): number {
 export default function PeopleSearchWorkspace() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const query       = searchParams.get("q") ?? "";
-  const sort        = parseSearchSort(searchParams.get("sort"));
+  const query        = searchParams.get("q") ?? "";
+  const sort         = parseSearchSort(searchParams.get("sort"));
   const relationship = parseRelationship(searchParams.get("relationship"));
-  const pageCount   = parsePage(searchParams.get("page"));
+  const pageCount    = parsePage(searchParams.get("page"));
   const [queryInput, setQueryInput] = useState(query);
 
   const { data, total, isLoading, isLoadingMore, error, hasMore, mutate } = usePeopleSearch({
@@ -64,128 +64,205 @@ export default function PeopleSearchWorkspace() {
     router.replace(next ? `/people/search?${next}` : "/people/search", { scroll: false });
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    updateParams((params) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    updateParams((p) => {
       const normalized = queryInput.trim();
-      normalized ? params.set("q", normalized) : params.delete("q");
-      params.set("page", "1");
+      normalized ? p.set("q", normalized) : p.delete("q");
+      p.set("page", "1");
     });
   };
-
-  /* ── toolbar ── */
-  const toolbar = (
-    <form className="flex flex-wrap gap-2.5" onSubmit={handleSubmit}>
-      <div className="min-w-[280px] flex-1">
-        <SearchInput
-          value={queryInput}
-          onChange={setQueryInput}
-          placeholder="Search by username, display name, or bio"
-          className="h-10"
-        />
-      </div>
-      <button
-        type="submit"
-        className="min-h-10 rounded-[10px] border border-orange-500/30 bg-gradient-to-br from-[#f0834a] to-[#f3ae53] px-4 text-[13px] font-bold text-white max-sm:w-full"
-      >
-        Search
-      </button>
-    </form>
-  );
 
   const showPrompt = query.trim().length === 0;
 
   return (
-    <PeopleWorkspaceShell
-      title="Search people"
-      subtitle="Look up members by username, display name, or bio, then follow, connect, or jump straight into messaging."
-      toolbar={toolbar}
-      bodyScrollable={false}
-    >
-      {/* Outer flex column — fills the scrollable body */}
-      <div className="flex flex-1 min-h-0 flex-col gap-[18px]">
+    <PeopleWorkspaceShell>
+      <div className="flex flex-col gap-5">
 
-        {/* Filters bar */}
-        <div className="grid shrink-0 gap-2.5 rounded-2xl border border-[#1b2133] bg-[#0d1120] px-4 py-3.5 max-sm:rounded-xl max-sm:px-3.5 max-sm:py-3">
-          <div className="grid gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#8fa0ca]">
-              Relationship
-            </span>
-            <FilterChips
-              items={RELATIONSHIP_OPTIONS}
-              value={relationship}
-              onChange={(v) => updateParams((p) => { p.set("relationship", v as string); p.set("page", "1"); })}
-              aria-label="Filter by relationship"
+        {/* ── Search bar ── */}
+        <form className="flex gap-2" onSubmit={handleSubmit}>
+          <div className="relative flex-1">
+            <Search
+              size={15}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary"
+            />
+            <input
+              type="search"
+              value={queryInput}
+              onChange={(e) => setQueryInput(e.target.value)}
+              placeholder="Search by name, username, or bio…"
+              className="h-10 w-full rounded-full border border-border bg-background pl-9 pr-4 text-[14px] text-foreground placeholder:text-text-tertiary focus:border-foreground focus:outline-none transition-colors"
             />
           </div>
-          <div className="grid gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#8fa0ca]">
-              Sort
-            </span>
-            <FilterChips
-              items={SORT_OPTIONS}
-              value={sort}
-              onChange={(v) => updateParams((p) => { p.set("sort", v as string); p.set("page", "1"); })}
-              aria-label="Sort results"
-            />
+          <button
+            type="submit"
+            className="h-10 rounded-full bg-foreground px-5 text-[13px] font-medium text-background transition-opacity hover:opacity-80"
+          >
+            Search
+          </button>
+        </form>
+
+        {/* ── Filters ── */}
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+          {/* Relationship filter */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="mr-1 text-[12px] text-text-tertiary">Show</span>
+            {RELATIONSHIP_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => updateParams((p) => { p.set("relationship", opt.value); p.set("page", "1"); })}
+                className={[
+                  "rounded-full border px-3 py-1 text-[12.5px] transition-colors",
+                  relationship === opt.value
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-border text-text-secondary hover:border-foreground hover:text-foreground",
+                ].join(" ")}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Sort filter */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="mr-1 text-[12px] text-text-tertiary">Sort</span>
+            {SORT_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => updateParams((p) => { p.set("sort", opt.value); p.set("page", "1"); })}
+                className={[
+                  "rounded-full border px-3 py-1 text-[12.5px] transition-colors",
+                  sort === opt.value
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-border text-text-secondary hover:border-foreground hover:text-foreground",
+                ].join(" ")}
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Results pane — scrollable */}
-        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden grid content-start gap-4 pr-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10 hover:scrollbar-thumb-white/20">
-          {showPrompt ? (
-            <SearchStatePanel
-              title="Start with a name or handle"
-              text="Search by username, display name, or bio. If you want inspiration first, head back to Explore."
-              actionLabel="Go to Explore"
-              actionHref="/people/explore"
-            />
-          ) : isLoading ? (
-            <div className="inline-flex items-center gap-2.5 text-sm text-[#93a2cb]">
-              <LoaderCircle size={18} className="animate-spin" />
-              Searching people...
+        {/* ── Results ── */}
+        {showPrompt ? (
+          <div className="flex flex-col items-center gap-3 py-16 text-center">
+            <div className="flex size-12 items-center justify-center rounded-2xl border border-border bg-card-hover">
+              <Search size={20} strokeWidth={1.5} className="text-text-tertiary" />
             </div>
-          ) : error ? (
-            <div className="text-sm text-[#f4b0b0]">Failed to search people. Refresh and try again.</div>
-          ) : data.length === 0 ? (
-            <SearchStatePanel
-              title="No people found"
-              text="Try a username, full name, or a phrase from someone's bio."
-            />
-          ) : (
-            <section className="grid gap-2.5">
-              {/* Results header */}
-              <div className="grid gap-0.5">
-                <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#8fa0ca]">
-                  Results
-                </span>
-                <h2 className="mt-1 text-base font-bold text-[#d0d8f0]">{total} people found</h2>
-              </div>
+            <p className="m-0 text-[13.5px] font-medium text-foreground">Find people on KhoshGolpo</p>
+            <p className="m-0 max-w-xs text-[12.5px] text-text-tertiary">
+              Search by username, display name, or a phrase from someone&apos;s bio.
+            </p>
+            <Link
+              href="/people/explore"
+              className="mt-1 text-[13px] font-medium text-primary no-underline hover:underline"
+            >
+              Browse everyone →
+            </Link>
+          </div>
+        ) : isLoading ? (
+          <div className="flex items-center gap-2 py-10 text-[13px] text-text-tertiary">
+            <LoaderCircle size={15} className="animate-spin" />
+            Searching…
+          </div>
+        ) : error ? (
+          <p className="py-6 text-[13px] text-destructive">Failed to search. Try refreshing.</p>
+        ) : data.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 py-16 text-center">
+            <div className="flex size-12 items-center justify-center rounded-2xl border border-border bg-card-hover">
+              <Users size={20} strokeWidth={1.5} className="text-text-tertiary" />
+            </div>
+            <p className="m-0 text-[13.5px] font-medium text-foreground">No people found</p>
+            <p className="m-0 text-[12.5px] text-text-tertiary">
+              Try a different name, username, or bio phrase.
+            </p>
+          </div>
+        ) : (
+          <>
+            <p className="text-[12.5px] text-text-tertiary">{total} result{total !== 1 ? "s" : ""}</p>
 
-              {/* Result grid */}
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-1.5 max-sm:grid-cols-1">
-                {data.map((person) => (
-                  <PeopleCard
-                    key={person.id}
-                    person={person}
-                    onRelationshipChange={() => { void mutate(); }}
-                  />
-                ))}
-              </div>
+            <div className="flex flex-col divide-y divide-border">
+              {data.map((person) => {
+                const [av1, av2] = avatarSeed(person.id);
+                const label = person.display_name || person.username;
+                const href = canonicalProfilePath({
+                  id: person.id,
+                  username: person.username,
+                  profile_slug: person.profile_slug,
+                });
 
-              <LoadMoreButton
-                hasMore={hasMore}
-                loading={isLoadingMore}
-                onClick={() => updateParams((p) => { p.set("page", String(pageCount + 1)); })}
-              />
-              {hasMore && (
-                <p className="text-center text-[11px] text-muted-foreground">
-                  Showing {data.length} of {total}
-                </p>
-              )}
-            </section>
-          )}
-        </div>
+                return (
+                  <div key={person.id} className="flex items-center gap-3 py-3 px-1 hover:bg-card-hover transition-colors">
+                    {/* Avatar */}
+                    <Link href={href} className="shrink-0 no-underline">
+                      <div
+                        className="flex size-[40px] items-center justify-center rounded-full text-[13px] font-bold text-white"
+                        style={{ background: `linear-gradient(135deg,${av1},${av2})` }}
+                      >
+                        {initials(label)}
+                      </div>
+                    </Link>
+
+                    {/* Identity */}
+                    <div className="flex-1 min-w-0">
+                      <Link href={href} className="no-underline">
+                        <span className="block text-[14px] font-semibold text-foreground hover:underline truncate">
+                          {label}
+                        </span>
+                      </Link>
+                      <span className="text-[12px] text-text-tertiary">@{person.username}</span>
+                      {person.bio && (
+                        <p className="m-0 mt-0.5 text-[12.5px] text-text-secondary line-clamp-1">
+                          {person.bio}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <ConnectionButton
+                        userId={person.id}
+                        initialStatus={{
+                          is_connected: person.is_connected,
+                          has_pending_request: person.has_pending_request,
+                          is_requester: person.is_requester,
+                          pending_request_id: person.pending_request_id,
+                          can_message: person.can_message,
+                          blocked_by_me: person.blocked_by_me,
+                          blocked_you: person.blocked_you,
+                        }}
+                        skipStatusFetch
+                        onConnectionChange={() => { void mutate(); }}
+                      />
+                      <FollowButton
+                        userId={person.id}
+                        initialFollowing={person.is_following}
+                        followsYou={person.follows_you}
+                        onFollowChange={() => { void mutate(); }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Load more */}
+            {hasMore && (
+              <div className="mt-2 text-center">
+                <button
+                  type="button"
+                  disabled={isLoadingMore}
+                  onClick={() => updateParams((p) => { p.set("page", String(pageCount + 1)); })}
+                  className="rounded-full border border-border bg-transparent px-6 py-2 text-[13px] text-text-secondary transition-colors hover:bg-card-hover disabled:opacity-50 font-sans"
+                >
+                  {isLoadingMore ? "Loading…" : `Show more · ${data.length} of ${total}`}
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </PeopleWorkspaceShell>
   );
