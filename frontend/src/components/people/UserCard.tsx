@@ -3,6 +3,8 @@
 import { Users } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import ConnectionButton from "@/components/shared/ConnectionButton";
+import FollowButton from "@/components/shared/FollowButton";
 import type { PeopleCard } from "@/types/people";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -34,19 +36,22 @@ export default function UserCard({ user, variant = "grid", onFollow, onConnect }
           </div>
           <span className="text-xs text-text-tertiary">@{user.username}</span>
         </div>
-        {onFollow && (
-          <button
-            onClick={() => onFollow(user.id)}
-            className={[
-              "shrink-0 text-xs px-3 py-1 rounded-full border transition-colors",
-              user.is_following
-                ? "border-border text-muted-foreground hover:bg-card-hover"
-                : "border-primary text-primary hover:bg-primary/10",
-            ].join(" ")}
-          >
-            {user.is_following ? "Following" : "Follow"}
-          </button>
-        )}
+        <div className="flex items-center gap-2 shrink-0">
+          <ConnectionButton
+            userId={user.id}
+            initialStatus={{
+              is_connected: user.is_connected,
+              has_pending_request: user.has_pending_request,
+              is_requester: user.is_requester,
+              pending_request_id: user.pending_request_id,
+              can_message: user.can_message,
+              blocked_by_me: user.blocked_by_me,
+              blocked_you: user.blocked_you,
+            }}
+            skipStatusFetch
+          />
+          <FollowButton userId={user.id} initialFollowing={user.is_following} followsYou={user.follows_you} />
+        </div>
       </div>
     );
   }
@@ -85,31 +90,22 @@ export default function UserCard({ user, variant = "grid", onFollow, onConnect }
       </div>
 
       {/* Actions */}
-      {(onFollow || onConnect) && (
-        <div className="flex gap-2">
-          {onFollow && (
-            <button
-              onClick={() => onFollow(user.id)}
-              className={[
-                "flex-1 text-xs py-1.5 rounded-lg border transition-colors",
-                user.is_following
-                  ? "border-border text-muted-foreground hover:bg-card-hover"
-                  : "border-primary text-primary hover:bg-primary/10",
-              ].join(" ")}
-            >
-              {user.is_following ? "Following" : "Follow"}
-            </button>
-          )}
-          {onConnect && !user.is_connected && !user.has_pending_request && (
-            <button
-              onClick={() => onConnect(user.id)}
-              className="flex-1 text-xs py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-            >
-              Connect
-            </button>
-          )}
-        </div>
-      )}
+      <div className="flex gap-2 [&>*]:flex-1 [&_button]:justify-center [&_button]:rounded-full [&_button]:text-[12px] [&_button]:font-medium">
+        <FollowButton userId={user.id} initialFollowing={user.is_following} followsYou={user.follows_you} />
+        <ConnectionButton
+          userId={user.id}
+          initialStatus={{
+            is_connected: user.is_connected,
+            has_pending_request: user.has_pending_request,
+            is_requester: user.is_requester,
+            pending_request_id: user.pending_request_id,
+            can_message: user.can_message,
+            blocked_by_me: user.blocked_by_me,
+            blocked_you: user.blocked_you,
+          }}
+          skipStatusFetch
+        />
+      </div>
     </div>
   );
 }
