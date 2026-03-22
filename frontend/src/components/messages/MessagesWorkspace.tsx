@@ -4,7 +4,6 @@ import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import PageLoader from "@/components/shared/PageLoader";
-import WorkspaceShell from "@/components/app/WorkspaceShell";
 import ConversationListPanel from "@/components/messages/ConversationListPanel";
 import ChatPanel from "@/components/messages/ChatPanel";
 import { useDragResize } from "@/hooks/useDragResize";
@@ -239,45 +238,58 @@ export default function MessagesWorkspace({ conversationId }: MessagesWorkspaceP
 
   // ── Render ────────────────────────────────────────────────────────────────
 
+  const listPanel = (
+    <ConversationListPanel
+      width={convWidth}
+      conversationId={conversationId}
+      conversations={conversations}
+      conversationsLoading={conversationsLoading}
+      connections={connections}
+      connectionsLoading={connectionsLoading}
+      unreadCount={unreadCount}
+      listQuery={listQuery}
+      onListQueryChange={setListQuery}
+      filteredConversations={filteredConversations}
+      filteredConnections={filteredConnections}
+      errorMessage={errorMessage}
+      onSelectConversation={(id) => router.push(`/messages/${id}`)}
+      onStartConnection={(userId) => void handleConnectionStart(userId)}
+    />
+  );
+
+  const chatPanel = (
+    <ChatPanel
+      activeConversation={activeConversation}
+      displayMessages={displayMessages}
+      messagesLoading={messagesLoading}
+      composer={composer}
+      onComposerChange={setComposer}
+      onSend={() => void handleSend()}
+      onRetry={(content, id) => void handleSend(content, id)}
+      onBack={() => router.push("/messages")}
+      onBlockToggle={() => void handleBlockToggle()}
+      blockBusy={blockBusy}
+      sending={sending}
+      blockedMessage={blockedMessage}
+    />
+  );
+
   return (
-    <WorkspaceShell wrapPanel={false} contentColumns={`${convWidth}px 6px 1fr`}>
-      <ConversationListPanel
-        width={convWidth}
-        conversationId={conversationId}
-        conversations={conversations}
-        conversationsLoading={conversationsLoading}
-        connections={connections}
-        connectionsLoading={connectionsLoading}
-        unreadCount={unreadCount}
-        listQuery={listQuery}
-        onListQueryChange={setListQuery}
-        filteredConversations={filteredConversations}
-        filteredConnections={filteredConnections}
-        errorMessage={errorMessage}
-        onSelectConversation={(id) => router.push(`/messages/${id}`)}
-        onStartConnection={(userId) => void handleConnectionStart(userId)}
-      />
+    <>
+      {/* ── Mobile (< 860px): one panel at a time ── */}
+      <div className="flex min-[860px]:hidden flex-1 min-h-0 overflow-hidden font-sans">
+        {conversationId ? chatPanel : listPanel}
+      </div>
 
-      {/* Drag handle */}
+      {/* ── Desktop (≥ 860px): 3-column drag-resize layout ── */}
       <div
-        className="ws-drag"
-        onMouseDown={onConvDrag}
-      />
-
-      <ChatPanel
-        activeConversation={activeConversation}
-        displayMessages={displayMessages}
-        messagesLoading={messagesLoading}
-        composer={composer}
-        onComposerChange={setComposer}
-        onSend={() => void handleSend()}
-        onRetry={(content, id) => void handleSend(content, id)}
-        onBack={() => router.push("/messages")}
-        onBlockToggle={() => void handleBlockToggle()}
-        blockBusy={blockBusy}
-        sending={sending}
-        blockedMessage={blockedMessage}
-      />
-    </WorkspaceShell>
+        className="hidden min-[860px]:grid flex-1 min-h-0 overflow-hidden font-sans items-stretch"
+        style={{ gridTemplateColumns: `${convWidth}px 6px 1fr` }}
+      >
+        {listPanel}
+        <div className="ws-drag" onMouseDown={onConvDrag} />
+        {chatPanel}
+      </div>
+    </>
   );
 }
