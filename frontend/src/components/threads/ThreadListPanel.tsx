@@ -4,18 +4,24 @@ import Link from "next/link";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useRef } from "react";
 import {
+  Bookmark,
   Clock,
+  Compass,
+  FileText,
   Heart,
   MessageSquare,
-  Plus,
+  MoreHorizontal,
+  Newspaper,
+  PenLine,
   RefreshCw,
   Search,
   TrendingUp,
+  UserCheck,
   X,
 } from "lucide-react";
 
 import { useAuthStore } from "@/store/authStore";
-import { avatarSeed, initials, relativeTime } from "@/lib/workspaceUtils";
+import { avatarSeed, initials } from "@/lib/workspaceUtils";
 import { profilePathFromUsername, toProfilePath } from "@/lib/profileRouting";
 import TopicPickerBanner from "@/components/threads/TopicPickerBanner";
 import UserHoverCard from "@/components/shared/UserHoverCard";
@@ -57,10 +63,29 @@ export type ThreadListPanelProps = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+const TAB_ICONS: Record<TabKey, React.ComponentType<{ size?: number; className?: string }>> = {
+  MyFeed:    Newspaper,
+  Following: UserCheck,
+  Explore:   Compass,
+  Mine:      FileText,
+};
+
+function formatDate(value: string): string {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  const now = new Date();
+  const sameYear = d.getFullYear() === now.getFullYear();
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    ...(sameYear ? {} : { year: "numeric" }),
+  });
+}
+
 function statusTone(status: ThreadStatus) {
-  if (status === "open")   return { text: "#3dd68c", bg: "rgba(34,211,160,0.12)",  border: "rgba(34,211,160,0.2)",  label: "Open" };
-  if (status === "closed") return { text: "var(--muted, #636f8d)", bg: "rgba(255,255,255,0.06)", border: "rgba(255,255,255,0.1)", label: "Closed" };
-  return                          { text: "var(--muted, #636f8d)", bg: "rgba(255,255,255,0.06)", border: "rgba(255,255,255,0.1)", label: "Archived" };
+  if (status === "open")   return { text: "text-success",       bg: "bg-success/10",  border: "border-success/20",  label: "Open" };
+  if (status === "closed") return { text: "text-text-tertiary", bg: "bg-secondary",   border: "border-border",      label: "Closed" };
+  return                          { text: "text-text-tertiary", bg: "bg-secondary",   border: "border-border",      label: "Archived" };
 }
 
 function shortId(id: string): string {
@@ -73,25 +98,41 @@ function userProfileHref(authorId: string, authorUsername?: string | null): stri
   return toProfilePath(authorId);
 }
 
+/** Deterministic thumb background from thread id */
+const THUMB_PALETTES: string[] = [
+  "linear-gradient(135deg,#1e3a5f,#0ea5e9)",
+  "linear-gradient(135deg,#3b1f5e,#7c73f0)",
+  "linear-gradient(135deg,#1a3a2a,#3dd68c)",
+  "linear-gradient(135deg,#3a1a1a,#f06b6b)",
+  "linear-gradient(135deg,#2a1f10,#f0834a)",
+  "linear-gradient(135deg,#1a2a3a,#06b6d4)",
+  "linear-gradient(135deg,#1f1f2e,#818cf8)",
+  "linear-gradient(135deg,#2e1f1a,#fb923c)",
+];
+
+function thumbGradient(id: string): string {
+  const h = id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+  return THUMB_PALETTES[h % THUMB_PALETTES.length]!;
+}
+
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
 function ThreadSkeleton() {
   return (
-    <div style={{
-      borderBottom: "1px solid var(--app-border, #1c1f2e)",
-      background: "transparent",
-      padding: "16px 20px",
-    }}>
-      {[85, 60, 92, 78].map((w, i) => (
-        <div key={i} style={{
-          height: i < 2 ? 13 : 11, width: `${w}%`,
-          borderRadius: 4, background: "var(--app-card-hover, #181b27)",
-          marginTop: i === 0 ? 0 : 6,
-          animation: "sk 1.4s ease infinite",
-          opacity: i > 1 ? 0.5 : 1,
-        }} />
-      ))}
-      <style jsx>{`@keyframes sk{0%,100%{opacity:.4}50%{opacity:.9}}`}</style>
+    <div className="px-6 py-5 border-b border-border">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-[18px] h-[18px] rounded-sm bg-card-hover animate-pulse shrink-0" />
+        <div className="h-3 w-32 rounded bg-card-hover animate-pulse" />
+      </div>
+      <div className="flex gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="h-5 w-4/5 rounded bg-card-hover animate-pulse mb-2" />
+          <div className="h-4 w-full rounded bg-card-hover animate-pulse mb-1 opacity-70" />
+          <div className="h-4 w-2/3 rounded bg-card-hover animate-pulse opacity-50 mb-3" />
+          <div className="h-3 w-48 rounded bg-card-hover animate-pulse opacity-40" />
+        </div>
+        <div className="w-[112px] h-[74px] rounded-[2px] bg-card-hover animate-pulse shrink-0" />
+      </div>
     </div>
   );
 }
@@ -143,139 +184,154 @@ export default function ThreadListPanel({
   const isFeedTab = tab !== "Mine";
   const isSortableTab = tab === "MyFeed" || tab === "Explore";
   const hasMore = tab === "Mine" ? threads.length < total : nextCursor !== null;
-  const debouncedSearch = search; // displayed text for empty state label
+  const debouncedSearch = search;
 
   function handleTabKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, currentTab: TabKey) {
     if (enabledTabs.length < 2) return;
     const currentIndex = enabledTabs.indexOf(currentTab);
     if (currentIndex === -1) return;
-
     let nextTab: TabKey | null = null;
-    if (event.key === "ArrowRight") {
-      nextTab = enabledTabs[(currentIndex + 1) % enabledTabs.length]!;
-    } else if (event.key === "ArrowLeft") {
-      nextTab = enabledTabs[(currentIndex - 1 + enabledTabs.length) % enabledTabs.length]!;
-    } else if (event.key === "Home") {
-      nextTab = enabledTabs[0]!;
-    } else if (event.key === "End") {
-      nextTab = enabledTabs[enabledTabs.length - 1]!;
-    }
-
+    if (event.key === "ArrowRight") nextTab = enabledTabs[(currentIndex + 1) % enabledTabs.length]!;
+    else if (event.key === "ArrowLeft") nextTab = enabledTabs[(currentIndex - 1 + enabledTabs.length) % enabledTabs.length]!;
+    else if (event.key === "Home") nextTab = enabledTabs[0]!;
+    else if (event.key === "End") nextTab = enabledTabs[enabledTabs.length - 1]!;
     if (!nextTab || nextTab === currentTab) return;
     event.preventDefault();
     onTabClick(nextTab);
-    requestAnimationFrame(() => {
-      tabButtonRefs.current[nextTab]?.focus();
-    });
+    requestAnimationFrame(() => { tabButtonRefs.current[nextTab]?.focus(); });
   }
 
   return (
-    <section className="ws-panel list-panel">
-      <div className="panel-header">
-        <div className="header-top">
-          <div>
-            <div className="header-title-row">
-              <h1 className="header-title">Threads</h1>
-              {!loading && <span className="thread-count">{total.toLocaleString()}</span>}
-            </div>
+    <section className="flex min-w-0 flex-col overflow-hidden" style={{ minHeight: 0 }}>
+
+      {/* ── Sticky tab bar ── */}
+      <div className="shrink-0 bg-background sticky top-0 z-10">
+
+        {/* Search bar — Mine tab only */}
+        {tab === "Mine" && (
+          <div className="px-6 pt-3">
+            <label
+              className="flex cursor-text items-center gap-2 rounded-full border border-border bg-card px-4 py-2 transition-all duration-150 focus-within:border-primary focus-within:shadow-[0_0_0_3px_rgba(14,165,233,0.1)]"
+              htmlFor={searchInputId}
+            >
+              <Search size={13} className="shrink-0 text-text-tertiary" aria-hidden="true" />
+              <input
+                id={searchInputId}
+                placeholder="Search your threads..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="flex-1 border-none bg-transparent font-sans text-[13px] text-foreground outline-none placeholder:text-text-tertiary"
+              />
+              {search && (
+                <button
+                  type="button"
+                  aria-label="Clear search"
+                  onClick={() => setSearch("")}
+                  className="flex cursor-pointer border-none bg-transparent p-0.5 text-text-tertiary transition-colors hover:text-foreground"
+                >
+                  <X size={11} />
+                </button>
+              )}
+            </label>
           </div>
-          <div className="header-actions">
+        )}
+
+        {/* Tabs row */}
+        <div className="flex items-center px-6" role="tablist" aria-label="Thread filters">
+          {tabOptions.map(({ key, label }) => {
+            const TabIcon = TAB_ICONS[key];
+            return (
+              <button
+                key={key}
+                type="button"
+                className={`whitespace-nowrap border-x-0 border-t-0 border-b-2 bg-transparent p-0 py-[14px] mr-4 sm:mr-6 font-sans text-[14px] transition-all duration-150 focus-visible:rounded outline-offset-2 focus-visible:outline-2 focus-visible:outline-primary/45 disabled:cursor-not-allowed disabled:opacity-40 ${
+                  tab === key
+                    ? "border-b-foreground text-foreground font-medium"
+                    : "border-b-transparent text-text-secondary font-normal hover:text-foreground"
+                }`}
+                onClick={() => onTabClick(key)}
+                onKeyDown={e => handleTabKeyDown(e, key)}
+                ref={node => { tabButtonRefs.current[key] = node; }}
+                role="tab"
+                id={`threads-tab-${key.toLowerCase()}`}
+                aria-selected={tab === key}
+                aria-controls="threads-list-panel"
+                tabIndex={tab === key ? 0 : -1}
+                disabled={(key === "Mine" || key === "MyFeed") && !user?.id}
+                title={label}
+              >
+                <TabIcon size={16} className="sm:hidden" />
+                <span className="hidden sm:inline">{label}</span>
+              </button>
+            );
+          })}
+
+          {/* Sort + refresh + compose */}
+          <div className="ml-auto flex items-center gap-1 py-2">
+            <button
+              type="button"
+              className="flex size-7 items-center justify-center rounded-md text-text-tertiary transition-all duration-150 hover:bg-card-hover hover:text-foreground"
+              onClick={onNewThreadClick}
+              title="New thread"
+              aria-label="New thread"
+            >
+              <PenLine size={13} />
+            </button>
+            {isSortableTab && (
+              <>
+                <button
+                  type="button"
+                  className={`flex size-7 items-center justify-center rounded-md transition-all duration-150 ${sortMode === "recent" ? "bg-primary/10 text-primary" : "text-text-tertiary hover:bg-card-hover hover:text-foreground"}`}
+                  onClick={() => setSortMode("recent")}
+                  title="Most Recent"
+                >
+                  <Clock size={13} />
+                </button>
+                <button
+                  type="button"
+                  className={`flex size-7 items-center justify-center rounded-md transition-all duration-150 ${sortMode === "trending" ? "bg-primary/10 text-primary" : "text-text-tertiary hover:bg-card-hover hover:text-foreground"}`}
+                  onClick={() => setSortMode("trending")}
+                  title="Trending"
+                >
+                  <TrendingUp size={13} />
+                </button>
+              </>
+            )}
             {isFeedTab && (
               <button
                 type="button"
-                className="refresh-icon-btn"
+                className="flex size-7 items-center justify-center rounded-md text-text-tertiary transition-all duration-150 hover:bg-card-hover hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
                 onClick={onRefreshTop}
                 disabled={topRefreshing[tab]}
                 title="Refresh feed"
                 aria-label="Refresh feed"
               >
-                <RefreshCw size={14} className={topRefreshing[tab] ? "spin" : undefined} />
+                <RefreshCw size={13} className={topRefreshing[tab] ? "animate-spin" : undefined} />
               </button>
             )}
-            <button type="button" className="new-btn" onClick={onNewThreadClick}>
-              <Plus size={14} /> New Thread
-            </button>
           </div>
-        </div>
-
-        {tab === "Mine" && (
-          <label className="search-bar" htmlFor={searchInputId}>
-            <Search size={15} className="search-icon" aria-hidden="true" />
-            <input
-              id={searchInputId}
-              placeholder="Search threads..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
-            {search && (
-              <button
-                type="button"
-                aria-label="Clear search"
-                title="Clear search"
-                onClick={() => setSearch("")}
-                style={{ border: "none", background: "transparent", color: "var(--muted, #636f8d)", cursor: "pointer", display: "flex", padding: 2 }}
-              >
-                <X size={12} />
-              </button>
-            )}
-          </label>
-        )}
-
-        <div className="tab-bar" role="tablist" aria-label="Thread filters">
-          {tabOptions.map(({ key, label }) => (
-            <button
-              key={key}
-              type="button"
-              className={`tab${tab === key ? " active" : ""}`}
-              onClick={() => onTabClick(key)}
-              onKeyDown={e => handleTabKeyDown(e, key)}
-              ref={node => { tabButtonRefs.current[key] = node; }}
-              role="tab"
-              id={`threads-tab-${key.toLowerCase()}`}
-              aria-selected={tab === key}
-              aria-controls="threads-list-panel"
-              tabIndex={tab === key ? 0 : -1}
-              aria-disabled={(key === "Mine" || key === "MyFeed") && !user?.id}
-              disabled={(key === "Mine" || key === "MyFeed") && !user?.id}
-              title={(key === "Mine" || key === "MyFeed") && !user?.id ? "Sign in to use this tab" : undefined}
-            >
-              {label}
-            </button>
-          ))}
-          {isSortableTab && (
-            <div className="sort-toggle">
-              <button
-                type="button"
-                className={`sort-icon-btn${sortMode === "recent" ? " active" : ""}`}
-                onClick={() => setSortMode("recent")}
-                title="Most Recent"
-              >
-                <Clock size={13} />
-              </button>
-              <button
-                type="button"
-                className={`sort-icon-btn${sortMode === "trending" ? " active" : ""}`}
-                onClick={() => setSortMode("trending")}
-                title="Trending"
-              >
-                <TrendingUp size={13} />
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
-      {error && <div className="error-banner">{error}</div>}
+      {/* Error */}
+      {error && (
+        <div className="mx-4 mt-2 rounded-lg border border-destructive/30 bg-destructive/8 px-3 py-2 text-[12px] text-destructive">
+          {error}
+        </div>
+      )}
 
+      {/* ── Feed ── */}
       <div
         ref={listPanelRef}
-        className="thread-list ws-scroll"
+        className="ws-scroll flex-1 overflow-y-auto"
+        style={{ minHeight: 0 }}
         id="threads-list-panel"
         role="tabpanel"
         aria-labelledby={`threads-tab-${tab.toLowerCase()}`}
       >
+        {/* Topic picker banner */}
         {tab === "MyFeed" && !topicsSelected && !topicsSkipped && (
-          <div className="banner-wrapper">
+          <div className="px-6 pt-4">
             <TopicPickerBanner
               availableTopics={availableTopics}
               loading={topicsLoading}
@@ -290,34 +346,56 @@ export default function ThreadListPanel({
         )}
 
         {loading
-          ? Array.from({ length: 5 }, (_, i) => <ThreadSkeleton key={i} />)
-          : <>
-              {threads.map(thread => {
+          ? Array.from({ length: 6 }, (_, i) => <ThreadSkeleton key={i} />)
+          : (
+            <>
+              {threads.map((thread, idx) => {
                 const tone = statusTone(thread.status);
                 const [g1, g2] = avatarSeed(thread.author_id);
                 const authorLabel = thread.author_display_name ?? thread.author_username ?? shortId(thread.author_id);
                 const authorProfileHref = userProfileHref(thread.author_id, thread.author_username);
                 const selected = activeThreadId === thread.id;
+                const primaryTag = thread.tags[0];
+                const isLarge = idx === 0; // first card gets larger title
 
                 return (
                   <article
                     key={thread.id}
-                    className={`thread-card${selected ? " selected" : ""}`}
+                    className={`group relative cursor-pointer border-b border-border px-6 py-6 text-left font-sans transition-colors duration-150 hover:bg-card-hover focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary/45 ${
+                      selected ? "bg-card-hover" : ""
+                    }`}
                     onClick={() => onCardClick(thread)}
                     onKeyDown={e => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        onCardClick(thread);
-                      }
+                      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onCardClick(thread); }
                     }}
                     role="button"
                     tabIndex={0}
                     aria-label={`Open thread: ${thread.title}`}
                   >
-                    <div className="tc-author-row">
-                      <span className="tc-av" style={{ background: `linear-gradient(135deg,${g1},${g2})` }}>
+                    {/* ── Publication / author row ── */}
+                    <div className="mb-2.5 flex items-center gap-1.5 text-[12px] text-text-secondary">
+                      {/* Author avatar (pub logo) */}
+                      <span
+                        className="flex size-[18px] shrink-0 items-center justify-center rounded-[3px] text-[8px] font-bold text-white"
+                        style={{ background: `linear-gradient(135deg,${g1},${g2})` }}
+                      >
                         {initials(authorLabel)}
                       </span>
+
+                      {primaryTag ? (
+                        <>
+                          <span>In</span>
+                          <span
+                            className="font-semibold text-foreground cursor-pointer hover:underline"
+                            onClick={e => { e.stopPropagation(); }}
+                          >
+                            {primaryTag}
+                          </span>
+                          <span className="text-text-tertiary">·</span>
+                          <span>by</span>
+                        </>
+                      ) : null}
+
                       <UserHoverCard
                         userId={thread.author_id}
                         username={thread.author_username ?? ""}
@@ -326,263 +404,141 @@ export default function ThreadListPanel({
                       >
                         <Link
                           href={authorProfileHref}
-                          className="tc-name-link"
+                          className="font-medium text-text-secondary hover:text-foreground no-underline transition-colors"
                           onClick={e => e.stopPropagation()}
                           onKeyDown={e => e.stopPropagation()}
-                          aria-label={`Open profile of ${authorLabel}`}
                         >
-                          <span className="tc-author-name">{authorLabel}</span>
-                          {thread.author_is_bot && <span className="tc-bot-badge">BOT</span>}
+                          {authorLabel}
                         </Link>
                       </UserHoverCard>
-                      <span className="tc-time">{relativeTime(thread.created_at)}</span>
+
+                      {thread.author_is_bot && (
+                        <span className="rounded px-1 py-px text-[9px] font-bold tracking-wide border border-info/25 bg-info/10 text-info">BOT</span>
+                      )}
                     </div>
 
-                    <h3 className="tc-title">{thread.title}</h3>
-                    <p className="tc-body">{thread.body}</p>
+                    {/* ── Card body: text + thumb ── */}
+                    <div className="flex items-start gap-3">
+                      {/* Text */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className={`m-0 mb-1.5 font-serif font-bold leading-[1.3] tracking-tight text-foreground line-clamp-2 ${isLarge ? "text-[22px]" : "text-[18px]"}`}>
+                          {thread.title}
+                        </h3>
+                        <p className="m-0 mb-2.5 line-clamp-2 text-[14px] leading-[1.5] text-text-secondary">
+                          {thread.body}
+                        </p>
 
-                    <div className="tc-footer">
-                      <div className="tc-tags">
-                        {thread.tags.slice(0, 3).map(tag => (
-                          <span key={tag} className="tc-tag">#{tag}</span>
-                        ))}
-                        {thread.tags.length > 3 && <span className="tc-tag-more">+{thread.tags.length - 3}</span>}
+                        {/* Meta row — date · likes · replies + actions right */}
+                        <div className="flex flex-nowrap items-center gap-2.5 text-[13px] text-text-secondary overflow-hidden">
+                          <span className="whitespace-nowrap text-text-tertiary shrink-0">{formatDate(thread.created_at)}</span>
+                          <span className="text-text-tertiary shrink-0">·</span>
+                          <span className="flex items-center gap-1 whitespace-nowrap shrink-0">
+                            <Heart size={11} fill={thread.liked_by_me ? "currentColor" : "none"} className={thread.liked_by_me ? "text-destructive" : ""} />
+                            {thread.like_count}
+                          </span>
+                          <span className="text-text-tertiary shrink-0">·</span>
+                          <span className="flex items-center gap-1 whitespace-nowrap shrink-0">
+                            <MessageSquare size={11} />
+                            {thread.post_count}
+                          </span>
+
+                          {thread.status !== "open" && (
+                            <>
+                              <span className="text-text-tertiary shrink-0">·</span>
+                              <span className={`rounded-full border px-1.5 py-px text-[10px] font-bold uppercase tracking-wider shrink-0 ${tone.text} ${tone.bg} ${tone.border}`}>
+                                {tone.label}
+                              </span>
+                            </>
+                          )}
+
+                          {/* Right: actions — desktop hover only */}
+                          <div className="ml-auto hidden sm:flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              className="flex size-7 items-center justify-center rounded-md border-none bg-transparent text-text-tertiary opacity-0 group-hover:opacity-100 hover:bg-card-hover transition-all"
+                              onClick={e => e.stopPropagation()}
+                              title="Save"
+                            >
+                              <Bookmark size={14} strokeWidth={1.6} />
+                            </button>
+                            <button
+                              type="button"
+                              className="flex size-7 items-center justify-center rounded-md border-none bg-transparent text-text-tertiary opacity-0 group-hover:opacity-100 hover:bg-card-hover transition-all"
+                              onClick={e => e.stopPropagation()}
+                              title="More"
+                            >
+                              <MoreHorizontal size={14} strokeWidth={1.6} />
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                      <div className="tc-footer-right">
-                        {thread.status !== "open" && (
-                          <span className="tc-status" style={{ color: tone.text, background: tone.bg, border: `1px solid ${tone.border}` }}>{tone.label}</span>
+
+                      {/* Thumbnail */}
+                      <div
+                        className="w-[112px] h-[74px] rounded-sm shrink-0 flex items-center justify-center overflow-hidden"
+                        style={{ background: thumbGradient(thread.id) }}
+                        aria-hidden="true"
+                      >
+                        {thread.tags.length > 0 && (
+                          <span className="text-white/60 text-[9px] font-bold uppercase tracking-widest px-2 text-center leading-tight">
+                            {thread.tags[0]}
+                          </span>
                         )}
-                        <button
-                          type="button"
-                          className={thread.liked_by_me ? "tc-like liked" : "tc-like"}
-                          onClick={e => { e.stopPropagation(); /* like handled by parent via onCardClick alternative — wired in orchestrator */ }}
-                          title={user ? (thread.liked_by_me ? "Unlike" : "Like") : "Sign in to like"}
-                        >
-                          <Heart size={12} fill={thread.liked_by_me ? "currentColor" : "none"} />
-                          {thread.like_count > 0 && thread.like_count}
-                        </button>
-                        <span className="tc-replies" aria-label={`${thread.post_count} ${thread.post_count === 1 ? "reply" : "replies"}`}>
-                          <MessageSquare size={12} />
-                          {thread.post_count}
-                        </span>
                       </div>
                     </div>
                   </article>
                 );
               })}
 
+              {/* Empty state */}
               {!loading && threads.length === 0 && !(tab === "MyFeed" && !topicsSelected && !topicsSkipped) && (
-                <div className="empty">
-                  <MessageSquare size={26} strokeWidth={1.2} />
-                  <span>
-                    {tab === "Mine" && debouncedSearch
-                      ? `No threads matching "${debouncedSearch}"`
-                      : tab === "Mine"
-                      ? "You haven't created any threads yet."
-                      : tab === "Following"
-                      ? "Follow people to see their threads here."
-                      : tab === "MyFeed"
-                      ? "No threads yet for your topics. Try Explore."
-                      : "No threads yet. Start the first one!"}
-                  </span>
+                <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center">
+                  <div className="flex size-12 items-center justify-center rounded-2xl border border-border bg-card-hover">
+                    <MessageSquare size={20} strokeWidth={1.5} className="text-text-tertiary" />
+                  </div>
+                  <div>
+                    <p className="m-0 text-[13.5px] font-medium text-foreground mb-1">
+                      {tab === "Mine" && debouncedSearch ? `No results for "${debouncedSearch}"`
+                        : tab === "Mine" ? "No threads yet"
+                        : tab === "Following" ? "No threads from people you follow"
+                        : tab === "MyFeed" ? "No threads for your topics"
+                        : "No threads yet"}
+                    </p>
+                    <p className="m-0 text-[12.5px] text-text-tertiary">
+                      {tab === "Mine" ? "Create your first thread to get started."
+                        : tab === "Following" ? "Follow people to see their threads here."
+                        : "Try the Explore tab to discover threads."}
+                    </p>
+                  </div>
                   {tab === "MyFeed" && (
-                    <button type="button" className="empty-link" onClick={() => onTabClick("Explore")}>
+                    <button
+                      type="button"
+                      className="text-[13px] text-primary font-medium border-none bg-transparent cursor-pointer hover:underline"
+                      onClick={() => onTabClick("Explore")}
+                    >
                       Browse Explore →
                     </button>
                   )}
                 </div>
               )}
 
+              {/* Load more */}
               {hasMore && (
-                <button type="button" className="load-more" onClick={onLoadMore} disabled={loadingMore}>
-                  {loadingMore ? "Loading..." : (tab === "Mine" ? `Load more (${Math.max(total - threads.length, 0)} remaining)` : "Load more")}
-                </button>
+                <div className="px-6 py-4">
+                  <button
+                    type="button"
+                    className="w-full rounded-full border border-border bg-transparent py-2 font-sans text-[12.5px] font-medium text-text-secondary transition-all duration-150 hover:bg-card-hover hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                    onClick={onLoadMore}
+                    disabled={loadingMore}
+                  >
+                    {loadingMore ? "Loading…" : "Show more"}
+                  </button>
+                </div>
               )}
             </>
+          )
         }
       </div>
-
-      <style jsx>{listPanelStyles}</style>
     </section>
   );
 }
-
-// ─── List panel styles ─────────────────────────────────────────────────────────
-
-const listPanelStyles = `
-  .ws-panel {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    overflow: hidden;
-  }
-  .list-panel { min-width: 0; }
-  .panel-header {
-    padding: 20px 20px 0; flex-shrink: 0;
-    border-bottom: 1px solid var(--app-border, #1c1f2e);
-    background: var(--app-card, #13151f); position: relative;
-  }
-  .panel-header::after {
-    display: none;
-  }
-  .header-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
-  .header-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
-  .header-title-row { display: flex; align-items: center; gap: 8px; }
-  .header-title {
-    font-family: var(--serif), sans-serif; font-size: 22px; font-weight: 800;
-    letter-spacing: -0.5px; margin: 0; color: var(--text, #e4e8f4);
-  }
-  .thread-count {
-    font-size: 13px; font-weight: 600; color: var(--muted, #636f8d);
-    margin-left: -2px;
-  }
-  .new-btn {
-    display: flex; align-items: center; gap: 6px;
-    background: #0EA5E9; color: #fff; border: none; border-radius: 9px; padding: 7px 13px;
-    font-family: var(--sans), sans-serif; font-size: 12.5px; font-weight: 600;
-    cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 14px rgba(14,165,233,0.3); white-space: nowrap;
-  }
-  .new-btn:hover { background: #38BDF8; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(14,165,233,0.4); }
-  .new-btn:active { transform: translateY(0); }
-  .refresh-icon-btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 32px; height: 32px;
-    border: 1px solid rgba(255,255,255,0.10); background: rgba(255,255,255,0.04); color: var(--muted, #636f8d);
-    border-radius: 8px; cursor: pointer; transition: all 0.2s;
-  }
-  .refresh-icon-btn:hover:not(:disabled) {
-    border-color: rgba(255,255,255,0.22); color: var(--text, #e4e8f4); background: var(--app-border, #1c1f2e);
-  }
-  .refresh-icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .spin { animation: spin 0.9s linear infinite; }
-  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-  .search-bar {
-    display: flex; align-items: center; gap: 10px;
-    background: var(--app-card-hover, #181b27); border: 1px solid var(--app-border, #1c1f2e);
-    border-radius: 10px; padding: 9px 14px; margin-bottom: 14px;
-    transition: all 0.2s; cursor: text;
-  }
-  .search-bar:focus-within { border-color: #0EA5E9; box-shadow: 0 0 0 3px rgba(14,165,233,0.15); }
-  .search-icon { color: var(--muted, #636f8d); flex-shrink: 0; }
-  .search-bar input {
-    border: none; background: transparent; outline: none;
-    color: var(--text, #e4e8f4); font-family: var(--sans), sans-serif; font-size: 13.5px; flex: 1;
-  }
-  .search-bar input::placeholder { color: var(--muted, #636f8d); }
-  .tab-bar { display: flex; align-items: center; margin-bottom: -1px; }
-  .tab {
-    padding: 8px 12px; font-size: 13px; font-weight: 500; color: var(--muted, #636f8d);
-    cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; white-space: nowrap;
-    border-top: none; border-left: none; border-right: none;
-    background: transparent; font-family: var(--sans), sans-serif;
-  }
-  .tab:hover { color: var(--text, #e4e8f4); }
-  .tab.active { color: #0EA5E9; border-bottom-color: #0EA5E9; }
-  .tab:disabled { opacity: 0.4; cursor: not-allowed; }
-  .tab:focus-visible { outline: 2px solid rgba(14,165,233,0.45); outline-offset: 2px; border-radius: 4px; }
-  .sort-toggle {
-    display: flex; gap: 2px; margin-left: auto; flex-shrink: 0;
-    padding-right: 4px;
-  }
-  .sort-icon-btn {
-    display: flex; align-items: center; justify-content: center;
-    width: 28px; height: 28px; border-radius: 6px;
-    border: 1px solid transparent; background: transparent;
-    color: var(--muted, #636f8d); cursor: pointer; transition: all 0.15s;
-    font-family: var(--sans), sans-serif;
-  }
-  .sort-icon-btn:hover { color: var(--text, #e4e8f4); background: rgba(255,255,255,0.04); }
-  .sort-icon-btn.active { color: #0EA5E9; background: rgba(14,165,233,0.08); border-color: rgba(14,165,233,0.25); }
-  .banner-wrapper { padding: 16px 20px 0; }
-  .thread-list { flex: 1; min-height: 0; overflow-y: auto; padding: 8px 0; }
-  .thread-card {
-    padding: 16px 20px;
-    border: none; border-bottom: 1px solid var(--app-border, #1c1f2e);
-    cursor: pointer; transition: all 0.15s ease; position: relative;
-    width: 100%; text-align: left; background: transparent;
-    color: inherit; font-family: var(--sans), sans-serif;
-    animation: fadeIn 0.3s ease both;
-  }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-  .thread-card:nth-child(1) { animation-delay: 0.05s; }
-  .thread-card:nth-child(2) { animation-delay: 0.1s; }
-  .thread-card:nth-child(3) { animation-delay: 0.15s; }
-  .thread-card:nth-child(4) { animation-delay: 0.2s; }
-  .thread-card:nth-child(5) { animation-delay: 0.25s; }
-  .thread-card:hover { background: rgba(14,165,233,0.03); }
-  .thread-card.selected { background: var(--app-card-hover, #181b27); border-left: 2px solid #0EA5E9; padding-left: 18px; }
-  .thread-card:focus-visible { outline: 2px solid rgba(14,165,233,0.45); outline-offset: -2px; }
-  .tc-author-row { display: flex; align-items: center; gap: 6px; margin-bottom: 9px; }
-  .tc-av {
-    width: 22px; height: 22px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 9px; font-weight: 700; color: #fff; flex-shrink: 0;
-  }
-  .tc-name-link {
-    display: flex; align-items: center; gap: 5px;
-    text-decoration: none; border-radius: 4px; padding: 1px 4px 1px 0;
-    transition: all 0.15s; flex-shrink: 0;
-  }
-  .tc-name-link:hover .tc-author-name { color: #0EA5E9; }
-  .tc-name-link:focus-visible { outline: 2px solid rgba(14,165,233,0.45); outline-offset: 1px; }
-  .tc-author-name {
-    font-size: 12px; font-weight: 600; color: var(--muted, #636f8d);
-    font-family: var(--serif), sans-serif; transition: color 0.15s;
-  }
-  .tc-bot-badge {
-    font-size: 9px; font-weight: 700; padding: 1px 4px; border-radius: 3px;
-    border: 1px solid rgba(129,140,248,0.5); color: #a5b4fc;
-    background: rgba(129,140,248,0.1); letter-spacing: 0.04em;
-  }
-  .tc-time { font-size: 11px; color: var(--muted, #636f8d); margin-left: auto; flex-shrink: 0; }
-  .tc-status {
-    font-size: 10px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
-    padding: 2px 8px; border-radius: 4px;
-  }
-  .tc-title {
-    font-family: var(--serif), sans-serif; font-size: 15px; font-weight: 700;
-    line-height: 1.35; margin: 0 0 6px; letter-spacing: -0.2px; color: var(--text, #e4e8f4);
-  }
-  .tc-body {
-    font-size: 13px; color: var(--muted, #636f8d); line-height: 1.5;
-    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-    margin-bottom: 10px;
-  }
-  .tc-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 20px; }
-  .tc-footer-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-  .tc-tags { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
-  .tc-tag {
-    font-size: 11px; font-weight: 500; color: var(--muted, #636f8d);
-    background: rgba(255,255,255,0.04); padding: 2px 8px; border-radius: 4px;
-    border: 1px solid var(--app-border, #1c1f2e); transition: all 0.15s;
-  }
-  .tc-tag:hover { background: rgba(129,140,248,0.12); color: #a5b4fc; border-color: rgba(129,140,248,0.25); }
-  .tc-tag-more { font-size: 11px; color: var(--muted, #636f8d); }
-  .tc-replies { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted, #636f8d); }
-  .tc-like { border: none; background: transparent; color: var(--muted, #636f8d); font-size: 11px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; padding: 2px 6px; border-radius: 5px; transition: all 0.15s; font-family: inherit; }
-  .tc-like:hover { color: #ef4444; background: rgba(239,68,68,0.1); }
-  .tc-like.liked { color: #ef4444; }
-  .empty {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 10px; color: var(--muted, #636f8d); font-size: 13px; padding: 60px 20px; text-align: center;
-  }
-  .empty-link {
-    background: none; border: none; color: #0EA5E9; font-size: 13px;
-    cursor: pointer; text-decoration: underline; text-underline-offset: 3px; padding: 0;
-    font-family: var(--sans), sans-serif;
-  }
-  .error-banner {
-    margin: 8px 20px 0;
-    border: 1px solid rgba(239,68,68,0.35); background: rgba(239,68,68,0.1);
-    color: #fca5a5; border-radius: 8px; padding: 8px 12px; font-size: 12px;
-  }
-  .load-more {
-    display: block; width: calc(100% - 40px); margin: 8px 20px;
-    padding: 10px; border: 1px dashed rgba(255,255,255,0.10);
-    border-radius: 8px; background: transparent; cursor: pointer;
-    font-size: 12px; color: var(--muted, #636f8d); font-family: var(--sans), sans-serif;
-    transition: all 0.15s;
-  }
-  .load-more:hover:not(:disabled) { border-color: rgba(255,255,255,0.2); color: var(--text, #e4e8f4); }
-  .load-more:disabled { opacity: 0.5; cursor: not-allowed; }
-`;
