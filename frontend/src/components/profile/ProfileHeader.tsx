@@ -78,7 +78,7 @@ export default function ProfileHeader({
       </div>
 
       <div
-        className={`${coverLayout.frameClassName} bg-card-hover`}
+        className={`${coverLayout.frameClassName} h-[200px] sm:h-[240px] md:h-[220px]`}
         style={publicProfile.basics.banner_url ? undefined : bannerFallbackStyle}
       >
         {publicProfile.basics.banner_url && (
@@ -97,11 +97,11 @@ export default function ProfileHeader({
               <img
                 src={publicProfile.user.avatar_url}
                 alt={publicProfile.user.display_name}
-                className="size-[110px] rounded-[28px] border-4 border-background object-cover shadow-md max-sm:size-[88px] max-sm:rounded-[24px]"
+                className="size-[120px] rounded-full border-4 border-background object-cover shadow-lg max-sm:size-[96px]"
               />
             ) : (
               <div
-                className="grid size-[110px] place-items-center rounded-[28px] border-4 border-background font-serif text-[32px] font-bold text-white shadow-md max-sm:size-[88px] max-sm:rounded-[24px] max-sm:text-[28px]"
+                className="grid size-[120px] place-items-center rounded-full border-4 border-background font-serif text-[36px] font-bold text-white shadow-lg max-sm:size-[96px] max-sm:text-[28px]"
                 style={{ background: `linear-gradient(135deg, ${accentA}, ${accentB})` }}
               >
                 {initials(publicProfile.user.display_name)}

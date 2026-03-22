@@ -18,9 +18,9 @@ import { useUserProfile } from "./useUserProfile";
 function ProfileSkeleton() {
   return (
     <div>
-      <Skeleton className="h-[188px] w-full rounded-t-[18px]" />
+      <Skeleton className="h-[220px] w-full" />
       <div className="px-7 pb-7">
-        <Skeleton variant="circle" className="-mt-12 mb-4 size-[96px] border-4 border-background" />
+        <Skeleton variant="circle" className="-mt-[60px] mb-4 size-[120px] rounded-full border-4 border-background" />
         <Skeleton variant="text" className="mb-2.5 h-6 w-2/5" />
         <Skeleton variant="text" className="mb-3.5 h-4 w-1/4" />
         <Skeleton variant="text" className="mb-2 h-4 w-3/5" />
