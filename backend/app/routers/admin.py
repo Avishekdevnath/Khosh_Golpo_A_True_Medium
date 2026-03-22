@@ -32,6 +32,9 @@ from app.schemas.admin import (
     AdminContentNotifyResponse,
     AdminContentRereportMissingRequest,
     AdminContentRereportResponse,
+    AdminHardDeleteBulkRequest,
+    AdminHardDeleteBulkResponse,
+    AdminHardDeleteBulkResult,
     AdminModerationActionRequest,
     AdminModerationItem,
     AdminModerationListResponse,
@@ -51,6 +54,7 @@ from app.schemas.post import PostOut
 from app.schemas.thread import ThreadOut
 from app.schemas.user import UserOut, UserUpdate
 from app.services.ai import score_content
+from app.services.content_deletion import hard_delete_post_subtree, hard_delete_posts_for_thread
 from app.services.mentions import merge_mentions
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -518,6 +522,133 @@ async def moderate_posts_bulk(
     succeeded = sum(1 for result in results if result.success)
     failed = len(results) - succeeded
     return AdminBulkModerationResponse(
+        results=results,
+        processed=len(results),
+        succeeded=succeeded,
+        failed=failed,
+    )
+
+
+@router.post("/content/hard-delete-bulk")
+@limiter.limit("10/minute")
+async def bulk_hard_delete_content(
+    payload: AdminHardDeleteBulkRequest,
+    request: Request,
+    admin_user: User = Depends(require_roles(UserRole.ADMIN)),
+) -> AdminHardDeleteBulkResponse:
+    results: list[AdminHardDeleteBulkResult] = []
+
+    for item in payload.actions:
+        try:
+            object_id = _parse_object_id(item.content_id, field_name="content_id")
+            if item.content_type == "thread":
+                thread = await Thread.find_one({"_id": object_id})
+                if thread is None:
+                    results.append(
+                        AdminHardDeleteBulkResult(
+                            content_type="thread",
+                            content_id=item.content_id,
+                            success=False,
+                            error="Thread not found",
+                        )
+                    )
+                    continue
+                if not thread.is_deleted:
+                    results.append(
+                        AdminHardDeleteBulkResult(
+                            content_type="thread",
+                            content_id=item.content_id,
+                            success=False,
+                            error="Thread must be deleted before hard delete",
+                        )
+                    )
+                    continue
+
+                deleted_posts = await hard_delete_posts_for_thread(thread.id)
+                await thread.delete()
+                await _write_audit_log(
+                    action="admin_thread_hard_deleted",
+                    actor_id=admin_user.id,
+                    target_type="thread",
+                    target_id=thread.id,
+                    request=request,
+                    severity=AuditSeverity.WARNING,
+                    reason=item.reason,
+                    metadata={"deleted_post_count": len(deleted_posts)},
+                )
+                results.append(
+                    AdminHardDeleteBulkResult(
+                        content_type="thread",
+                        content_id=item.content_id,
+                        success=True,
+                        error=None,
+                    )
+                )
+                continue
+
+            post = await Post.find_one({"_id": object_id})
+            if post is None:
+                results.append(
+                    AdminHardDeleteBulkResult(
+                        content_type="post",
+                        content_id=item.content_id,
+                        success=False,
+                        error="Post not found",
+                    )
+                )
+                continue
+            if not post.is_deleted:
+                results.append(
+                    AdminHardDeleteBulkResult(
+                        content_type="post",
+                        content_id=item.content_id,
+                        success=False,
+                        error="Post must be deleted before hard delete",
+                    )
+                )
+                continue
+
+            deleted_posts = await hard_delete_post_subtree(post)
+            await _write_audit_log(
+                action="admin_post_hard_deleted",
+                actor_id=admin_user.id,
+                target_type="post",
+                target_id=post.id,
+                request=request,
+                severity=AuditSeverity.WARNING,
+                reason=item.reason,
+                metadata={"deleted_post_count": len(deleted_posts)},
+            )
+            results.append(
+                AdminHardDeleteBulkResult(
+                    content_type="post",
+                    content_id=item.content_id,
+                    success=True,
+                    error=None,
+                )
+            )
+        except HTTPException as exc:
+            results.append(
+                AdminHardDeleteBulkResult(
+                    content_type=item.content_type,
+                    content_id=item.content_id,
+                    success=False,
+                    error=str(exc.detail),
+                )
+            )
+        except Exception:
+            results.append(
+                AdminHardDeleteBulkResult(
+                    content_type=item.content_type,
+                    content_id=item.content_id,
+                    success=False,
+                    error="Unexpected hard delete error",
+                )
+            )
+
+    succeeded = sum(1 for result in results if result.success)
+    failed = len(results) - succeeded
+    return AdminHardDeleteBulkResponse(
         results=results,
         processed=len(results),
         succeeded=succeeded,

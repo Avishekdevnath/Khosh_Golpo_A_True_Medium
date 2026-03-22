@@ -19,13 +19,13 @@ export default function ExploreSectionBlock({
   if (items.length === 0) return null;
 
   return (
-    <section className="grid gap-2.5">
-      <div className="grid gap-0.5">
-        <div className="text-[15px] font-bold text-[#d0d8f0]">{title}</div>
-        <div className="text-xs text-[#4e5a78]">{subtitle}</div>
+    <section className="flex flex-col gap-4">
+      <div>
+        <h2 className="m-0 text-[15px] font-semibold text-foreground">{title}</h2>
+        <p className="m-0 mt-0.5 text-[12.5px] text-foreground/50">{subtitle}</p>
       </div>
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-1.5 max-sm:grid-cols-1">
-        {items.map((person) => (
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map(person => (
           <PeopleCard key={person.id} person={person} onRelationshipChange={onRelationshipChange} />
         ))}
       </div>

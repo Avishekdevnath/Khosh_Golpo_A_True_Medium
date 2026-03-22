@@ -10,6 +10,7 @@ interface ConnectionButtonProps {
   userId: string;
   initialStatus?: ConnectionStatusResponse | null;
   skipStatusFetch?: boolean;
+  iconOnly?: boolean;
   onConnectionChange?: (status: ConnectionStatusResponse) => void;
 }
 
@@ -17,6 +18,7 @@ export default function ConnectionButton({
   userId,
   initialStatus,
   skipStatusFetch = false,
+  iconOnly = false,
   onConnectionChange,
 }: ConnectionButtonProps) {
   const router = useRouter();
@@ -53,7 +55,6 @@ export default function ConnectionButton({
     if (nextStatus) onConnectionChange?.(nextStatus);
   };
 
-  // Derive state variant
   type Variant = "connect" | "pending" | "accept" | "connected" | "message" | "blocked";
   let variant: Variant = "connect";
   let label = "Connect";
@@ -95,11 +96,11 @@ export default function ConnectionButton({
 
   const variantClass: Record<Variant, string> = {
     connect:   "border-primary bg-primary text-white hover:opacity-90",
-    pending:   "border-border bg-card-hover text-text-secondary hover:border-foreground hover:text-foreground",
+    pending:   "border-border bg-card-hover text-foreground/60 hover:border-foreground hover:text-foreground",
     accept:    "border-[#16a34a]/40 bg-[#16a34a]/10 text-[#16a34a] hover:bg-[#16a34a]/20",
-    connected: "border-border bg-card-hover text-text-secondary cursor-default",
+    connected: "border-border bg-card-hover text-foreground/60 cursor-default",
     message:   "border-[#16a34a]/40 bg-[#16a34a]/10 text-[#16a34a] hover:bg-[#16a34a]/20",
-    blocked:   "border-border bg-background text-text-tertiary opacity-40 cursor-not-allowed",
+    blocked:   "border-border bg-background text-foreground/40 opacity-40 cursor-not-allowed",
   };
 
   return (
@@ -108,14 +109,18 @@ export default function ConnectionButton({
       onClick={() => void handleClick()}
       disabled={disabled}
       title={title}
+      aria-label={title}
       className={[
-        "inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-[13px] font-medium transition-colors cursor-pointer font-sans",
+        "inline-flex items-center justify-center gap-1.5 rounded-full border transition-colors cursor-pointer font-sans",
         "disabled:opacity-50 disabled:cursor-not-allowed",
+        iconOnly
+          ? "size-9 shrink-0 p-0"
+          : "px-4 py-1.5 text-[13px] font-medium",
         variantClass[variant],
       ].join(" ")}
     >
-      <Icon size={13} />
-      <span>{statusLoading ? "…" : label}</span>
+      <Icon size={iconOnly ? 15 : 13} />
+      {!iconOnly && <span>{statusLoading ? "…" : label}</span>}
     </button>
   );
 }

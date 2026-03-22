@@ -3,13 +3,15 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { apiGet, apiPatch, apiPost } from "@/lib/api";
+import { useToast } from "@/components/ui/toast";
+import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api";
+import { formatActivityItem } from "@/lib/activityFormatting";
 import { useAuthStore } from "@/store/authStore";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
 export type Tab = "profile" | "feed" | "password" | "activity";
-export type ActivityCategory = "all" | "security" | "content" | "account" | "system";
+export type ActivityCategory = "all" | "security" | "content" | "engagement" | "account" | "system";
 
 export type ActivityItem = {
   id: string;
@@ -47,6 +49,7 @@ function slugCooldownDaysLeft(changedAt: string | null | undefined): number {
 
 export function useSettingsPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const { user, accessToken, setUser } = useAuthStore();
   const [authHydrated, setAuthHydrated] = useState(false);
   const [tab, setTab] = useState<Tab>("profile");
@@ -90,6 +93,8 @@ export function useSettingsPage() {
   const [activityTotal, setActivityTotal] = useState(0);
   const [activityLoading, setActivityLoading] = useState(false);
   const [activityError, setActivityError] = useState<string | null>(null);
+  const [activityRefreshKey, setActivityRefreshKey] = useState(0);
+  const [activityActionPendingId, setActivityActionPendingId] = useState<string | null>(null);
 
   // ── Effects ────────────────────────────────────────────────────────────────
 
@@ -160,7 +165,7 @@ export function useSettingsPage() {
     };
     void loadActivity();
     return () => { cancelled = true; };
-  }, [activityCategory, activityLimit, activityPage, tab]);
+  }, [activityCategory, activityLimit, activityPage, activityRefreshKey, tab]);
 
   // Auth hydration + guard
   useEffect(() => {
@@ -250,6 +255,26 @@ export function useSettingsPage() {
     }
   }
 
+  async function handleActivityQuickAction(item: ActivityItem) {
+    const quickAction = formatActivityItem(item).quickAction;
+    if (!quickAction) return;
+    setActivityActionPendingId(item.id);
+    try {
+      if (quickAction.method === "DELETE") {
+        await apiDelete(quickAction.path);
+      } else {
+        await apiPost(quickAction.path, {});
+      }
+      toast.success(quickAction.successMessage);
+      setActivityRefreshKey((value) => value + 1);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Action failed.";
+      toast.error(message);
+    } finally {
+      setActivityActionPendingId(null);
+    }
+  }
+
   return {
     // auth
     authHydrated,
@@ -285,5 +310,7 @@ export function useSettingsPage() {
     activityPage, setActivityPage,
     activityLimit, activityTotal,
     activityLoading, activityError,
+    activityActionPendingId,
+    handleActivityQuickAction,
   };
 }

@@ -2,7 +2,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import ValidationInfo, field_validator
+from pydantic import AliasChoices, Field, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,6 +14,13 @@ class Settings(BaseSettings):
     mongodb_uri: str = "mongodb://localhost:27017"
     mongodb_db_name: str = "khoshgolpo"
     cors_origins: list[str] = ["http://127.0.0.1:3000", "http://localhost:3000"]
+    cloudinary_cloud_name: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("CLOUDINARY_CLOUD_NAME", "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME"),
+    )
+    cloudinary_api_key: str | None = None
+    cloudinary_api_secret: str | None = None
+    cloudinary_profile_media_folder: str = "khoshgolpo/profile-media"
 
     openai_api_key: str | None = None
     ai_model: str = "gpt-4o-mini"

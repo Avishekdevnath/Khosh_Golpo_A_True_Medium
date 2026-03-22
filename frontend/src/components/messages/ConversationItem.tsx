@@ -3,7 +3,8 @@
 import { avatarSeed, initials } from "@/lib/workspaceUtils";
 
 function formatConvTime(value: string): string {
-  const d = new Date(value);
+  const normalized = value.endsWith("Z") || value.includes("+") ? value : value + "Z";
+  const d = new Date(normalized);
   if (Number.isNaN(d.getTime())) return "";
   const now = new Date();
   const isToday = d.toDateString() === now.toDateString();

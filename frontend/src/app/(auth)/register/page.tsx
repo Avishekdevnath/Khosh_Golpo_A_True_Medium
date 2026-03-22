@@ -124,7 +124,7 @@ export default function RegisterPage() {
 
   function copyCode() {
     if (!recoveryCode) return;
-    void navigator.clipboard.writeText(recoveryCode);
+    void navigator.clipboard.writeText(recoveryCode.replace(/[-\s]/g, ""));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }

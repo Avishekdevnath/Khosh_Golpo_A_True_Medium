@@ -1,13 +1,30 @@
 /** Shared pure helpers for full-screen workspace pages. */
 
+const HAS_TIMEZONE_SUFFIX_RE = /(Z|[+-]\d{2}:\d{2})$/i;
+
+export function normalizeApiDate(value: string): string {
+  return HAS_TIMEZONE_SUFFIX_RE.test(value) ? value : `${value}Z`;
+}
+
+export function parseApiDate(value: string): Date {
+  return new Date(normalizeApiDate(value));
+}
+
 export function relativeTime(value: string): string {
-  const d = new Date(value);
+  const d = parseApiDate(value);
   if (Number.isNaN(d.getTime())) return value;
   const mins = Math.max(1, Math.floor((Date.now() - d.getTime()) / 60000));
   if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
   return `${Math.floor(hrs / 24)}d ago`;
+}
+
+export function wasEdited(createdAt: string, updatedAt: string, thresholdMs = 30_000): boolean {
+  const created = parseApiDate(createdAt).getTime();
+  const updated = parseApiDate(updatedAt).getTime();
+  if (Number.isNaN(created) || Number.isNaN(updated)) return createdAt !== updatedAt;
+  return updated - created > thresholdMs;
 }
 
 const AVATAR_PAIRS: [string, string][] = [

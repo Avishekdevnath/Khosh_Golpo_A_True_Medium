@@ -3,6 +3,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api";
+import {
+  saveThread as saveThreadForProfile,
+  unsaveThread as unsaveThreadFromProfile,
+} from "@/lib/profileApi";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -19,6 +23,7 @@ export type ThreadOut = {
   post_count: number;
   like_count: number;
   liked_by_me: boolean;
+  saved_by_me: boolean;
   status: ThreadStatus;
   created_at: string;
   updated_at: string;
@@ -82,6 +87,7 @@ export interface UseThreadDetailReturn {
   userCache: Map<string, UserBrief>;
   refreshPosts: () => Promise<void>;
   handleThreadLike: () => Promise<void>;
+  handleThreadSave: () => Promise<void>;
   handleLike: (postId: string) => Promise<void>;
   saveThreadEdit: (
     title: string,
@@ -173,6 +179,29 @@ export function useThreadDetail(
     }
   }
 
+  async function handleThreadSave() {
+    const wasSaved = thread.saved_by_me;
+    setThread((prev) => ({
+      ...prev,
+      saved_by_me: !wasSaved,
+    }));
+    try {
+      if (wasSaved) {
+        await unsaveThreadFromProfile(thread.id);
+        showToast("Thread removed from saved");
+      } else {
+        await saveThreadForProfile(thread.id);
+        showToast("Thread saved");
+      }
+    } catch {
+      setThread((prev) => ({
+        ...prev,
+        saved_by_me: wasSaved,
+      }));
+      showToast(wasSaved ? "Could not remove saved thread" : "Could not save thread", "error");
+    }
+  }
+
   async function handleLike(postId: string) {
     setPosts((prev) => toggleLikeInTree(prev, postId));
     try {
@@ -250,6 +279,7 @@ export function useThreadDetail(
     userCache,
     refreshPosts,
     handleThreadLike,
+    handleThreadSave,
     handleLike,
     saveThreadEdit,
     saveEdit,

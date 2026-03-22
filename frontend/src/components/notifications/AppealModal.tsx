@@ -48,7 +48,7 @@ export default function AppealModal({ loading, onClose, onSubmit }: AppealModalP
 
   return (
     <div
-      className="appeal-overlay"
+      className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/55 backdrop-blur-[4px]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="appeal-modal-title"
@@ -56,12 +56,21 @@ export default function AppealModal({ loading, onClose, onSubmit }: AppealModalP
         if (event.target === event.currentTarget && !loading) onClose();
       }}
     >
-      <div className="appeal-modal" onClick={event => event.stopPropagation()}>
-        <div className="appeal-header">
-          <h3 id="appeal-modal-title">Submit appeal</h3>
+      <div
+        className="w-[min(560px,100%)] border border-border rounded-[14px] bg-card text-foreground p-[18px] shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+        onClick={event => event.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between gap-[10px] mb-2">
+          <h3
+            id="appeal-modal-title"
+            className="m-0 font-serif text-[20px] leading-[1.1]"
+          >
+            Submit appeal
+          </h3>
           <button
             type="button"
-            className="close-btn"
+            className="border border-border bg-background text-foreground/60 rounded-lg w-[30px] h-[30px] grid place-items-center cursor-pointer hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={onClose}
             disabled={loading}
             aria-label="Close appeal modal"
@@ -70,11 +79,16 @@ export default function AppealModal({ loading, onClose, onSubmit }: AppealModalP
           </button>
         </div>
 
-        <p className="appeal-note">
+        <p className="m-0 mb-3 text-foreground/70 text-[13px] leading-[1.45]">
           Explain why this moderation decision should be reviewed.
         </p>
 
-        <label htmlFor="appeal-reason">Reason</label>
+        <label
+          htmlFor="appeal-reason"
+          className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.06em] text-foreground/60"
+        >
+          Reason
+        </label>
         <textarea
           id="appeal-reason"
           value={reason}
@@ -83,22 +97,28 @@ export default function AppealModal({ loading, onClose, onSubmit }: AppealModalP
           disabled={loading}
           rows={5}
           placeholder="Write your appeal reason..."
+          className="w-full resize-y min-h-[110px] border border-border bg-background text-foreground rounded-[10px] px-3 py-2.5 text-[13px] leading-[1.5] outline-none font-[inherit] focus:border-primary disabled:opacity-65 disabled:cursor-not-allowed transition-colors"
         />
 
-        <div className="meta-row">
-          <span className={`count ${tooLong ? "bad" : ""}`}>
+        <div className="mt-2 flex min-h-[18px] items-center justify-between gap-[10px]">
+          <span className={`text-[11px] ${tooLong ? "text-destructive" : "text-foreground/50"}`}>
             {trimmedReason.length}/{MAX_REASON_LENGTH}
           </span>
-          {error && <span className="error">{error}</span>}
+          {error && <span className="text-[12px] text-destructive text-right">{error}</span>}
         </div>
 
-        <div className="actions">
-          <button type="button" className="btn ghost" onClick={onClose} disabled={loading}>
+        <div className="mt-3.5 flex justify-end gap-2">
+          <button
+            type="button"
+            className="border border-border bg-background text-foreground/70 rounded-[9px] px-[13px] py-2 text-[12px] font-bold cursor-pointer hover:text-foreground hover:border-border/80 hover:bg-card-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={onClose}
+            disabled={loading}
+          >
             Cancel
           </button>
           <button
             type="button"
-            className="btn primary"
+            className="border border-transparent bg-primary text-white rounded-[9px] px-[13px] py-2 text-[12px] font-bold cursor-pointer hover:opacity-[0.88] transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => void handleSubmit()}
             disabled={loading || tooShort || tooLong}
           >
@@ -106,143 +126,6 @@ export default function AppealModal({ loading, onClose, onSubmit }: AppealModalP
           </button>
         </div>
       </div>
-
-      <style jsx>{`
-        .appeal-overlay {
-          position: fixed;
-          inset: 0;
-          z-index: 80;
-          background: rgba(0, 0, 0, 0.55);
-          backdrop-filter: blur(4px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 16px;
-        }
-        .appeal-modal {
-          width: min(560px, 100%);
-          border: 1px solid #1e2235;
-          border-radius: 14px;
-          background: linear-gradient(180deg, #121624, #101420);
-          color: #e4e8f4;
-          padding: 18px;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
-        }
-        .appeal-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 10px;
-          margin-bottom: 8px;
-        }
-        .appeal-header h3 {
-          margin: 0;
-          font-family: var(--font-dm-serif), serif;
-          font-size: 20px;
-          line-height: 1.1;
-        }
-        .close-btn {
-          border: 1px solid #2b324c;
-          background: #151927;
-          color: #8d98b8;
-          border-radius: 8px;
-          width: 30px;
-          height: 30px;
-          display: grid;
-          place-items: center;
-          cursor: pointer;
-        }
-        .close-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        .appeal-note {
-          margin: 0 0 12px;
-          color: #9aa4c2;
-          font-size: 13px;
-          line-height: 1.45;
-        }
-        label {
-          display: block;
-          margin-bottom: 6px;
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-          color: #7e89a9;
-        }
-        textarea {
-          width: 100%;
-          box-sizing: border-box;
-          resize: vertical;
-          min-height: 110px;
-          border: 1px solid #2b324c;
-          background: #151927;
-          color: #e4e8f4;
-          border-radius: 10px;
-          padding: 10px 12px;
-          font-size: 13px;
-          line-height: 1.5;
-          outline: none;
-          font-family: inherit;
-        }
-        textarea:focus {
-          border-color: #f0834a;
-        }
-        textarea:disabled {
-          opacity: 0.65;
-          cursor: not-allowed;
-        }
-        .meta-row {
-          margin-top: 8px;
-          min-height: 18px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 10px;
-        }
-        .count {
-          font-size: 11px;
-          color: #7e89a9;
-        }
-        .count.bad {
-          color: #f6b0b0;
-        }
-        .error {
-          font-size: 12px;
-          color: #f6b0b0;
-          text-align: right;
-        }
-        .actions {
-          margin-top: 14px;
-          display: flex;
-          justify-content: flex-end;
-          gap: 8px;
-        }
-        .btn {
-          border-radius: 9px;
-          border: 1px solid transparent;
-          padding: 8px 13px;
-          font-size: 12px;
-          font-weight: 700;
-          cursor: pointer;
-          font-family: inherit;
-        }
-        .btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        .btn.ghost {
-          border-color: #2b324c;
-          background: #151927;
-          color: #9aa4c2;
-        }
-        .btn.primary {
-          border-color: rgba(240, 131, 74, 0.45);
-          background: rgba(240, 131, 74, 0.18);
-          color: #ffc2a0;
-        }
-      `}</style>
     </div>
   );
 }

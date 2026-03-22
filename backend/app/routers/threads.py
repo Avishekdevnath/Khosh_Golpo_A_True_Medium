@@ -17,6 +17,7 @@ from app.schemas.thread import ThreadCreate, ThreadListResponse, ThreadOut, Thre
 from app.models.audit_log import AuditSeverity
 from app.services.ai import score_content
 from app.services.audit import log_audit
+from app.services.content_deletion import soft_delete_posts_for_thread
 from app.services.mentions import merge_mentions
 
 router = APIRouter(prefix="/threads", tags=["threads"])
@@ -70,9 +71,22 @@ async def list_threads(
     author_ids = list({item.author_id for item in threads})
     authors = await User.find({"_id": {"$in": author_ids}}).to_list() if author_ids else []
     author_lookup = {str(author.id): author for author in authors}
+    saved_thread_ids = (
+        await _get_saved_thread_ids(current_user.id, [item.id for item in threads])
+        if current_user and threads
+        else set()
+    )
 
     return ThreadListResponse(
-        data=[_to_thread_out(item, author_lookup.get(str(item.author_id)), current_user_id=str(current_user.id) if current_user else None) for item in threads],
+        data=[
+            _to_thread_out(
+                item,
+                author_lookup.get(str(item.author_id)),
+                current_user_id=str(current_user.id) if current_user else None,
+                saved_by_me=str(item.id) in saved_thread_ids,
+            )
+            for item in threads
+        ],
         page=page,
         limit=limit,
         total=total,
@@ -121,7 +135,17 @@ async def get_thread(
     if thread is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Thread not found")
     author = await User.find_one({"_id": thread.author_id})
-    return _to_thread_out(thread, author, current_user_id=str(current_user.id) if current_user else None)
+    saved_by_me = (
+        await _is_thread_saved_by_user(current_user.id, thread.id)
+        if current_user
+        else False
+    )
+    return _to_thread_out(
+        thread,
+        author,
+        current_user_id=str(current_user.id) if current_user else None,
+        saved_by_me=saved_by_me,
+    )
 
 
 @router.patch("/{thread_id}")
@@ -201,7 +225,13 @@ async def update_thread(
             details={"title": thread.title[:120], "content_changed": content_changed},
         )
     author = current_user if thread.author_id == current_user.id else await User.find_one({"_id": thread.author_id})
-    return _to_thread_out(thread, author, current_user_id=str(current_user.id))
+    saved_by_me = await _is_thread_saved_by_user(current_user.id, thread.id)
+    return _to_thread_out(
+        thread,
+        author,
+        current_user_id=str(current_user.id),
+        saved_by_me=saved_by_me,
+    )
 
 
 @router.delete("/{thread_id}")
@@ -213,8 +243,10 @@ async def delete_thread(thread_id: str, current_user: User = Depends(get_current
     if thread.author_id != current_user.id and current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not allowed to delete this thread")
 
+    deleted_posts = await soft_delete_posts_for_thread(thread.id)
     thread.is_deleted = True
     thread.status = ThreadStatus.ARCHIVED
+    thread.post_count = 0
     await thread.save()
 
     await log_audit(
@@ -223,7 +255,7 @@ async def delete_thread(thread_id: str, current_user: User = Depends(get_current
         target_type="thread",
         target_id=thread.id,
         severity=AuditSeverity.WARNING,
-        details={"title": thread.title[:120]},
+        details={"title": thread.title[:120], "deleted_post_count": len(deleted_posts)},
     )
 
     return {"message": "Thread deleted"}
@@ -403,11 +435,44 @@ async def toggle_thread_like(
     if user_oid in thread.likes:
         thread.likes.remove(user_oid)
         liked = False
+        action = "thread_unliked"
     else:
         thread.likes.append(user_oid)
         liked = True
+        action = "thread_liked"
     await thread.save()
+    await log_audit(
+        action=action,
+        actor_id=current_user.id,
+        target_type="thread",
+        target_id=thread.id,
+        details={"title": thread.title[:120]},
+    )
     return {"liked": liked, "like_count": len(thread.likes)}
+
+
+@router.delete("/{thread_id}/like", status_code=status.HTTP_200_OK)
+async def unlike_thread(
+    thread_id: str,
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    object_id = _parse_object_id(thread_id, field_name="thread_id")
+    thread = await Thread.find_one({"_id": object_id, "is_deleted": False})
+    if thread is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Thread not found")
+
+    user_oid = current_user.id
+    if user_oid in thread.likes:
+        thread.likes.remove(user_oid)
+        await thread.save()
+        await log_audit(
+            action="thread_unliked",
+            actor_id=current_user.id,
+            target_type="thread",
+            target_id=thread.id,
+            details={"title": thread.title[:120]},
+        )
+    return {"liked": False, "like_count": len(thread.likes)}
 
 
 @router.post("/{thread_id}/mark-read", status_code=status.HTTP_200_OK)
@@ -454,11 +519,46 @@ async def toggle_post_like(
     if user_oid in post.likes:
         post.likes.remove(user_oid)
         liked = False
+        action = "post_unliked"
     else:
         post.likes.append(user_oid)
         liked = True
+        action = "post_liked"
     await post.save()
+    await log_audit(
+        action=action,
+        actor_id=current_user.id,
+        target_type="post",
+        target_id=post.id,
+        details={"thread_id": str(post.thread_id), "content_preview": post.content[:120]},
+    )
     return {"liked": liked, "like_count": len(post.likes)}
+
+
+@router.delete("/{thread_id}/posts/{post_id}/like", status_code=status.HTTP_200_OK)
+async def unlike_post(
+    thread_id: str,
+    post_id: str,
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    thread_oid = _parse_object_id(thread_id, field_name="thread_id")
+    post_oid = _parse_object_id(post_id, field_name="post_id")
+    post = await Post.find_one({"_id": post_oid, "thread_id": thread_oid, "is_deleted": False})
+    if post is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+
+    user_oid = current_user.id
+    if user_oid in post.likes:
+        post.likes.remove(user_oid)
+        await post.save()
+        await log_audit(
+            action="post_unliked",
+            actor_id=current_user.id,
+            target_type="post",
+            target_id=post.id,
+            details={"thread_id": str(post.thread_id), "content_preview": post.content[:120]},
+        )
+    return {"liked": False, "like_count": len(post.likes)}
 
 
 @router.post("/{thread_id}/save", status_code=status.HTTP_200_OK)
@@ -476,11 +576,19 @@ async def save_thread(
         raise HTTPException(status_code=404, detail="Thread not found")
 
     # Upsert — atomic idempotency; unique index on (user_id, thread_id) prevents duplicates
-    await SavedThread.get_motor_collection().update_one(
+    result = await SavedThread.get_motor_collection().update_one(
         {"user_id": current_user.id, "thread_id": tid},
         {"$setOnInsert": {"user_id": current_user.id, "thread_id": tid, "saved_at": utc_now()}},
         upsert=True,
     )
+    if getattr(result, "upserted_id", None) is not None:
+        await log_audit(
+            action="thread_saved",
+            actor_id=current_user.id,
+            target_type="thread",
+            target_id=thread.id,
+            details={"title": thread.title[:120]},
+        )
     return {"saved": True}
 
 
@@ -498,6 +606,33 @@ async def unsave_thread(
     if existing is None:
         raise HTTPException(status_code=404, detail="Not saved")
     await existing.delete()
+    await log_audit(
+        action="thread_unsaved",
+        actor_id=current_user.id,
+        target_type="thread",
+        target_id=tid,
+        details={},
+    )
+
+
+@router.post("/{thread_id}/share", status_code=status.HTTP_200_OK)
+async def share_thread(
+    thread_id: str,
+    current_user: User = Depends(get_current_user),
+) -> dict[str, bool]:
+    object_id = _parse_object_id(thread_id, field_name="thread_id")
+    thread = await Thread.find_one({"_id": object_id, "is_deleted": False})
+    if thread is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Thread not found")
+
+    await log_audit(
+        action="thread_shared",
+        actor_id=current_user.id,
+        target_type="thread",
+        target_id=thread.id,
+        details={"title": thread.title[:120]},
+    )
+    return {"shared": True}
 
 
 @router.get("/{thread_id}/posts")
@@ -560,7 +695,12 @@ def _parse_object_id(value: str, *, field_name: str) -> PydanticObjectId:
         ) from exc
 
 
-def _to_thread_out(thread: Thread, author: User | None = None, current_user_id: str | None = None) -> ThreadOut:
+def _to_thread_out(
+    thread: Thread,
+    author: User | None = None,
+    current_user_id: str | None = None,
+    saved_by_me: bool = False,
+) -> ThreadOut:
     like_ids = [str(uid) for uid in thread.likes] if thread.likes else []
     return ThreadOut(
         id=str(thread.id),
@@ -574,6 +714,7 @@ def _to_thread_out(thread: Thread, author: User | None = None, current_user_id: 
         post_count=thread.post_count,
         like_count=len(like_ids),
         liked_by_me=current_user_id in like_ids if current_user_id else False,
+        saved_by_me=saved_by_me,
         status=thread.status,
         is_pinned=thread.is_pinned,
         ai_score=thread.ai_score,
@@ -582,6 +723,26 @@ def _to_thread_out(thread: Thread, author: User | None = None, current_user_id: 
         created_at=thread.created_at,
         updated_at=thread.updated_at,
     )
+
+
+async def _get_saved_thread_ids(
+    user_id: PydanticObjectId,
+    thread_ids: list[PydanticObjectId],
+) -> set[str]:
+    if not thread_ids:
+        return set()
+    saved_threads = await SavedThread.find(
+        {"user_id": user_id, "thread_id": {"$in": thread_ids}}
+    ).to_list()
+    return {str(item.thread_id) for item in saved_threads}
+
+
+async def _is_thread_saved_by_user(
+    user_id: PydanticObjectId,
+    thread_id: PydanticObjectId,
+) -> bool:
+    saved_thread = await SavedThread.find_one({"user_id": user_id, "thread_id": thread_id})
+    return saved_thread is not None
 
 
 async def _ensure_db_ready(request: Request) -> None:

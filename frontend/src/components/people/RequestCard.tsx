@@ -35,11 +35,8 @@ export default function RequestCard({
   const done = actionState === "done";
   const busy = actionState === "loading";
 
-  const btnBase =
-    "inline-flex min-w-[90px] items-center justify-center gap-1.5 rounded-lg px-3.5 py-[7px] text-xs font-bold whitespace-nowrap transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-45 font-sans";
-
   return (
-    <article className="flex items-start gap-3.5 rounded-[14px] border border-app-border bg-gradient-to-b from-[#111422] to-[#0f1118] px-[18px] py-4 transition-colors duration-150 hover:border-[#252b40] max-sm:flex-wrap">
+    <article className="flex items-start gap-4 rounded-xl border border-border bg-background px-5 py-4 transition-all duration-150 hover:bg-card-hover max-sm:flex-wrap">
 
       {/* Avatar */}
       <button
@@ -49,7 +46,7 @@ export default function RequestCard({
         aria-label={`View ${displayName}'s profile`}
       >
         <div
-          className="grid h-[52px] w-[52px] place-items-center rounded-[14px] text-[17px] font-bold text-white shadow-[0_4px_14px_rgba(0,0,0,0.3)]"
+          className="flex size-[48px] items-center justify-center rounded-full text-[16px] font-bold text-white"
           style={{ background: `linear-gradient(135deg,${av1},${av2})` }}
         >
           {initials(displayName)}
@@ -57,19 +54,23 @@ export default function RequestCard({
       </button>
 
       {/* Info */}
-      <div className="flex-1 min-w-0 grid gap-0.5">
+      <div className="flex-1 min-w-0">
         <button
           type="button"
-          className="border-none bg-transparent p-0 text-left text-[15px] font-bold text-[#dde2f2] transition-colors duration-150 hover:text-accent-orange cursor-pointer font-sans"
+          className="border-none bg-transparent p-0 text-left text-[14px] font-semibold text-foreground transition-colors duration-150 hover:text-primary cursor-pointer font-sans mb-0.5"
           onClick={() => router.push(toProfilePath(userId))}
         >
           {displayName}
         </button>
-        <div className="text-xs text-[#505a72]">@{username}</div>
+        <div className="text-[12px] text-text-tertiary mb-1.5">@{username}</div>
+
         {req.message && (
-          <p className="mt-1 text-xs italic leading-relaxed text-[#8a93ae]">"{req.message}"</p>
+          <p className="m-0 mb-1.5 text-[13px] italic leading-relaxed text-text-secondary">
+            "{req.message}"
+          </p>
         )}
-        <div className="mt-1 inline-flex items-center gap-1 text-[11px] text-[#3d4460]">
+
+        <div className="flex items-center gap-1 text-[11.5px] text-text-tertiary">
           <Clock size={11} />
           {relativeTime(req.created_at)}
         </div>
@@ -78,7 +79,7 @@ export default function RequestCard({
       {/* Actions */}
       <div className="flex shrink-0 flex-col items-end gap-1.5 max-sm:w-full max-sm:flex-row">
         {done ? (
-          <span className="rounded-full border border-green-400/25 bg-green-400/10 px-2.5 py-[3px] text-[11px] font-bold text-green-400">
+          <span className="rounded-full bg-success/10 px-3 py-[5px] text-[12px] font-medium text-success border border-success/20">
             {tab === "received" ? "Accepted" : "Cancelled"}
           </span>
         ) : tab === "received" ? (
@@ -87,18 +88,18 @@ export default function RequestCard({
               type="button"
               disabled={busy}
               onClick={() => onAccept(req.id)}
-              className={`${btnBase} border-none bg-gradient-to-br from-[#3dd68c] to-[#29b472] text-white hover:enabled:opacity-88`}
+              className="inline-flex min-w-[88px] items-center justify-center gap-1.5 rounded-full border-none bg-foreground px-4 py-[6px] text-[12px] font-medium text-background transition-opacity disabled:cursor-not-allowed disabled:opacity-45 hover:enabled:opacity-80 font-sans"
             >
-              <Check size={13} />
+              <Check size={12} />
               {busy ? "…" : "Accept"}
             </button>
             <button
               type="button"
               disabled={busy}
               onClick={() => onDecline(req.id)}
-              className={`${btnBase} border border-[#252b40] bg-app-input text-[#636f8d] hover:enabled:border-red-400/40 hover:enabled:text-red-400`}
+              className="inline-flex min-w-[88px] items-center justify-center gap-1.5 rounded-full border border-border bg-transparent px-4 py-[6px] text-[12px] font-medium text-text-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-45 hover:enabled:border-destructive/40 hover:enabled:text-destructive font-sans"
             >
-              <X size={13} />
+              <X size={12} />
               {busy ? "…" : "Decline"}
             </button>
           </>
@@ -107,9 +108,9 @@ export default function RequestCard({
             type="button"
             disabled={busy}
             onClick={() => onCancel(req.id)}
-            className={`${btnBase} border border-[#252b40] bg-app-input text-[#636f8d] hover:enabled:border-red-400/40 hover:enabled:text-red-400`}
+            className="inline-flex min-w-[88px] items-center justify-center gap-1.5 rounded-full border border-border bg-transparent px-4 py-[6px] text-[12px] font-medium text-text-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-45 hover:enabled:border-destructive/40 hover:enabled:text-destructive font-sans"
           >
-            <X size={13} />
+            <X size={12} />
             {busy ? "…" : "Cancel"}
           </button>
         )}

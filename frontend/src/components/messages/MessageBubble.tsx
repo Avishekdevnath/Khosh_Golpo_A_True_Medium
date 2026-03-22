@@ -4,7 +4,8 @@ import { AlertCircle, RotateCcw } from "lucide-react";
 import type { Message } from "@/types/message";
 
 function formatMessageTime(value: string): string {
-  const d = new Date(value);
+  const normalized = value.endsWith("Z") || value.includes("+") ? value : value + "Z";
+  const d = new Date(normalized);
   if (Number.isNaN(d.getTime())) return "";
   return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
 }

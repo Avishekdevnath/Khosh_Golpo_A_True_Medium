@@ -1,6 +1,8 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
+
+from app.models.common import utc_isoformat
 
 
 class PostCreate(BaseModel):
@@ -33,6 +35,10 @@ class PostOut(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_serializer("created_at", "updated_at")
+    def serialize_datetimes(self, value: datetime) -> str:
+        return utc_isoformat(value)
 
 
 class PostTreeNode(PostOut):

@@ -18,6 +18,7 @@ type ThreadOut = {
   post_count: number;
   like_count: number;
   liked_by_me: boolean;
+  saved_by_me: boolean;
   status: "open" | "closed" | "archived";
   is_deleted: boolean;
   image_url?: string | null;

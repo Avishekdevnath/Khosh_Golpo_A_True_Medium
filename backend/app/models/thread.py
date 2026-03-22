@@ -4,7 +4,7 @@ from enum import Enum
 from beanie import Document, Insert, PydanticObjectId, Replace, before_event
 from pydantic import Field
 
-from app.models.common import utc_now
+from app.models.common import timestamps_for_insert, timestamps_for_replace, utc_now
 
 
 class ThreadStatus(str, Enum):
@@ -33,12 +33,13 @@ class Thread(Document):
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
 
-    @before_event([Insert, Replace])
-    def update_timestamps(self) -> None:
-        now = utc_now()
-        if self.created_at is None:
-            self.created_at = now
-        self.updated_at = now
+    @before_event(Insert)
+    def set_insert_timestamps(self) -> None:
+        self.created_at, self.updated_at = timestamps_for_insert(self.created_at)
+
+    @before_event(Replace)
+    def touch_updated_at(self) -> None:
+        self.created_at, self.updated_at = timestamps_for_replace(self.created_at)
 
     class Settings:
         name = "threads"

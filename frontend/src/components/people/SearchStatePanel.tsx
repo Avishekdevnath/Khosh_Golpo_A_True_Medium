@@ -14,11 +14,11 @@ export default function SearchStatePanel({
   actionHref,
 }: SearchStatePanelProps) {
   return (
-    <div className="grid gap-2.5 rounded-[22px] border border-dashed border-[#445178]/90 bg-[#0a0d16]/90 p-[22px] max-sm:rounded-[18px] max-sm:p-[18px]">
-      <h2 className="m-0 text-2xl text-[#edf2ff]">{title}</h2>
-      <p className="m-0 max-w-[680px] text-sm leading-relaxed text-[#91a0c6]">{text}</p>
+    <div className="rounded-xl border border-dashed border-border bg-card-hover p-6">
+      <h2 className="m-0 mb-1.5 text-[18px] font-semibold text-foreground">{title}</h2>
+      <p className="m-0 max-w-[600px] text-[13.5px] leading-relaxed text-text-secondary">{text}</p>
       {actionLabel && actionHref ? (
-        <Link href={actionHref} className="text-sm font-bold text-[#ffc8a9] no-underline">
+        <Link href={actionHref} className="mt-3 block text-[13px] font-medium text-primary no-underline hover:underline">
           {actionLabel}
         </Link>
       ) : null}

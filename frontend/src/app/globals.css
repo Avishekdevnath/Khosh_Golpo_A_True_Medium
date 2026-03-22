@@ -5,65 +5,87 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --bg: #f8fafc;
-  --surface: #ffffff;
-  --surface2: #f1f5f9;
-  --border: #e2e8f0;
-  --text: #0f172a;
-  --muted: #64748b;
-  --accent: #0369A1;
-  --accent2: #6366F1;
-  --accent-hover: #0284C7;
-  --green: #16a34a;
-  --yellow: #d97706;
+  /* ─── Typography ─── */
   --serif: var(--font-sora), 'Sora', sans-serif;
   --sans: var(--font-plus-jakarta-sans), 'Plus Jakarta Sans', sans-serif;
   --radius: 0.625rem;
-  --background: #f8fafc;
-  --foreground: #0f172a;
+
+  /* ─── Light theme base palette ─── */
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface2: #f2f2f2;
+  --border: #e6e6e6;
+  --text: #242424;
+  --muted: #6b6b6b;
+
+  /* ─── Brand colors (same in light + dark) ─── */
+  --accent: #0EA5E9;          /* sky blue — primary */
+  --accent2: #7c73f0;         /* purple — secondary */
+  --accent-hover: #0284C7;
+  --green: #16a34a;
+  --yellow: #ca8a04;
+  --red: #dc2626;
+  --accent-orange: #ea580c;
+  --accent-purple: #7c73f0;
+
+  /* ─── shadcn/Tailwind semantic tokens ─── */
+  --background: #ffffff;
+  --foreground: #242424;
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #242424;
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: #0369A1;
+  --popover-foreground: #242424;
+  --primary: #0EA5E9;
   --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
-  --muted-foreground: #64748b;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #111111;
+  --muted-foreground: #71717a;
   --accent-foreground: #ffffff;
   --destructive: #dc2626;
-  --input: #e2e8f0;
-  --ring: #6366F1;
-  --chart-1: #0369A1;
-  --chart-2: #4a9f87;
-  --chart-3: #6366F1;
-  --chart-4: #f5b64a;
-  --chart-5: #ee7f7f;
-  --sidebar: #ffffff;
-  --sidebar-foreground: #0f172a;
-  --sidebar-primary: #6366F1;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f1f5f9;
-  --sidebar-accent-foreground: #0f172a;
-  --sidebar-border: #e2e8f0;
-  --sidebar-ring: #6366F1;
+  --input: #e4e4e7;
+  --ring: #0EA5E9;
 
-  /* ─── Design System Tokens ─── */
-  --card-hover: #f8fafc;
-  --card-active: #f0f7ff;
+  /* ─── Charts ─── */
+  --chart-1: #0EA5E9;
+  --chart-2: #16a34a;
+  --chart-3: #7c73f0;
+  --chart-4: #ca8a04;
+  --chart-5: #dc2626;
+
+  /* ─── Sidebar tokens (light) ─── */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #242424;
+  --sidebar-primary: #0EA5E9;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f2f2f2;
+  --sidebar-accent-foreground: #242424;
+  --sidebar-border: #e6e6e6;
+  --sidebar-ring: #0EA5E9;
+
+  /* ─── Design System Tokens (light) ─── */
+  --card-hover: #f2f2f2;
+  --card-active: #e8f4fd;
   --surface-elevated: #ffffff;
   --border-subtle: rgba(0,0,0,0.06);
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-tertiary: #94a3b8;
+  --text-primary: #242424;
+  --text-secondary: #6b6b6b;
+  --text-tertiary: #9b9b9b;
   --success: #16a34a;
-  --warning: #d97706;
-  --info: #6366f1;
+  --warning: #ca8a04;
+  --info: #7c73f0;
   --accent-glow: transparent;
-  --accent-muted: rgba(14,165,233,0.08);
+  --accent-muted: rgba(14,165,233,0.10);
   --duration-fast: 150ms;
   --duration-normal: 220ms;
   --duration-slow: 300ms;
+
+  /* ─── app-* aliases (used in older pages) ─── */
+  --app-bg: var(--background);
+  --app-panel: var(--card);
+  --app-border: var(--border);
+  --app-card-hover: var(--card-hover);
+  --app-input: var(--input);
+  --app-border-strong: #d4d4d8;
 }
 
 /* Tailwind v4 preflight handles box-sizing + margin/padding reset.
@@ -1153,6 +1175,18 @@ footer {
   --color-border-subtle: var(--border-subtle);
   --color-accent-glow: var(--accent-glow);
   --color-accent2: var(--accent2);
+
+  /* ─── app-* Tailwind color aliases ─── */
+  --color-app-bg: var(--app-bg);
+  --color-app-panel: var(--app-panel);
+  --color-app-border: var(--app-border);
+  --color-app-card-hover: var(--app-card-hover);
+  --color-app-input: var(--app-input);
+  --color-app-border-strong: var(--app-border-strong);
+
+  /* ─── Extra brand tokens ─── */
+  --color-accent-orange: var(--accent-orange);
+  --color-accent-purple: var(--accent-purple);
 }
 
 .dark {
@@ -1171,6 +1205,8 @@ footer {
   --green: #3dd68c;
   --yellow: #f5b64a;
   --red: #f06b6b;
+  --accent-orange: #f0834a;
+  --accent-purple: #7c73f0;
 
   /* ─── shadcn/Tailwind semantic tokens ─── */
   --background: #080a10;
@@ -1219,8 +1255,14 @@ footer {
   --info: #7c73f0;
   --accent-glow: rgba(14,165,233,0.35);
   --accent-muted: rgba(14,165,233,0.10);
-  --accent-orange: #f0834a;
-  --accent-purple: #7c73f0;
+
+  /* ─── app-* aliases (used in older pages) ─── */
+  --app-bg: var(--background);
+  --app-panel: var(--card);
+  --app-border: var(--border);
+  --app-card-hover: var(--card-hover);
+  --app-input: var(--input);
+  --app-border-strong: #2a2f45;
 }
 
 @layer base {
@@ -1248,4 +1290,23 @@ footer {
 @keyframes menuSlide {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Workspace utility classes ─── */
+@layer utilities {
+  /* ws-panel: a full-height flex-1 panel with the app background */
+  .ws-panel {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    background: var(--background);
+    color: var(--foreground);
+  }
+  .ws-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .ws-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+  .ws-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+  .ws-drag { cursor: col-resize; user-select: none; touch-action: none; }
 }

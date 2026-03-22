@@ -146,16 +146,7 @@ export default function ThreadsWorkspace() {
   }
 
   function handleCardClick(thread: ThreadOut) {
-    if (window.innerWidth >= 1100) {
-      if (activeThreadId === thread.id && rightPanel === "detail") {
-        setActiveThreadId(null);
-      } else {
-        setActiveThreadId(thread.id);
-        setRightPanel("detail");
-      }
-    } else {
-      router.push(`/threads/${thread.id}`);
-    }
+    router.push(`/threads/${thread.id}`);
   }
 
   function handleNewThreadClick() {
