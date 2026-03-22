@@ -1,39 +1,38 @@
-// frontend/src/components/profile/ProfileTabs.tsx
-import type { ProfileTab } from "./useUserProfile";
+import { getProfileTabs, type ProfileTabKey } from "@/lib/profileViewModel";
 
-interface ProfileTabsProps {
-  activeTab: ProfileTab;
-  onTabChange: (tab: ProfileTab) => void;
+type ProfileTabsProps = {
+  activeTab: ProfileTabKey;
+  onTabChange: (tab: ProfileTabKey) => void;
   isOwnProfile: boolean;
-}
+};
 
-const TABS: Array<{ key: ProfileTab; label: string; ownOnly: boolean }> = [
-  { key: "threads", label: "Threads", ownOnly: false },
-  { key: "replies", label: "Replies", ownOnly: false },
-  { key: "saved",   label: "Saved",   ownOnly: true  },
-  { key: "history", label: "History", ownOnly: true  },
-];
+const LABELS: Record<ProfileTabKey, string> = {
+  overview: "Overview",
+  threads: "Threads",
+  replies: "Replies",
+  saved: "Saved",
+};
 
 export default function ProfileTabs({ activeTab, onTabChange, isOwnProfile }: ProfileTabsProps) {
-  const visibleTabs = TABS.filter(t => !t.ownOnly || isOwnProfile);
+  const visibleTabs = getProfileTabs(isOwnProfile);
 
   return (
-    <div role="tablist" className="flex items-center border-b border-border px-7 max-sm:px-3.5">
-      {visibleTabs.map(tab => (
+    <div role="tablist" className="flex items-center gap-8 border-b border-border/50 px-7 max-sm:px-4 bg-background/40">
+      {visibleTabs.map((tab) => (
         <button
-          key={tab.key}
+          key={tab}
           type="button"
           role="tab"
-          aria-selected={activeTab === tab.key}
-          onClick={() => onTabChange(tab.key)}
+          aria-selected={activeTab === tab}
+          onClick={() => onTabChange(tab)}
           className={[
-            "mr-6 py-[14px] text-[14px] border-b-2 transition-colors duration-150 whitespace-nowrap font-sans cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm",
-            activeTab === tab.key
-              ? "border-b-foreground text-foreground font-medium"
-              : "border-b-transparent text-text-secondary hover:text-foreground font-normal",
+            "border-b-2 py-4 text-[14px] font-medium transition-all cursor-pointer",
+            activeTab === tab
+              ? "border-b-primary text-foreground"
+              : "border-b-transparent text-foreground/60 hover:text-foreground/80",
           ].join(" ")}
         >
-          {tab.label}
+          {LABELS[tab]}
         </button>
       ))}
     </div>

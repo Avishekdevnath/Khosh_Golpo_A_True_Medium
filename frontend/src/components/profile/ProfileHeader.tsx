@@ -1,20 +1,23 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Calendar, Edit2, Globe, Lock, MoreHorizontal } from "lucide-react";
-import FollowButton from "@/components/shared/FollowButton";
+import { ArrowLeft, Calendar, Edit2, Globe, Link as LinkIcon, Lock, MapPin, MoreHorizontal } from "lucide-react";
+
 import ConnectionButton from "@/components/shared/ConnectionButton";
-import type { UserOut } from "./useUserProfile";
+import FollowButton from "@/components/shared/FollowButton";
+import type { PublicProfilePayload } from "@/lib/profileApi";
+import { getPublicProfileCoverLayout } from "@/lib/profileCoverLayout";
 import { avatarSeed, initials } from "@/lib/workspaceUtils";
 
+
 function formatJoinDate(value: string): string {
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return d.toLocaleDateString("en-US", { year: "numeric", month: "long" });
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("en-US", { year: "numeric", month: "long" });
 }
 
-interface ProfileHeaderProps {
-  profileUser: UserOut;
+type ProfileHeaderProps = {
+  publicProfile: PublicProfilePayload;
   isOwnProfile: boolean;
   isAdmin: boolean;
   threadTotal: number;
@@ -23,7 +26,7 @@ interface ProfileHeaderProps {
   followersCount: number;
   followingCount: number;
   isPrivate: boolean;
-  onFollowChange: (following: boolean, fCount: number, fgCount: number) => void;
+  onFollowChange: (following: boolean, followersCount: number, followingCount: number) => void;
   onTogglePrivacy: () => void;
   onOpenAdminEdit: () => void;
   onOpenFollowers: () => void;
@@ -32,121 +35,193 @@ interface ProfileHeaderProps {
   mobileMenuRef: React.RefObject<HTMLDivElement | null>;
   onToggleMobileMenu: () => void;
   onCloseMobileMenu: () => void;
-}
+};
 
 export default function ProfileHeader({
-  profileUser, isOwnProfile, isAdmin, threadTotal,
-  isFollowing, followsYou, followersCount, followingCount,
-  isPrivate, onFollowChange, onTogglePrivacy,
-  onOpenAdminEdit, onOpenFollowers, onOpenFollowing,
-  mobileMenuOpen, mobileMenuRef, onToggleMobileMenu, onCloseMobileMenu,
+  publicProfile,
+  isOwnProfile,
+  isAdmin,
+  threadTotal,
+  isFollowing,
+  followsYou,
+  followersCount,
+  followingCount,
+  isPrivate,
+  onFollowChange,
+  onTogglePrivacy,
+  onOpenAdminEdit,
+  onOpenFollowers,
+  onOpenFollowing,
+  mobileMenuOpen,
+  mobileMenuRef,
+  onToggleMobileMenu,
+  onCloseMobileMenu,
 }: ProfileHeaderProps) {
   const router = useRouter();
-  const [av1, av2] = avatarSeed(profileUser.id);
+  const [accentA, accentB] = avatarSeed(publicProfile.user.id);
+  const coverLayout = getPublicProfileCoverLayout();
+  const bannerFallbackStyle = {
+    background: `linear-gradient(135deg, ${accentA}25 0%, ${accentB}18 58%, rgba(255,255,255,0) 100%), var(--card-hover)`,
+  };
 
   return (
     <>
-      {/* Back button */}
-      <div className="absolute top-0 left-0 z-10 px-5 py-4">
+      <div className="absolute left-0 top-0 z-10 px-5 py-4">
         <button
           type="button"
           onClick={() => router.back()}
-          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/80 px-3 py-1.5 text-[12px] font-medium text-text-secondary backdrop-blur-sm transition-colors hover:text-foreground cursor-pointer font-sans"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background/80 px-3 py-2 text-[13px] font-medium text-foreground backdrop-blur-sm transition-all hover:bg-card-hover cursor-pointer"
         >
-          <ArrowLeft size={13} /> Back
+          <ArrowLeft size={14} strokeWidth={2} />
+          Back
         </button>
       </div>
 
-      {/* Banner — light gradient using avatar seed */}
       <div
-        className="h-[120px] w-full relative overflow-hidden flex-shrink-0"
-        style={{ background: `linear-gradient(135deg, ${av1}26 0%, ${av2}18 60%, transparent 100%), var(--card-hover)` }}
-      />
+        className={`${coverLayout.frameClassName} bg-card-hover`}
+        style={publicProfile.basics.banner_url ? undefined : bannerFallbackStyle}
+      >
+        {publicProfile.basics.banner_url && (
+          <img
+            src={publicProfile.basics.banner_url}
+            alt=""
+            className={coverLayout.imageClassName}
+          />
+        )}
+      </div>
 
-      {/* Header body */}
-      <div className="px-7 pb-6 max-sm:px-4 max-sm:pb-4">
+      <div className="px-7 pb-7 max-sm:px-4">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <div className={`${coverLayout.avatarOverlapClassName} flex items-end gap-4`}>
+            {publicProfile.user.avatar_url ? (
+              <img
+                src={publicProfile.user.avatar_url}
+                alt={publicProfile.user.display_name}
+                className="size-[110px] rounded-[28px] border-4 border-background object-cover shadow-md max-sm:size-[88px] max-sm:rounded-[24px]"
+              />
+            ) : (
+              <div
+                className="grid size-[110px] place-items-center rounded-[28px] border-4 border-background font-serif text-[32px] font-bold text-white shadow-md max-sm:size-[88px] max-sm:rounded-[24px] max-sm:text-[28px]"
+                style={{ background: `linear-gradient(135deg, ${accentA}, ${accentB})` }}
+              >
+                {initials(publicProfile.user.display_name)}
+              </div>
+            )}
 
-        {/* Avatar row */}
-        <div className="flex items-end justify-between mb-4">
-          {/* Avatar */}
-          <div
-            className="relative -mt-11 flex-shrink-0 size-[88px] rounded-full grid place-items-center font-serif text-[26px] font-bold text-white border-4 border-background shadow-sm max-sm:size-[72px] max-sm:text-xl max-sm:-mt-9"
-            style={{ background: `linear-gradient(135deg,${av1},${av2})` }}
-          >
-            {initials(profileUser.display_name)}
+            <div className="pb-1 max-sm:hidden">
+              {isPrivate && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/80 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-foreground">
+                  <Lock size={11} strokeWidth={2.5} />
+                  Private
+                </span>
+              )}
+            </div>
           </div>
 
-          {/* Actions — desktop */}
-          <div className="hidden sm:flex items-center gap-2 pb-1">
+          <div className="hidden items-center gap-3 sm:flex">
             {isOwnProfile ? (
               <>
                 <button
                   type="button"
                   onClick={onTogglePrivacy}
-                  title={isPrivate ? "Profile is private — click to make public" : "Profile is public — click to make private"}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-[7px] text-[12px] text-text-secondary transition-colors hover:text-foreground cursor-pointer font-sans"
+                  className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-3.5 py-2 text-[13px] font-medium text-foreground transition-all hover:bg-card-hover cursor-pointer"
                 >
-                  {isPrivate ? <Lock size={12} /> : <Globe size={12} />}
+                  {isPrivate ? <Lock size={13} strokeWidth={2} /> : <Globe size={13} strokeWidth={2} />}
                   {isPrivate ? "Private" : "Public"}
                 </button>
                 <button
                   type="button"
-                  onClick={() => router.push("/settings")}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-[7px] text-[12px] text-text-secondary transition-colors hover:text-foreground cursor-pointer font-sans"
+                  onClick={() => router.push("/profile/manage")}
+                  className="inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/8 px-3.5 py-2 text-[13px] font-semibold text-primary transition-all hover:bg-primary/12 cursor-pointer"
                 >
-                  <Edit2 size={12} /> Edit profile
+                  <Edit2 size={13} strokeWidth={2} />
+                  Manage Profile
                 </button>
               </>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 {isAdmin && (
                   <button
                     type="button"
                     onClick={onOpenAdminEdit}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-[7px] text-[12px] text-text-secondary transition-colors hover:text-foreground cursor-pointer font-sans"
+                    className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-3.5 py-2 text-[13px] font-medium text-foreground transition-all hover:bg-card-hover cursor-pointer"
                   >
-                    <Edit2 size={12} /> Edit
+                    <Edit2 size={13} strokeWidth={2} />
+                    Admin Edit
                   </button>
                 )}
-                <ConnectionButton userId={profileUser.id} />
-                <FollowButton userId={profileUser.id} initialFollowing={isFollowing} followsYou={followsYou} onFollowChange={onFollowChange} />
+                <ConnectionButton userId={publicProfile.user.id} />
+                <FollowButton
+                  userId={publicProfile.user.id}
+                  initialFollowing={isFollowing}
+                  followsYou={followsYou}
+                  onFollowChange={onFollowChange}
+                />
               </div>
             )}
           </div>
 
-          {/* Actions — mobile */}
-          <div className="sm:hidden relative pb-1" ref={mobileMenuRef}>
+          <div className="relative pb-1 sm:hidden" ref={mobileMenuRef}>
             <button
               type="button"
               onClick={onToggleMobileMenu}
               aria-label="Profile actions"
-              className="size-9 grid place-items-center rounded-full border border-border bg-background text-text-secondary transition-colors hover:text-foreground cursor-pointer font-sans"
+              className="grid size-9 place-items-center rounded-full border border-border bg-background text-text-secondary transition-colors hover:text-foreground"
             >
               <MoreHorizontal size={16} />
             </button>
+
             {mobileMenuOpen && (
-              <div className="absolute top-[calc(100%+6px)] right-0 z-50 min-w-[180px] rounded-xl border border-border bg-background p-1.5 shadow-lg">
+              <div className="absolute right-0 top-[calc(100%+8px)] z-50 min-w-[210px] rounded-[18px] border border-border bg-background p-1.5 shadow-xl">
                 {isOwnProfile ? (
                   <>
-                    <button type="button" onClick={() => { onCloseMobileMenu(); onTogglePrivacy(); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-[13px] text-text-secondary hover:bg-card-hover cursor-pointer font-sans">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onCloseMobileMenu();
+                        onTogglePrivacy();
+                      }}
+                      className="flex w-full items-center gap-2 rounded-[14px] px-3 py-2.5 text-[13px] text-text-secondary transition-colors hover:bg-card-hover hover:text-foreground"
+                    >
                       {isPrivate ? <Lock size={13} /> : <Globe size={13} />}
                       {isPrivate ? "Make public" : "Make private"}
                     </button>
-                    <button type="button" onClick={() => { onCloseMobileMenu(); router.push("/settings"); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-[13px] text-text-secondary hover:bg-card-hover cursor-pointer font-sans">
-                      <Edit2 size={13} /> Edit profile
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onCloseMobileMenu();
+                        router.push("/profile/manage");
+                      }}
+                      className="flex w-full items-center gap-2 rounded-[14px] px-3 py-2.5 text-[13px] text-text-secondary transition-colors hover:bg-card-hover hover:text-foreground"
+                    >
+                      <Edit2 size={13} />
+                      Manage Profile
                     </button>
                   </>
                 ) : (
                   <>
                     <div onClick={onCloseMobileMenu}>
-                      <ConnectionButton userId={profileUser.id} />
+                      <ConnectionButton userId={publicProfile.user.id} />
                     </div>
                     <div onClick={onCloseMobileMenu}>
-                      <FollowButton userId={profileUser.id} initialFollowing={isFollowing} followsYou={followsYou} onFollowChange={onFollowChange} />
+                      <FollowButton
+                        userId={publicProfile.user.id}
+                        initialFollowing={isFollowing}
+                        followsYou={followsYou}
+                        onFollowChange={onFollowChange}
+                      />
                     </div>
                     {isAdmin && (
-                      <button type="button" onClick={() => { onCloseMobileMenu(); onOpenAdminEdit(); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-[13px] text-text-secondary hover:bg-card-hover cursor-pointer font-sans">
-                        <Edit2 size={13} /> Admin edit
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onCloseMobileMenu();
+                          onOpenAdminEdit();
+                        }}
+                        className="flex w-full items-center gap-2 rounded-[14px] px-3 py-2.5 text-[13px] text-text-secondary transition-colors hover:bg-card-hover hover:text-foreground"
+                      >
+                        <Edit2 size={13} />
+                        Admin Edit
                       </button>
                     )}
                   </>
@@ -156,49 +231,73 @@ export default function ProfileHeader({
           </div>
         </div>
 
-        {/* Name */}
-        <h1 className="font-serif text-[22px] leading-tight text-foreground mb-0.5 break-words">
-          {profileUser.display_name}
-        </h1>
-
-        {/* Username + privacy pill */}
-        <div className="flex items-center gap-2 mb-2 flex-wrap">
-          <span className="text-[13px] text-text-tertiary">@{profileUser.username}</span>
-          {profileUser.is_bot && <span className="text-[11px] text-primary font-medium">Automated</span>}
-          {isPrivate && isOwnProfile && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-card-hover border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
-              <Lock size={9} /> Private
+        <div className="mb-2 flex flex-wrap items-center gap-2.5">
+          <h1 className="font-serif text-[36px] font-bold leading-tight text-foreground max-sm:text-[28px]">
+            {publicProfile.user.display_name}
+          </h1>
+          {publicProfile.user.is_bot && (
+            <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">
+              Automated
             </span>
           )}
         </div>
 
-        {/* Bio */}
-        {profileUser.bio && (
-          <p className="text-[14px] leading-relaxed text-text-secondary mb-3 max-w-[520px] break-words">
-            {profileUser.bio}
+        <div className="mb-3 text-[15px] font-medium text-text-secondary">@{publicProfile.user.username}</div>
+
+        {publicProfile.basics.headline && (
+          <p className="mb-4 max-w-[720px] text-[17px] leading-relaxed text-foreground max-sm:text-[16px]">
+            {publicProfile.basics.headline}
           </p>
         )}
 
-        {/* Stats row — Medium-style inline */}
-        <div className="flex items-center gap-1 text-[13px] text-text-secondary flex-wrap">
-          <button onClick={onOpenFollowers} className="font-sans border-none bg-transparent p-0 cursor-pointer hover:underline min-h-[44px] focus-visible:outline-none focus-visible:underline">
-            <strong className="text-foreground font-semibold">{followersCount}</strong>{" "}
-            <span className="text-text-tertiary">followers</span>
+        {publicProfile.user.bio && (
+          <p className="mb-5 max-w-[720px] text-[15px] leading-relaxed text-foreground">{publicProfile.user.bio}</p>
+        )}
+
+        <div className="mb-6 flex flex-wrap items-center gap-4 text-[14px] text-foreground">
+          {publicProfile.basics.location && (
+            <span className="inline-flex items-center gap-1.5 font-medium">
+              <MapPin size={14} strokeWidth={2} />
+              {publicProfile.basics.location}
+            </span>
+          )}
+          {publicProfile.basics.website && (
+            <a
+              href={publicProfile.basics.website}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer"
+            >
+              <LinkIcon size={14} strokeWidth={2} />
+              {publicProfile.basics.website}
+            </a>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-4 text-[14px] text-foreground">
+          <button
+            type="button"
+            onClick={onOpenFollowers}
+            className="border-none bg-transparent p-0 hover:opacity-75 transition-opacity cursor-pointer font-medium"
+          >
+            <span className="font-bold text-primary">{followersCount}</span> followers
           </button>
-          <span className="text-text-tertiary mx-1">·</span>
-          <button onClick={onOpenFollowing} className="font-sans border-none bg-transparent p-0 cursor-pointer hover:underline min-h-[44px] focus-visible:outline-none focus-visible:underline">
-            <strong className="text-foreground font-semibold">{followingCount}</strong>{" "}
-            <span className="text-text-tertiary">following</span>
+          <span className="text-border">•</span>
+          <button
+            type="button"
+            onClick={onOpenFollowing}
+            className="border-none bg-transparent p-0 hover:opacity-75 transition-opacity cursor-pointer font-medium"
+          >
+            <span className="font-bold text-primary">{followingCount}</span> following
           </button>
-          <span className="text-text-tertiary mx-1">·</span>
-          <span>
-            <strong className="text-foreground font-semibold">{threadTotal}</strong>{" "}
-            <span className="text-text-tertiary">{threadTotal === 1 ? "thread" : "threads"}</span>
+          <span className="text-border">•</span>
+          <span className="font-medium">
+            <span className="font-bold text-primary">{threadTotal}</span> {threadTotal === 1 ? "thread" : "threads"}
           </span>
-          <span className="text-text-tertiary mx-1">·</span>
-          <span className="inline-flex items-center gap-1 text-text-tertiary">
-            <Calendar size={11} />
-            {formatJoinDate(profileUser.created_at)}
+          <span className="text-border">•</span>
+          <span className="inline-flex items-center gap-1.5">
+            <Calendar size={13} strokeWidth={2} />
+            Joined {formatJoinDate(publicProfile.user.created_at)}
           </span>
         </div>
       </div>
