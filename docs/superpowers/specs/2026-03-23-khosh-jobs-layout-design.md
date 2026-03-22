@@ -95,8 +95,10 @@ Sticky `h-14` top bar. Its content is contextual per route.
 | Route | Left | Center | Right |
 |---|---|---|---|
 | `/jobs` (Browse) | `◆ Khosh Jobs` wordmark | `🔍 Search jobs...` expandable pill | `[+ Post a Job]` button |
+| `/jobs/[id]` (Browse + selected) | `◆ Khosh Jobs` wordmark | `🔍 Search jobs...` expandable pill | `[+ Post a Job]` button |
 | `/jobs/saved` | `← Back` | `Saved Jobs` title | — |
 | `/jobs/my` | `← Back` | `My Posts` title | `[+ Post a Job]` button |
+| `/jobs/post` | `← Back` | `Post a Job` title | — |
 | `/jobs/pipeline` | `← Back` | `My Pipeline` title | — |
 | `/jobs/applications` | `← Back` | `My Applications` title | — |
 
@@ -104,9 +106,12 @@ Sticky `h-14` top bar. Its content is contextual per route.
 
 - The `◆` diamond icon uses a sky-blue gradient (`#0EA5E9`) — it is the sub-brand identity mark.
 - Wordmark uses **DM Serif Display 18px**.
-- `← Back` navigates to `/jobs` (Browse).
+- `← Back` navigates to `/jobs` (Browse) on all sub-pages.
 - `+ Post a Job` button: sky-blue filled pill — `bg-primary text-white`.
 - Top bar is separated from content by `border-b border-[#1e2235]`.
+
+**Mobile top bar override:**
+On mobile (`<860px`), when a user taps a job card and enters full-screen detail view, the `JobsTopBar` left slot changes contextually to `← Back` (calls `router.back()`) and the center shows the job title (truncated). This replaces the wordmark/search for that view — there is no second bar. The tab bar is hidden during full-screen detail view and restored on back navigation.
 
 ---
 
@@ -128,7 +133,11 @@ Sticky `h-14` top bar. Its content is contextual per route.
 [Briefcase icon] My Posts       [active jobs count badge]
 [Kanban icon]    Pipeline       [new applicants badge — unread only]
 [FileText icon]  Applied        [● update dot — stage change signal]
+─────────────────────────────
+[PenLine icon]   Post a Job     ← CTA-styled row (sky-blue text, no active state)
 ```
+
+The **Post a Job** row is visually distinct from nav items — it uses `text-primary` always (never muted) and has a subtle `border border-primary/20 rounded-lg` treatment to signal it's an action, not a destination. It navigates to `/jobs/post`. On the `/jobs/post` route, this row stays highlighted as the active item.
 
 **Nav item design:**
 
@@ -194,6 +203,30 @@ Applies to Browse, Saved, and Applied routes.
 
 - **Hover:** `translateY(-1px)` + shadow lift (`150ms ease`).
 - **Selected:** `border-l-2 border-primary` + `bg-[#141824]` + `box-shadow: 0 0 20px rgba(14,165,233,0.08)`.
+
+**My Posts — Detail Panel (`MyJobDetailPanel`):**
+
+When a user clicks one of their posted jobs on `/jobs/my`, the detail panel renders `MyJobDetailPanel` — a new component distinct from `JobDetailPanel`. It shows:
+
+```
+[Job title + status badge (active/closed/pending_review)]
+[Posted X days ago · Y applicants · Z saved]
+─────────────────────────────────────────────
+[View Pipeline →]   [Edit Job]   [Close Job]   ← action row
+─────────────────────────────────────────────
+Applicant breakdown:
+  Applied    ██████  8
+  Screening  ████    5
+  Interview  ███     4
+  Offer      █       1
+─────────────────────────────────────────────
+[Job description preview — read-only, collapsible]
+```
+
+- `View Pipeline →` navigates to `/jobs/pipeline` with this job pre-selected.
+- `Edit Job` navigates to `/jobs/post?edit=<id>` (the post form in edit mode).
+- `Close Job` triggers a confirmation dialog, then calls `closeJob(id)`.
+- This is a new file: `frontend/src/components/jobs/MyJobDetailPanel.tsx`.
 
 ---
 
@@ -392,6 +425,7 @@ When tapping a job card on mobile (navigating to full-screen detail), the detail
 | `frontend/src/components/jobs/KanbanBoard.tsx` | Kanban board container |
 | `frontend/src/components/jobs/KanbanColumn.tsx` | Individual Kanban column |
 | `frontend/src/components/jobs/KanbanCard.tsx` | Applicant card within a column |
+| `frontend/src/components/jobs/MyJobDetailPanel.tsx` | Employer detail panel for My Posts |
 
 ### Modified files
 
@@ -400,6 +434,22 @@ When tapping a job card on mobile (navigating to full-screen detail), the detail
 | `app/(app)/jobs/*` | **DELETE** — entire subtree (page.tsx, [id]/page.tsx, saved/, my/, post/, pipeline/, applications/) moved to `(jobs)` route group |
 | `frontend/src/components/jobs/JobDetailPanel.tsx` | Add `break-words` class to the description `<div>` (line ~206 — `whitespace-pre-wrap` already present, only `break-words` is missing) |
 | `frontend/src/components/jobs/JobsWorkspace.tsx` | **Replace entirely** — current component owns tab state, filter state, selectedJob state, useJobs/useSavedJobs hooks, and handleApplied callback. All of this moves to the new page-level components (`app/(jobs)/jobs/page.tsx` etc.). `JobsWorkspace.tsx` can be deleted once pages are implemented. |
+
+---
+
+## Authentication Guards
+
+| Route | Auth required | Redirect if unauthenticated |
+|---|---|---|
+| `/jobs` (Browse) | No — public | — |
+| `/jobs/[id]` | No — public | — |
+| `/jobs/saved` | Yes | `/login?next=/jobs/saved` |
+| `/jobs/my` | Yes | `/login?next=/jobs/my` |
+| `/jobs/post` | Yes | `/login?next=/jobs/post` |
+| `/jobs/pipeline` | Yes | `/login?next=/jobs/pipeline` |
+| `/jobs/applications` | Yes | `/login?next=/jobs/applications` |
+
+Auth checks are handled at the page level using the existing `useAuthStore` pattern — if `user` is `null` after hydration, redirect via `router.replace(...)`. Do not add auth logic to `JobsShell` (the layout) — keep it at the individual page level so Browse and job detail remain publicly accessible.
 
 ---
 
