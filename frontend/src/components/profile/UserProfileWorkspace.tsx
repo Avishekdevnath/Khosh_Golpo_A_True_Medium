@@ -21,11 +21,11 @@ function ProfileSkeleton() {
       {/* Banner with overlapping avatar — mirrors ProfileHeader layout */}
       <div className="relative w-full aspect-[4/1]">
         <Skeleton className="absolute inset-0 w-full h-full" />
-        <div className="absolute bottom-0 left-7 translate-y-1/3 z-10 max-sm:left-4">
+        <div className="absolute bottom-0 left-[78px] translate-y-1/3 z-10 max-sm:left-4">
           <Skeleton variant="circle" className="size-[240px] rounded-full border-[6px] border-background max-sm:size-[160px]" />
         </div>
       </div>
-      <div className="px-7 pt-[100px] pb-7 max-sm:px-4 max-sm:pt-[72px]">
+      <div className="px-7 pt-[68px] pb-5 max-sm:px-4 max-sm:pt-[52px]">
         <Skeleton variant="text" className="mb-2 h-8 w-2/5" />
         <Skeleton variant="text" className="mb-3 h-4 w-1/4" />
         <Skeleton variant="text" className="mb-2 h-4 w-3/5" />
