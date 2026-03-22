@@ -10,6 +10,9 @@ const EMPTY_PREFERENCES: FeedPreferences = {
   hidden_tags: [],
   muted_user_ids: [],
   topics_selected: false,
+  feed_explore_mode: false,
+  feed_following_priority: false,
+  feed_include_own: false,
 };
 
 function normalizeTopics(topics: string[]): string[] {
