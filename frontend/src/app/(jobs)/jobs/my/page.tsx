@@ -23,6 +23,10 @@ export default function MyPostsPage() {
   const selectedJob = jobs.find((j) => j.id === selectedId) ?? null;
 
   const handleSelect = useCallback((jobId: string) => {
+    if (typeof window !== "undefined" && window.innerWidth < 860) {
+      router.push(`/jobs/${jobId}`);
+      return;
+    }
     const params = new URLSearchParams(searchParams.toString());
     params.set("job", jobId);
     router.replace(`/jobs/my?${params.toString()}`, { scroll: false });
