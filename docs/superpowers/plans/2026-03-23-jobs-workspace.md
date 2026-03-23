@@ -594,7 +594,7 @@ export default function JobsWorkspace() {
 
       {/* Col 3 — hidden on <1024px */}
       {selectedJob && (
-        <div className="flex-1 overflow-y-auto max-[1023px]:hidden">
+        <div className="flex-1 overflow-y-auto border-l border-border max-[1023px]:hidden">
           <JobDetailPanel
             job={selectedJob}
             onApplied={handleApplied}
@@ -815,13 +815,13 @@ to:
       <div className="flex-1 overflow-y-auto max-[1023px]:hidden border-l border-border">
 ```
 
-- [ ] **Step 3: Edit `pipeline/page.tsx` — update breakpoints only (no `showFilters` to remove)**
+- [ ] **Step 3: Edit `pipeline/page.tsx` — update Tailwind breakpoints only**
 
-`pipeline/page.tsx` does not use `JobsListPanel`, so no prop removal needed. It does use `860` breakpoints in Tailwind classes and one `window.innerWidth < 860` JS check. Do a find-and-replace:
+`pipeline/page.tsx` uses `JobsRail` (not `JobsListPanel`) — no prop removal needed. It contains Tailwind breakpoint classes only (no JS `window.innerWidth` checks). Do a find-and-replace in the file:
 - All `min-[860px]:` → `min-[1024px]:`
 - All `max-[859px]:` → `max-[1023px]:`
-- All `window.innerWidth < 860` → `window.innerWidth < 1024`
-- All `window.innerWidth >= 860` → `window.innerWidth >= 1024`
+
+Note: `JobsRail.tsx` was audited and contains no `860` breakpoints — no changes needed there.
 
 - [ ] **Step 4: Verify TypeScript compiles**
 
