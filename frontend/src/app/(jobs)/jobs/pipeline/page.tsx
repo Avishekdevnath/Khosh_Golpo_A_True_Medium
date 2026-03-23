@@ -30,12 +30,13 @@ export default function PipelinePage() {
     if (!autoSelected.current && !selectedJobId && myJobs.length > 0) {
       autoSelected.current = true;
       const params = new URLSearchParams(searchParams.toString());
-      params.set("job", myJobs[0].id);
+      params.set("job", myJobs[0].slug);
       router.replace(`/jobs/pipeline?${params.toString()}`, { scroll: false });
     }
   }, [selectedJobId, myJobs, router, searchParams]);
 
   const { applications, isLoading: appsLoading, mutate: mutateApps } = useApplications(selectedJobId);
+  const selectedJob = myJobs.find((j) => j.slug === selectedJobId || j.id === selectedJobId);
 
   const handleSelectJob = useCallback((jobId: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -81,7 +82,7 @@ export default function PipelinePage() {
         >
           {!selectedJobId && <option value="">Select a job...</option>}
           {myJobs.map((job) => (
-            <option key={job.id} value={job.id}>{job.title} ({job.application_count})</option>
+            <option key={job.slug} value={job.slug}>{job.title} ({job.application_count})</option>
           ))}
         </select>
       </div>
@@ -103,6 +104,7 @@ export default function PipelinePage() {
             onMoveStage={handleMoveStage}
             onViewProfile={handleViewProfile}
             movingAppId={movingAppId}
+            customQuestions={selectedJob?.custom_questions}
           />
         )}
       </div>
@@ -128,6 +130,7 @@ export default function PipelinePage() {
                       onMoveStage={(newStage, note) => handleMoveStage(app.id, newStage, note)}
                       onViewProfile={handleViewProfile}
                       isMoving={movingAppId === app.id}
+                      customQuestions={selectedJob?.custom_questions}
                     />
                   ))
                 )}

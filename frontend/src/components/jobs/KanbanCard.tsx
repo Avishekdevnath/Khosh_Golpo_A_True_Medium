@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, FileText, User } from "lucide-react";
 import { STAGE_TRANSITIONS, TERMINAL_STAGES } from "@/lib/jobsApi";
-import type { ApplicationOut, ApplicationStage } from "@/lib/jobsApi";
+import type { ApplicationOut, ApplicationStage, CustomQuestion } from "@/lib/jobsApi";
 import { formatScreeningAnswer } from "@/lib/jobApplicationFlow";
 import { avatarSeed, initials } from "@/lib/workspaceUtils";
 import ApplicationStatusBadge from "./ApplicationStatusBadge";
@@ -13,9 +13,10 @@ interface Props {
   onMoveStage: (newStage: ApplicationStage, note?: string) => void;
   onViewProfile: (userId: string) => void;
   isMoving?: boolean;
+  customQuestions?: CustomQuestion[];
 }
 
-export default function KanbanCard({ application, onMoveStage, onViewProfile, isMoving }: Props) {
+export default function KanbanCard({ application, onMoveStage, onViewProfile, isMoving, customQuestions = [] }: Props) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const applicant = application.applicant;
@@ -80,7 +81,9 @@ export default function KanbanCard({ application, onMoveStage, onViewProfile, is
           <div className="text-[11px] font-medium text-foreground">Screening Answers</div>
           {answerEntries.map(([key, value]) => (
             <div key={key} className="flex flex-col gap-0.5">
-              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{key}</span>
+              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                {customQuestions.find((q) => q.id === key)?.label ?? key}
+              </span>
               <span className="text-[11px] text-foreground/85 break-words">
                 {formatScreeningAnswer(value)}
               </span>

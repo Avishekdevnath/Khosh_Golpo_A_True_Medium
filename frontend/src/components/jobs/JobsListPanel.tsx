@@ -43,7 +43,7 @@ export default function JobsListPanel({
       window.innerWidth >= 860
     ) {
       autoSelected.current = true;
-      onSelect(jobs[0].id);
+      onSelect(jobs[0].slug);
     }
   }, [jobs, selectedId, onSelect]);
 
@@ -81,8 +81,8 @@ export default function JobsListPanel({
             <JobCard
               key={job.id}
               job={job}
-              selected={job.id === selectedId}
-              onClick={() => onSelect(job.id)}
+              selected={job.slug === selectedId}
+              onClick={() => onSelect(job.slug)}
               onSaveToggle={onSaveToggle ? (saved) => onSaveToggle(job.id, saved) : undefined}
             />
           ))

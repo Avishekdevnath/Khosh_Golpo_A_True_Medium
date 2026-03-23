@@ -1,6 +1,6 @@
 "use client";
 
-import type { ApplicationOut, ApplicationStage } from "@/lib/jobsApi";
+import type { ApplicationOut, ApplicationStage, CustomQuestion } from "@/lib/jobsApi";
 import KanbanCard from "./KanbanCard";
 
 const STAGE_COLORS: Record<string, string> = {
@@ -18,9 +18,10 @@ interface Props {
   onMoveStage: (appId: string, newStage: ApplicationStage, note?: string) => void;
   onViewProfile: (userId: string) => void;
   movingAppId?: string | null;
+  customQuestions?: CustomQuestion[];
 }
 
-export default function KanbanColumn({ stage, applications, onMoveStage, onViewProfile, movingAppId }: Props) {
+export default function KanbanColumn({ stage, applications, onMoveStage, onViewProfile, movingAppId, customQuestions = [] }: Props) {
   const color = STAGE_COLORS[stage] ?? "#636f8d";
 
   return (
@@ -53,6 +54,7 @@ export default function KanbanColumn({ stage, applications, onMoveStage, onViewP
               onMoveStage={(newStage, note) => onMoveStage(app.id, newStage, note)}
               onViewProfile={onViewProfile}
               isMoving={movingAppId === app.id}
+              customQuestions={customQuestions}
             />
           ))
         )}

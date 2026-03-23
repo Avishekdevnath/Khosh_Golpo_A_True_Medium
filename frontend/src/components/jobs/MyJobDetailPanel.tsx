@@ -86,7 +86,7 @@ export default function MyJobDetailPanel({ job, onJobUpdated }: Props) {
       <div className="flex items-center gap-2 mb-6 flex-wrap">
         <button
           type="button"
-          onClick={() => router.push(`/jobs/pipeline?job=${job.id}`)}
+          onClick={() => router.push(`/jobs/pipeline?job=${job.slug}`)}
           className="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#0EA5E9] text-white text-[13px] font-medium border-0 cursor-pointer hover:brightness-110 transition-all"
         >
           View Pipeline <ArrowRight size={14} />
