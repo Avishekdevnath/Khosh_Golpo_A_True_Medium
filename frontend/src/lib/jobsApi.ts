@@ -55,6 +55,7 @@ export interface JobPosterOut {
 
 export interface JobPostOut {
   id: string;
+  slug: string;
   title: string;
   description: string;
   company_name: string;
