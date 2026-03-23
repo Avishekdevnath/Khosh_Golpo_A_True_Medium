@@ -9,18 +9,18 @@ import JobDetailPanel from "@/components/jobs/JobDetailPanel";
 export default function JobCanonicalPage() {
   const router = useRouter();
   const params = useParams();
-  const jobId = params.id as string;
-  const { job, isLoading } = useJob(jobId);
+  const slug = params.slug as string;
+  const { job, isLoading } = useJob(slug);
 
-  // Desktop: redirect to Browse view with job selected
+  // Desktop: redirect to Browse view with job selected (uses slug)
   useEffect(() => {
-    if (jobId && typeof window !== "undefined" && window.innerWidth >= 860) {
+    if (slug && typeof window !== "undefined" && window.innerWidth >= 860) {
       const timer = setTimeout(() => {
-        router.replace(`/jobs?job=${jobId}`);
+        router.replace(`/jobs?job=${slug}`);
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [jobId, router]);
+  }, [slug, router]);
 
   if (isLoading) {
     return (
@@ -40,7 +40,6 @@ export default function JobCanonicalPage() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Mobile back bar — hidden on desktop */}
       <div className="min-[860px]:hidden flex items-center gap-2 px-3 h-11 border-b border-border shrink-0 bg-background">
         <button
           type="button"
@@ -51,8 +50,6 @@ export default function JobCanonicalPage() {
           Back
         </button>
       </div>
-
-      {/* Job detail — scrollable */}
       <div className="flex-1 overflow-y-auto">
         <JobDetailPanel job={job} />
       </div>
