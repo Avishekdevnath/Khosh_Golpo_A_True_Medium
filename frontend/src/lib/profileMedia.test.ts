@@ -48,14 +48,16 @@ test("uploadProfileMedia posts the signed Cloudinary fields and returns normaliz
   const file = new File(["image-bits"], "avatar.png", { type: "image/png" });
   const signed = makeSignedUpload("avatar");
   const originalFetch = global.fetch;
-  let requestUrl = "";
-  let requestMethod = "";
-  let requestBody: FormData | null = null;
+  const request = {
+    url: "",
+    method: "",
+    body: null as FormData | null,
+  };
 
   global.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
-    requestUrl = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
-    requestMethod = init?.method ?? "GET";
-    requestBody = init?.body as FormData;
+    request.url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+    request.method = init?.method ?? "GET";
+    request.body = init?.body as FormData;
     return new Response(
       JSON.stringify({
         secure_url: "https://res.cloudinary.com/demo-cloud/image/upload/v123/avatar.png",
@@ -71,15 +73,16 @@ test("uploadProfileMedia posts the signed Cloudinary fields and returns normaliz
   try {
     const result = await uploadProfileMedia(file, signed);
 
-    assert.equal(requestUrl, signed.upload_url);
-    assert.equal(requestMethod, "POST");
-    assert.equal(requestBody?.get("api_key"), signed.api_key);
-    assert.equal(requestBody?.get("timestamp"), String(signed.timestamp));
-    assert.equal(requestBody?.get("folder"), signed.folder);
-    assert.equal(requestBody?.get("public_id"), signed.public_id);
-    assert.equal(requestBody?.get("signature"), signed.signature);
-    assert.equal(requestBody?.get("overwrite"), "true");
-    assert.equal(requestBody?.get("file"), file);
+    assert.equal(request.url, signed.upload_url);
+    assert.equal(request.method, "POST");
+    assert.ok(request.body);
+    assert.equal(request.body.get("api_key"), signed.api_key);
+    assert.equal(request.body.get("timestamp"), String(signed.timestamp));
+    assert.equal(request.body.get("folder"), signed.folder);
+    assert.equal(request.body.get("public_id"), signed.public_id);
+    assert.equal(request.body.get("signature"), signed.signature);
+    assert.equal(request.body.get("overwrite"), "true");
+    assert.equal(request.body.get("file"), file);
     assert.deepEqual(result, {
       secure_url: "https://res.cloudinary.com/demo-cloud/image/upload/v123/avatar.png",
       public_id: "khoshgolpo/profile-media/user-1/avatar",

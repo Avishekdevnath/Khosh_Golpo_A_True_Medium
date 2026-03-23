@@ -4,8 +4,10 @@ import test from "node:test";
 import { shareThread } from "./shareThread";
 
 
-type MaybeNavigator = typeof globalThis.navigator & {
-  share?: (data: { title?: string; text?: string; url: string }) => Promise<void>;
+type SharePayload = { title?: string; text?: string; url: string };
+
+type MaybeNavigator = {
+  share?: (data: SharePayload) => Promise<void>;
   clipboard?: { writeText: (value: string) => Promise<void> };
 };
 
@@ -28,14 +30,14 @@ function withNavigator(mockNavigator: MaybeNavigator, run: () => Promise<void>) 
 
 
 test("shareThread prefers navigator.share when available", async () => {
-  const calls: Array<{ title?: string; text?: string; url: string }> = [];
+  const calls: SharePayload[] = [];
 
   await withNavigator(
     {
       share: async (data) => {
         calls.push(data);
       },
-    } as MaybeNavigator,
+    },
     async () => {
       const result = await shareThread({
         title: "A thread",
@@ -66,7 +68,7 @@ test("shareThread falls back to clipboard copy when Web Share API is unavailable
           copied.push(value);
         },
       },
-    } as MaybeNavigator,
+    },
     async () => {
       const result = await shareThread({
         title: "A thread",
@@ -86,7 +88,7 @@ test("shareThread treats user-cancelled share as cancelled instead of a hard err
       share: async () => {
         throw new DOMException("The share operation was aborted.", "AbortError");
       },
-    } as MaybeNavigator,
+    },
     async () => {
       const result = await shareThread({
         url: "http://localhost:3000/threads/abc",

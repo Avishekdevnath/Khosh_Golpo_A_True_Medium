@@ -23,7 +23,7 @@ const RETRY_DELAY = 1000; // 1 second between retries
 export function useBackendWarmup() {
   const { show, setStatus, hide } = useLoadingStore();
   const attemptRef = useRef(0);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     // Only run on client side
@@ -53,7 +53,7 @@ export function useBackendWarmup() {
             credentials: "include",
           });
 
-          clearTimeout(timeoutRef.current);
+          if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
           if (response.ok && isMounted) {
             // Backend is ready!
@@ -68,7 +68,7 @@ export function useBackendWarmup() {
           }
         } catch (error) {
           // Network error or timeout
-          clearTimeout(timeoutRef.current);
+          if (timeoutRef.current) clearTimeout(timeoutRef.current);
           attemptRef.current++;
 
           if (attemptRef.current < MAX_RETRIES && isMounted) {
@@ -92,7 +92,7 @@ export function useBackendWarmup() {
     // Cleanup
     return () => {
       isMounted = false;
-      clearTimeout(timeoutRef.current);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, [show, setStatus, hide]);
 }
