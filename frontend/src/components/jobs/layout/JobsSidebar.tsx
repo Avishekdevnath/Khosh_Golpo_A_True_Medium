@@ -51,7 +51,7 @@ export default function JobsSidebar() {
       {/* ── Desktop sidebar ── */}
       <aside
         className={[
-          "hidden min-[860px]:flex flex-col shrink-0 z-30",
+          "hidden min-[1024px]:flex flex-col shrink-0 z-30",
           "bg-sidebar border-r border-border",
           "h-[calc(100dvh-3.5rem)] sticky top-14",
           "transition-[width] duration-200 ease-out",
