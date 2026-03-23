@@ -34,7 +34,7 @@ export default function JobsFilterRail({
 }: JobsFilterRailProps) {
   if (!expanded) {
     return (
-      <div className="w-12 shrink-0 flex flex-col items-center py-2 gap-1 border-r border-border bg-background h-full overflow-y-auto">
+      <div className="w-12 shrink-0 max-[1023px]:hidden flex flex-col items-center py-2 gap-1 border-r border-border bg-background h-full overflow-y-auto">
         <button
           type="button"
           onClick={onToggle}
@@ -64,7 +64,7 @@ export default function JobsFilterRail({
   }
 
   return (
-    <div className="w-[220px] shrink-0 flex flex-col border-r border-border bg-background h-full overflow-y-auto">
+    <div className="w-[220px] shrink-0 max-[1023px]:hidden flex flex-col border-r border-border bg-background h-full overflow-y-auto">
       {/* Header */}
       <div className="flex items-center justify-between px-3 h-11 border-b border-border shrink-0">
         <span className="text-[12px] font-medium text-foreground uppercase tracking-wide">
