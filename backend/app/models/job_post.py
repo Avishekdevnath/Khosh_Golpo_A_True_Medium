@@ -73,6 +73,7 @@ class JobPost(Document):
     rejection_reason: Optional[str] = None
     custom_questions: list[CustomQuestion] = Field(default_factory=list)
     external_apply_url: Optional[str] = None
+    slug: Optional[str] = None
 
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
@@ -92,4 +93,5 @@ class JobPost(Document):
             IndexModel([("poster_id", ASCENDING), ("status", ASCENDING)]),
             IndexModel([("required_skills", ASCENDING), ("status", ASCENDING)]),
             IndexModel([("tags", ASCENDING), ("status", ASCENDING)]),
+            IndexModel([("slug", ASCENDING)], unique=True, sparse=True),
         ]
