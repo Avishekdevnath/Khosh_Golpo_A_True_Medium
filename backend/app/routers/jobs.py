@@ -606,6 +606,35 @@ async def get_application(
     return _app_to_out(app, applicant=applicant)
 
 
+@router.delete("/{job_id}/applications/me", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_my_application(
+    job_id: str,
+    current_user: User = Depends(get_current_user),
+) -> None:
+    """Hard-delete the current user's own application. Works even if the job has been deleted."""
+    job_oid: Optional[PydanticObjectId] = None
+    try:
+        job_oid = PydanticObjectId(job_id)
+    except Exception:
+        job = await JobPost.find_one({"slug": job_id})
+        if job:
+            job_oid = job.id
+
+    if job_oid is None:
+        raise HTTPException(status_code=404, detail="Application not found")
+
+    app = await JobApplication.find_one({"job_id": job_oid, "applicant_id": current_user.id})
+    if not app:
+        raise HTTPException(status_code=404, detail="Application not found")
+
+    # Decrement application_count on the job if it still exists
+    live_job = await JobPost.find_one({"_id": job_oid})
+    if live_job:
+        await JobPost.find_one({"_id": job_oid}).update({"$inc": {"application_count": -1}})
+
+    await app.delete()
+
+
 @router.post("/{job_id}/applications/{app_id}/move", response_model=ApplicationOut)
 async def move_application_stage(
     job_id: str,
