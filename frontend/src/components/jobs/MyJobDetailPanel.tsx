@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Users, Bookmark, PenLine, XCircle, ArrowRight } from "lucide-react";
-import type { JobPostOut } from "@/lib/jobsApi";
-import { closeJob } from "@/lib/jobsApi";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { ArrowRight, Bookmark, PenLine, Users, XCircle } from "lucide-react";
 import { useApplications } from "@/hooks/useJobs";
+import { closeJob } from "@/lib/jobsApi";
+import type { JobPostOut } from "@/lib/jobsApi";
 
 const STATUS_BADGES: Record<string, { bg: string; text: string; label: string }> = {
   active: { bg: "bg-[#3dd68c]/15", text: "text-[#3dd68c]", label: "Active" },
@@ -38,9 +40,10 @@ export default function MyJobDetailPanel({ job, onJobUpdated }: Props) {
   const stageBreakdown = Object.entries(STAGE_COLORS).map(([stage, color]) => ({
     stage,
     color,
-    count: apps.filter((a) => a.stage === stage).length,
+    count: apps.filter((app) => app.stage === stage).length,
   }));
-  const maxCount = Math.max(...stageBreakdown.map((s) => s.count), 1);
+  const maxCount = Math.max(...stageBreakdown.map((stage) => stage.count), 1);
+  const externalRedirectCount = apps.filter((app) => app.is_external_redirect).length;
 
   const badge = STATUS_BADGES[job.status] ?? STATUS_BADGES.draft;
   const daysAgo = Math.floor((Date.now() - new Date(job.created_at).getTime()) / 86400000);
@@ -58,22 +61,28 @@ export default function MyJobDetailPanel({ job, onJobUpdated }: Props) {
 
   return (
     <div className="flex flex-col h-full overflow-y-auto bg-background p-5">
-      {/* Header */}
       <div className="mb-4">
-        <div className="flex items-center gap-2 mb-1">
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
           <h2 className="text-[18px] font-bold text-foreground">{job.title}</h2>
           <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${badge.bg} ${badge.text}`}>
             {badge.label}
           </span>
+          {job.external_apply_url && (
+            <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#f0834a]/10 text-[#f0834a]">
+              External Apply
+            </span>
+          )}
         </div>
-        <div className="flex items-center gap-4 text-[12px] text-muted-foreground">
+        <div className="flex items-center gap-4 text-[12px] text-muted-foreground flex-wrap">
           <span>Posted {daysAgo}d ago</span>
           <span className="flex items-center gap-1"><Users size={12} /> {job.application_count} applicants</span>
           <span className="flex items-center gap-1"><Bookmark size={12} /> {job.save_count} saved</span>
+          {externalRedirectCount > 0 && (
+            <span className="text-[#f0834a]">{externalRedirectCount} external redirects tracked</span>
+          )}
         </div>
       </div>
 
-      {/* Actions */}
       <div className="flex items-center gap-2 mb-6 flex-wrap">
         <button
           type="button"
@@ -100,7 +109,6 @@ export default function MyJobDetailPanel({ job, onJobUpdated }: Props) {
         )}
       </div>
 
-      {/* Applicant breakdown */}
       {apps.length > 0 && (
         <div className="mb-6">
           <h3 className="text-[13px] font-semibold text-foreground mb-3">Applicant Breakdown</h3>
@@ -125,18 +133,67 @@ export default function MyJobDetailPanel({ job, onJobUpdated }: Props) {
         </div>
       )}
 
-      {/* Job description preview */}
       <details className="group">
         <summary className="text-[13px] font-semibold text-foreground cursor-pointer list-none flex items-center gap-2 mb-2">
-          <span className="transition-transform group-open:rotate-90">▶</span>
+          <span className="transition-transform group-open:rotate-90">{">"}</span>
           Job Description
         </summary>
-        <div className="text-[13px] text-foreground/80 leading-relaxed whitespace-pre-wrap break-words mt-2">
-          {job.description}
+        <div className="text-[13px] text-foreground/80 leading-relaxed break-words mt-2">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
+              strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+              ul: ({ children }) => <ul className="list-disc pl-5 mb-3 space-y-1">{children}</ul>,
+              ol: ({ children }) => <ol className="list-decimal pl-5 mb-3 space-y-1">{children}</ol>,
+              li: ({ children }) => <li>{children}</li>,
+            }}
+          >
+            {job.description}
+          </ReactMarkdown>
         </div>
       </details>
 
-      {/* Close confirmation dialog */}
+      {(job.custom_questions.length > 0 || job.external_apply_url) && (
+        <div className="mt-6 flex flex-col gap-4">
+          {job.custom_questions.length > 0 && (
+            <div>
+              <h3 className="text-[13px] font-semibold text-foreground mb-2">
+                Screening Questions ({job.custom_questions.length})
+              </h3>
+              <div className="flex flex-col gap-2">
+                {job.custom_questions.map((question) => (
+                  <div key={question.id} className="rounded-lg border border-border bg-card px-3 py-2">
+                    <p className="text-[12px] font-medium text-foreground">
+                      {question.label}
+                      {question.required && <span className="text-[#f06b6b]"> *</span>}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      Type: {question.type.replaceAll("_", " ")}
+                      {question.options.length > 0 ? ` · Options: ${question.options.join(", ")}` : ""}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {job.external_apply_url && (
+            <div className="rounded-lg border border-[#f0834a]/20 bg-[#f0834a]/5 px-3 py-2">
+              <p className="text-[12px] font-medium text-[#f0834a] mb-1">External application URL</p>
+              <a
+                href={job.external_apply_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[12px] text-[#0EA5E9] break-all hover:underline"
+              >
+                {job.external_apply_url}
+              </a>
+            </div>
+          )}
+        </div>
+      )}
+
       {confirmClose && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="w-[400px] rounded-xl bg-card border border-border p-6 shadow-xl">

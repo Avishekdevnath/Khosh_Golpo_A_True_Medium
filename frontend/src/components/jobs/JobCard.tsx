@@ -1,9 +1,9 @@
 "use client";
 
-import { Bookmark, BookmarkCheck, MapPin, Clock, Briefcase } from "lucide-react";
+import { useState } from "react";
+import { Bookmark, BookmarkCheck, Briefcase, MapPin } from "lucide-react";
 import type { JobPostOut } from "@/lib/jobsApi";
 import { saveJob, unsaveJob } from "@/lib/jobsApi";
-import { useState } from "react";
 import { useAuthStore } from "@/store/authStore";
 
 const JOB_TYPE_LABELS: Record<string, string> = {
@@ -20,6 +20,14 @@ const EXP_LABELS: Record<string, string> = {
   senior: "Senior",
   lead: "Lead",
 };
+
+function formatCompact(n: number): string {
+  if (n >= 1000) {
+    const k = n / 1000;
+    return k % 1 === 0 ? `${k}K` : `${parseFloat(k.toFixed(1))}K`;
+  }
+  return `${n}`;
+}
 
 interface Props {
   job: JobPostOut;
@@ -52,26 +60,33 @@ export default function JobCard({ job, selected = false, onClick, onSaveToggle }
     }
   }
 
-  const salaryText =
-    job.salary_visible && (job.salary_min || job.salary_max)
-      ? job.salary_min && job.salary_max
-        ? `${job.salary_currency} ${(job.salary_min / 1000).toFixed(0)}k–${(job.salary_max / 1000).toFixed(0)}k`
-        : job.salary_min
-        ? `${job.salary_currency} ${(job.salary_min / 1000).toFixed(0)}k+`
-        : null
-      : null;
+  const salaryText = (() => {
+    if (!job.salary_visible) return null;
+    const min = job.salary_min;
+    const max = job.salary_max;
+    if (!min && !max) return "Negotiable";
+    const currency = job.salary_currency;
+    if (min && max) {
+      const formattedMin = formatCompact(min);
+      const formattedMax = formatCompact(max);
+      return formattedMin === formattedMax
+        ? `${currency} ${formattedMax}`
+        : `${currency} ${formattedMin}-${formattedMax}`;
+    }
+    if (min) return `${currency} ${formatCompact(min)}+`;
+    return `Up to ${currency} ${formatCompact(max!)}`;
+  })();
 
   return (
     <div
       onClick={onClick}
-      className={`
-        group relative flex flex-col gap-3 px-4 py-4 cursor-pointer transition-all
-        border-b border-border
-        ${selected
+      className={[
+        "group relative flex flex-col gap-3 px-4 py-4 cursor-pointer transition-all",
+        "border-b border-border",
+        selected
           ? "bg-card-hover border-l-2 border-l-[#0EA5E9] shadow-[0_0_20px_rgba(14,165,233,0.08)]"
-          : "hover:bg-card/60 border-l-2 border-l-transparent hover:-translate-y-px hover:shadow-md"
-        }
-      `}
+          : "hover:bg-card/60 border-l-2 border-l-transparent hover:-translate-y-px hover:shadow-md",
+      ].join(" ")}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
@@ -129,13 +144,18 @@ export default function JobCard({ job, selected = false, onClick, onSaveToggle }
         <span className="bg-border px-1.5 py-0.5 rounded text-[11px]">
           {EXP_LABELS[job.experience_level] ?? job.experience_level}
         </span>
-        {salaryText && (
-          <span className="text-[#3dd68c] font-medium">{salaryText}</span>
+        {salaryText && <span className="text-[#3dd68c] font-medium">{salaryText}</span>}
+        {job.external_apply_url && (
+          <span className="bg-[#f0834a]/10 text-[#f0834a] px-1.5 py-0.5 rounded text-[11px]">
+            External
+          </span>
         )}
       </div>
 
       {job.has_applied && (
-        <span className="text-[11px] text-[#3dd68c] font-medium">✓ Applied</span>
+        <span className="text-[11px] text-[#3dd68c] font-medium">
+          {job.external_apply_url ? "✓ Redirected" : "✓ Applied"}
+        </span>
       )}
     </div>
   );

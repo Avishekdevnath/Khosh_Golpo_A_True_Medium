@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Users } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
@@ -17,6 +17,7 @@ export default function PipelinePage() {
   const searchParams = useSearchParams();
   const selectedJobId = searchParams.get("job");
   const [movingAppId, setMovingAppId] = useState<string | null>(null);
+  const autoSelected = useRef(false);
 
   useEffect(() => {
     if (user === null) router.replace("/login?next=/jobs/pipeline");
@@ -24,9 +25,10 @@ export default function PipelinePage() {
 
   const { jobs: myJobs, isLoading: jobsLoading } = useMyJobs(1);
 
-  // Auto-select first job if none selected
+  // Auto-select first job if none selected (only once)
   useEffect(() => {
-    if (!selectedJobId && myJobs.length > 0) {
+    if (!autoSelected.current && !selectedJobId && myJobs.length > 0) {
+      autoSelected.current = true;
       const params = new URLSearchParams(searchParams.toString());
       params.set("job", myJobs[0].id);
       router.replace(`/jobs/pipeline?${params.toString()}`, { scroll: false });
@@ -77,6 +79,7 @@ export default function PipelinePage() {
           onChange={(e) => handleSelectJob(e.target.value)}
           className="w-full h-9 bg-secondary border border-border rounded-lg text-[13px] text-foreground px-3"
         >
+          {!selectedJobId && <option value="">Select a job...</option>}
           {myJobs.map((job) => (
             <option key={job.id} value={job.id}>{job.title} ({job.application_count})</option>
           ))}

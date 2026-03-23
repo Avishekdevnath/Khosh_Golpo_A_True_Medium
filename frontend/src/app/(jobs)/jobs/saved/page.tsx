@@ -5,7 +5,6 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Bookmark } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useSavedJobs, useJob } from "@/hooks/useJobs";
-import { unsaveJob } from "@/lib/jobsApi";
 import JobsListPanel from "@/components/jobs/JobsListPanel";
 import JobDetailPanel from "@/components/jobs/JobDetailPanel";
 
@@ -33,11 +32,6 @@ export default function SavedJobsPage() {
     router.replace(`/jobs/saved?${params.toString()}`, { scroll: false });
   }, [router, searchParams]);
 
-  const handleUnsave = useCallback(async (jobId: string) => {
-    await unsaveJob(jobId);
-    mutate();
-  }, [mutate]);
-
   if (!user) return null;
 
   return (
@@ -48,7 +42,7 @@ export default function SavedJobsPage() {
         isLoading={isLoading}
         selectedId={selectedId}
         onSelect={handleSelect}
-        onSaveToggle={(_jobId, saved) => { if (saved) handleUnsave(_jobId); }}
+        onSaveToggle={() => mutate()}
         showFilters={false}
         headerTitle={`${total} saved`}
         emptyState={

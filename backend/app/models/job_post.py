@@ -6,7 +6,7 @@ from typing import Optional
 
 from beanie import Document, Insert, PydanticObjectId, Replace, before_event
 from pymongo import ASCENDING, DESCENDING, IndexModel
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 from app.models.common import timestamps_for_insert, timestamps_for_replace, utc_now
 
@@ -34,6 +34,22 @@ class JobStatus(str, Enum):
     rejected = "rejected"
 
 
+class QuestionType(str, Enum):
+    short_text = "short_text"
+    url = "url"
+    yes_no = "yes_no"
+    single_select = "single_select"
+    multi_select = "multi_select"
+
+
+class CustomQuestion(BaseModel):
+    id: str
+    label: str
+    type: QuestionType
+    required: bool = False
+    options: list[str] = Field(default_factory=list)
+
+
 class JobPost(Document):
     title: str = Field(min_length=3, max_length=120)
     description: str = Field(min_length=20, max_length=10000)
@@ -55,6 +71,8 @@ class JobPost(Document):
     application_count: int = 0
     save_count: int = 0
     rejection_reason: Optional[str] = None
+    custom_questions: list[CustomQuestion] = Field(default_factory=list)
+    external_apply_url: Optional[str] = None
 
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)

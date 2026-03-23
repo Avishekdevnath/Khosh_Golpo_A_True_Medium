@@ -44,7 +44,7 @@ export default function JobCanonicalPage() {
       <div className="min-[860px]:hidden flex items-center gap-2 px-3 h-11 border-b border-border shrink-0 bg-background">
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={() => router.push("/jobs")}
           className="flex items-center gap-1.5 border-0 bg-transparent text-muted-foreground hover:text-foreground cursor-pointer text-[13px] font-medium transition-colors"
         >
           <ArrowLeft size={16} strokeWidth={2} />

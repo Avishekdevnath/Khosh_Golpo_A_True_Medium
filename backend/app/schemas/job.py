@@ -3,14 +3,44 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
-from app.models.job_post import ExperienceLevel, JobStatus, JobType
+from app.models.job_post import ExperienceLevel, JobStatus, JobType, QuestionType
 from app.models.job_application import ApplicationStage, StageHistoryEntry
 from app.models.job_report import ReportReason, ReportStatus
 
 
 # ── Job Post ──────────────────────────────────────────────────────────────────
+
+class CustomQuestionInput(BaseModel):
+    id: Optional[str] = None
+    label: str = Field(..., min_length=1, max_length=200)
+    type: QuestionType
+    required: bool = False
+    options: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_options(self):
+        if self.type in (QuestionType.single_select, QuestionType.multi_select):
+            if len(self.options) < 2:
+                raise ValueError(f"{self.type.value} questions require at least 2 options")
+        elif self.options:
+            raise ValueError(f"{self.type.value} questions must not have options")
+
+        for option in self.options:
+            if len(option) > 50:
+                raise ValueError(f"Option '{option[:20]}...' exceeds 50 characters")
+
+        return self
+
+
+class CustomQuestionOut(BaseModel):
+    id: str
+    label: str
+    type: QuestionType
+    required: bool
+    options: list[str]
+
 
 class JobPostCreate(BaseModel):
     title: str = Field(min_length=3, max_length=120)
@@ -28,6 +58,8 @@ class JobPostCreate(BaseModel):
     required_skills: list[str] = Field(default_factory=list)
     tags: list[str] = Field(default_factory=list)
     application_deadline: Optional[datetime] = None
+    custom_questions: list[CustomQuestionInput] = Field(default_factory=list, max_length=10)
+    external_apply_url: Optional[str] = None
 
 
 class JobPostUpdate(BaseModel):
@@ -46,6 +78,8 @@ class JobPostUpdate(BaseModel):
     required_skills: Optional[list[str]] = None
     tags: Optional[list[str]] = None
     application_deadline: Optional[datetime] = None
+    custom_questions: Optional[list[CustomQuestionInput]] = None
+    external_apply_url: Optional[str] = None
 
 
 class JobPosterOut(BaseModel):
@@ -77,6 +111,8 @@ class JobPostOut(BaseModel):
     status: JobStatus
     application_count: int
     save_count: int
+    custom_questions: list[CustomQuestionOut] = Field(default_factory=list)
+    external_apply_url: Optional[str] = None
     is_saved: bool = False
     has_applied: bool = False
     created_at: datetime
@@ -95,6 +131,7 @@ class JobListResponse(BaseModel):
 class ApplicationCreate(BaseModel):
     cover_letter: Optional[str] = Field(None, max_length=2000)
     resume_url: Optional[str] = None
+    custom_answers: dict[str, Any] = Field(default_factory=dict)
 
 
 class StageMove(BaseModel):
@@ -123,6 +160,8 @@ class ApplicationOut(BaseModel):
     employer_note: Optional[str]
     is_read_by_employer: bool
     is_read_by_candidate: bool
+    custom_answers: dict[str, Any] = Field(default_factory=dict)
+    is_external_redirect: bool = False
     created_at: datetime
     updated_at: datetime
 
@@ -143,6 +182,7 @@ class MyApplicationOut(BaseModel):
     employer_note: Optional[str]
     created_at: datetime
     updated_at: datetime
+    is_external_redirect: bool = False
 
 
 # ── Report ────────────────────────────────────────────────────────────────────
