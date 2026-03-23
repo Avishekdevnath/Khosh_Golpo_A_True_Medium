@@ -34,24 +34,6 @@ export default function JobsListPanel({
   headerTitle,
   emptyState,
 }: Props) {
-  const autoSelected = useRef(false);
-
-  useEffect(() => {
-    autoSelected.current = false;
-  }, [jobs]);
-
-  useEffect(() => {
-    if (
-      !autoSelected.current &&
-      jobs.length > 0 &&
-      !selectedId &&
-      typeof window !== "undefined" &&
-      window.innerWidth >= 1024
-    ) {
-      autoSelected.current = true;
-      onSelect(jobs[0].slug);
-    }
-  }, [jobs, selectedId, onSelect]);
 
   return (
     <div className="w-full min-[1024px]:w-[320px] shrink-0 flex flex-col h-full">
