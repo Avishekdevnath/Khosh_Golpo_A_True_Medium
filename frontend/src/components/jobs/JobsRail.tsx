@@ -34,10 +34,10 @@ export default function JobsRail({ jobs, selectedId, onSelect, isLoading }: Prop
           <button
             key={job.id}
             type="button"
-            onClick={() => onSelect(job.id)}
+            onClick={() => onSelect(job.slug)}
             className={[
               "w-full text-left px-3 py-3 border-0 cursor-pointer transition-colors border-b border-border",
-              job.id === selectedId
+              job.slug === selectedId
                 ? "bg-[#0EA5E9]/10 text-[#0EA5E9] border-l-2 border-l-[#0EA5E9]"
                 : "bg-transparent text-foreground hover:bg-foreground/5",
             ].join(" ")}
