@@ -46,26 +46,26 @@ export default function JobReportModal({ job, onClose, onReported }: Props) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="bg-[#10131d] border border-[#1e2235] rounded-xl w-full max-w-md shadow-2xl">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#1e2235]">
-          <h2 className="text-[15px] font-semibold text-white">Report Job Posting</h2>
-          <button onClick={onClose} className="text-[#8b95a1] hover:text-white transition-colors">
+      <div className="bg-card border border-border rounded-xl w-full max-w-md shadow-2xl">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+          <h2 className="text-[15px] font-semibold text-foreground">Report Job Posting</h2>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
             <X size={18} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-5">
-          <p className="text-[13px] text-[#8b95a1]">
-            Reporting: <span className="text-white">{job.title}</span> at {job.company_name}
+          <p className="text-[13px] text-muted-foreground">
+            Reporting: <span className="text-foreground">{job.title}</span> at {job.company_name}
           </p>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-medium text-[#c5ccd6]">Reason</label>
+            <label className="text-[13px] font-medium text-foreground/80">Reason</label>
             <div className="flex flex-col gap-1">
               {REASONS.map((r) => (
                 <label
                   key={r.value}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer hover:bg-[#151927] transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer hover:bg-secondary transition-colors"
                 >
                   <input
                     type="radio"
@@ -75,15 +75,15 @@ export default function JobReportModal({ job, onClose, onReported }: Props) {
                     onChange={() => setReason(r.value)}
                     className="accent-[#0EA5E9]"
                   />
-                  <span className="text-[13px] text-[#c5ccd6]">{r.label}</span>
+                  <span className="text-[13px] text-foreground/80">{r.label}</span>
                 </label>
               ))}
             </div>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-medium text-[#c5ccd6]">
-              Details <span className="text-[#8b95a1] font-normal">(optional)</span>
+            <label className="text-[13px] font-medium text-foreground/80">
+              Details <span className="text-muted-foreground font-normal">(optional)</span>
             </label>
             <textarea
               value={details}
@@ -91,7 +91,7 @@ export default function JobReportModal({ job, onClose, onReported }: Props) {
               maxLength={500}
               rows={3}
               placeholder="Any additional context..."
-              className="w-full px-3 py-2 bg-[#151927] border border-[#1e2235] rounded-lg text-[13px] text-white placeholder-[#8b95a1] focus:outline-none focus:border-[#0EA5E9]/50 resize-none"
+              className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#0EA5E9]/50 resize-none"
             />
           </div>
 
@@ -105,7 +105,7 @@ export default function JobReportModal({ job, onClose, onReported }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-[13px] text-[#8b95a1] hover:text-white border border-[#1e2235] rounded-lg transition-colors"
+              className="px-4 py-2 text-[13px] text-muted-foreground hover:text-foreground border border-border rounded-lg transition-colors"
             >
               Cancel
             </button>

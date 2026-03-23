@@ -3,6 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Plus, Search } from "lucide-react";
 import Link from "next/link";
+import ThemeToggle from "@/components/shared/ThemeToggle";
 
 /** Route config: maps pathname to top bar content */
 function useTopBarConfig() {
@@ -28,7 +29,7 @@ function useTopBarConfig() {
   if (pathname.startsWith("/jobs/applications")) {
     return { mode: "sub" as const, title: "My Applications", showPost: false };
   }
-  // /jobs/[id] — same as browse
+  // /jobs/[id] detail page
   return { mode: "browse" as const };
 }
 
@@ -37,7 +38,7 @@ export default function JobsTopBar() {
   const config = useTopBarConfig();
 
   return (
-    <header className="flex items-center gap-3 px-4 h-14 shrink-0 sticky top-0 z-40 bg-[#080a10] border-b border-[#1e2235]">
+    <header className="flex items-center gap-3 px-4 h-14 shrink-0 sticky top-0 z-40 bg-background border-b border-border">
       {/* Left */}
       {config.mode === "browse" ? (
         <Link
@@ -50,7 +51,7 @@ export default function JobsTopBar() {
           >
             <span className="font-bold text-white text-[10px] leading-none">◆</span>
           </span>
-          <span className="font-serif text-[18px] font-bold text-[#e8eaf2] tracking-tight hidden min-[860px]:block">
+          <span className="font-serif text-[18px] font-bold text-foreground tracking-tight hidden min-[860px]:block">
             Khosh Jobs
           </span>
         </Link>
@@ -58,7 +59,7 @@ export default function JobsTopBar() {
         <button
           type="button"
           onClick={() => router.push("/jobs")}
-          className="flex items-center gap-1.5 border-0 bg-transparent text-[#636f8d] hover:text-[#e8eaf2] cursor-pointer transition-colors text-[13px] font-medium shrink-0"
+          className="flex items-center gap-1.5 border-0 bg-transparent text-muted-foreground hover:text-foreground cursor-pointer transition-colors text-[13px] font-medium shrink-0"
         >
           <ArrowLeft size={16} strokeWidth={2} />
           <span className="hidden min-[860px]:inline">Back</span>
@@ -70,31 +71,31 @@ export default function JobsTopBar() {
         {config.mode === "browse" ? (
           <button
             type="button"
-            onClick={() => {
-              /* TODO: focus search in list panel */
-            }}
-            className="hidden min-[860px]:flex items-center gap-2 h-9 px-4 rounded-full border border-[#1e2235] bg-[#10131d] text-[13px] text-[#636f8d] w-[240px] hover:border-[#1e2235]/80 transition-colors cursor-text"
+            className="hidden min-[860px]:flex items-center gap-2 h-9 px-4 rounded-full border border-border bg-card text-[13px] text-muted-foreground w-[240px] hover:border-border/80 transition-colors cursor-text"
           >
             <Search size={13} strokeWidth={2} className="shrink-0" />
             Search jobs...
           </button>
         ) : (
-          <h1 className="text-[14px] font-semibold text-[#e8eaf2] tracking-tight">
+          <h1 className="text-[14px] font-semibold text-foreground tracking-tight">
             {config.title}
           </h1>
         )}
       </div>
 
       {/* Right */}
-      {(config.mode === "browse" || (config.mode === "sub" && (config as { showPost?: boolean }).showPost)) && (
-        <Link
-          href="/jobs/post"
-          className="hidden min-[860px]:flex items-center gap-1.5 h-8 px-3.5 rounded-full border-0 bg-[#0EA5E9] text-white text-[12.5px] font-semibold no-underline transition-all duration-150 hover:brightness-110 active:scale-[0.97] shrink-0"
-        >
-          <Plus size={13} strokeWidth={2.5} />
-          Post a Job
-        </Link>
-      )}
+      <div className="flex items-center gap-2 shrink-0">
+        <ThemeToggle />
+        {(config.mode === "browse" || (config.mode === "sub" && (config as { showPost?: boolean }).showPost)) && (
+          <Link
+            href="/jobs/post"
+            className="hidden min-[860px]:flex items-center gap-1.5 h-8 px-3.5 rounded-full border-0 bg-primary text-primary-foreground text-[12.5px] font-semibold no-underline transition-all duration-150 hover:brightness-110 active:scale-[0.97]"
+          >
+            <Plus size={13} strokeWidth={2.5} />
+            Post a Job
+          </Link>
+        )}
+      </div>
     </header>
   );
 }

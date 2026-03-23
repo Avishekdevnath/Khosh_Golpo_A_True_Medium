@@ -52,17 +52,17 @@ export default function JobsListPanel({
   }, [jobs, selectedId, onSelect]);
 
   return (
-    <div className="w-full min-[860px]:w-[300px] shrink-0 border-r border-[#1e2235] flex flex-col h-full max-[859px]:border-r-0">
+    <div className="w-full min-[860px]:w-[300px] shrink-0 border-r border-border flex flex-col h-full max-[859px]:border-r-0">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 h-12 border-b border-[#1e2235] shrink-0">
-        <span className="text-[13px] font-medium text-[#e8eaf2]">
+      <div className="flex items-center justify-between px-4 h-12 border-b border-border shrink-0">
+        <span className="text-[13px] font-medium text-foreground">
           {headerTitle ?? `${total} jobs`}
         </span>
         {showFilters && onToggleFilters && (
           <button
             type="button"
             onClick={onToggleFilters}
-            className="flex items-center gap-1.5 h-7 px-2.5 rounded-lg border border-[#1e2235] bg-transparent text-[12px] text-[#636f8d] hover:text-[#e8eaf2] hover:border-[#1e2235]/80 cursor-pointer transition-colors"
+            className="flex items-center gap-1.5 h-7 px-2.5 rounded-lg border border-border bg-transparent text-[12px] text-muted-foreground hover:text-foreground hover:border-border/80 cursor-pointer transition-colors"
           >
             <SlidersHorizontal size={12} />
             Filters{activeFilterCount > 0 ? ` · ${activeFilterCount}` : ""}
@@ -73,12 +73,12 @@ export default function JobsListPanel({
       {/* Card list */}
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
-          <div className="flex items-center justify-center h-32 text-[13px] text-[#636f8d]">
+          <div className="flex items-center justify-center h-32 text-[13px] text-muted-foreground">
             Loading...
           </div>
         ) : jobs.length === 0 ? (
           emptyState ?? (
-            <div className="flex items-center justify-center h-32 text-[13px] text-[#636f8d]">
+            <div className="flex items-center justify-center h-32 text-[13px] text-muted-foreground">
               No jobs found
             </div>
           )

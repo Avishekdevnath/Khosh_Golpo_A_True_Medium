@@ -52,7 +52,7 @@ export default function JobsSidebar() {
       <aside
         className={[
           "hidden min-[860px]:flex flex-col shrink-0 z-30",
-          "bg-[#080a10] border-r border-[#1e2235]",
+          "bg-sidebar border-r border-border",
           "h-[calc(100dvh-3.5rem)] sticky top-14",
           "transition-[width] duration-200 ease-out",
           isPipeline ? "w-[56px]" : "min-[1280px]:w-[220px] w-[56px]",
@@ -76,8 +76,8 @@ export default function JobsSidebar() {
                     ? "px-0 justify-center"
                     : "min-[1280px]:px-4 px-0 min-[1280px]:justify-start justify-center",
                   active
-                    ? "bg-[#0EA5E9]/10 text-[#0EA5E9] font-semibold border-l-2 border-[#0EA5E9]"
-                    : "text-[#636f8d] hover:bg-white/5 hover:text-[#e8eaf2]",
+                    ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary"
+                    : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground",
                 ].join(" ")}
               >
                 <Icon size={18} strokeWidth={active ? 2.2 : 1.6} />
@@ -85,7 +85,7 @@ export default function JobsSidebar() {
                   {item.label}
                 </span>
                 {typeof item.badge === "number" && item.badge > 0 && (
-                  <span className={`rounded-full text-[10px] font-bold px-1.5 min-w-[18px] h-[18px] inline-flex items-center justify-center bg-[#0EA5E9]/15 text-[#0EA5E9] ${isPipeline ? "hidden" : "hidden min-[1280px]:inline-flex"}`}>
+                  <span className={`rounded-full text-[10px] font-bold px-1.5 min-w-[18px] h-[18px] inline-flex items-center justify-center bg-primary/15 text-primary ${isPipeline ? "hidden" : "hidden min-[1280px]:inline-flex"}`}>
                     {item.badge > 99 ? "99+" : item.badge}
                   </span>
                 )}
@@ -94,7 +94,7 @@ export default function JobsSidebar() {
           })}
 
           {/* Divider */}
-          <div className="my-2 h-px bg-[#1e2235]" />
+          <div className="my-2 h-px bg-border" />
 
           {/* Post a Job CTA */}
           <button
@@ -109,8 +109,8 @@ export default function JobsSidebar() {
                 ? "px-0 justify-center"
                 : "min-[1280px]:px-4 px-0 min-[1280px]:justify-start justify-center",
               isPostActive
-                ? "bg-[#0EA5E9]/10 text-[#0EA5E9] font-semibold border-l-2 border-[#0EA5E9] border-t-0 border-r-0 border-b-0"
-                : "border border-[#0EA5E9]/20 text-[#0EA5E9] hover:bg-[#0EA5E9]/5",
+                ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary border-t-0 border-r-0 border-b-0"
+                : "border border-primary/20 text-primary hover:bg-primary/5",
             ].join(" ")}
           >
             <PenLine size={18} strokeWidth={1.6} />
@@ -121,7 +121,7 @@ export default function JobsSidebar() {
         </nav>
 
         {/* Footer */}
-        <div className={`border-t border-[#1e2235] py-3 ${isPipeline ? "px-1" : "min-[1280px]:px-3 px-1"}`}>
+        <div className={`border-t border-border py-3 ${isPipeline ? "px-1" : "min-[1280px]:px-3 px-1"}`}>
           {/* User row */}
           {user && (
             <div className="relative">
@@ -129,7 +129,7 @@ export default function JobsSidebar() {
                 type="button"
                 onClick={() => setMenuOpen((v) => !v)}
                 className={[
-                  "flex items-center gap-2.5 w-full border-0 bg-transparent cursor-pointer rounded-lg p-1.5 hover:bg-white/5 transition-colors",
+                  "flex items-center gap-2.5 w-full border-0 bg-transparent cursor-pointer rounded-lg p-1.5 hover:bg-foreground/5 transition-colors",
                   isPipeline ? "justify-center" : "min-[1280px]:justify-start justify-center",
                 ].join(" ")}
               >
@@ -139,27 +139,27 @@ export default function JobsSidebar() {
                 >
                   {initials(name)}
                 </span>
-                <span className={`text-[12px] text-[#e8eaf2] font-medium truncate ${isPipeline ? "hidden" : "hidden min-[1280px]:inline"}`}>
+                <span className={`text-[12px] text-foreground font-medium truncate ${isPipeline ? "hidden" : "hidden min-[1280px]:inline"}`}>
                   {name}
                 </span>
               </button>
 
               {/* Dropdown */}
               {menuOpen && (
-                <div className="absolute bottom-full left-0 mb-2 w-[160px] rounded-xl p-1.5 border border-[#1e2235] bg-[#10131d] shadow-xl z-50">
+                <div className="absolute bottom-full left-0 mb-2 w-[160px] rounded-xl p-1.5 border border-border bg-card shadow-xl z-50">
                   <button
                     type="button"
                     onClick={() => { setMenuOpen(false); router.push("/settings"); }}
-                    className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg border-0 bg-transparent text-[#e8eaf2]/75 text-[13px] cursor-pointer text-left transition-colors hover:bg-white/5 hover:text-[#e8eaf2]"
+                    className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg border-0 bg-transparent text-foreground/75 text-[13px] cursor-pointer text-left transition-colors hover:bg-foreground/5 hover:text-foreground"
                   >
                     <Settings size={14} strokeWidth={1.7} />
                     Settings
                   </button>
-                  <div className="h-px bg-[#1e2235] mx-2 my-1" />
+                  <div className="h-px bg-border mx-2 my-1" />
                   <button
                     type="button"
                     onClick={async () => { setMenuOpen(false); await logout(); router.push("/login"); }}
-                    className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg border-0 bg-transparent text-[#f06b6b] text-[13px] cursor-pointer text-left transition-colors hover:bg-[#f06b6b]/10"
+                    className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg border-0 bg-transparent text-destructive text-[13px] cursor-pointer text-left transition-colors hover:bg-destructive/10"
                   >
                     <LogOut size={14} strokeWidth={1.7} />
                     Sign out
@@ -174,7 +174,7 @@ export default function JobsSidebar() {
             type="button"
             onClick={() => router.push("/threads")}
             className={[
-              "flex items-center gap-2 w-full mt-2 border-0 bg-transparent cursor-pointer text-[12px] text-[#636f8d] hover:text-[#e8eaf2] transition-colors",
+              "flex items-center gap-2 w-full mt-2 border-0 bg-transparent cursor-pointer text-[12px] text-muted-foreground hover:text-foreground transition-colors",
               isPipeline ? "justify-center" : "min-[1280px]:justify-start justify-center",
             ].join(" ")}
           >
@@ -185,7 +185,7 @@ export default function JobsSidebar() {
       </aside>
 
       {/* ── Mobile tab bar ── */}
-      <nav className="min-[860px]:hidden flex items-center gap-0 overflow-x-auto border-b border-[#1e2235] bg-[#080a10] px-2 shrink-0">
+      <nav className="min-[860px]:hidden flex items-center gap-0 overflow-x-auto border-b border-border bg-background px-2 shrink-0 scrollbar-none">
         {navItems.map((item) => {
           const active = isActive(item.href);
           return (
@@ -196,8 +196,8 @@ export default function JobsSidebar() {
               className={[
                 "shrink-0 px-3 h-10 text-[13px] font-medium border-0 bg-transparent cursor-pointer transition-colors whitespace-nowrap",
                 active
-                  ? "text-[#0EA5E9] border-b-2 border-[#0EA5E9]"
-                  : "text-[#636f8d] hover:text-[#e8eaf2]",
+                  ? "text-primary border-b-2 border-primary"
+                  : "text-muted-foreground hover:text-foreground",
               ].join(" ")}
             >
               {item.label}

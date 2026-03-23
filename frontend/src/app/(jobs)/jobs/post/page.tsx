@@ -22,7 +22,7 @@ export default function PostJobPage() {
 
   if (editId && isLoading) {
     return (
-      <div className="flex items-center justify-center h-full text-[13px] text-[#636f8d]">
+      <div className="flex items-center justify-center h-full text-[13px] text-muted-foreground">
         Loading...
       </div>
     );

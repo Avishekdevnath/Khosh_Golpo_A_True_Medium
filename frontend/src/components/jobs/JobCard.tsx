@@ -66,10 +66,10 @@ export default function JobCard({ job, selected = false, onClick, onSaveToggle }
       onClick={onClick}
       className={`
         group relative flex flex-col gap-3 px-4 py-4 cursor-pointer transition-all
-        border-b border-[#1e2235]
+        border-b border-border
         ${selected
-          ? "bg-[#141824] border-l-2 border-l-[#0EA5E9] shadow-[0_0_20px_rgba(14,165,233,0.08)]"
-          : "hover:bg-[#10131d]/60 border-l-2 border-l-transparent hover:-translate-y-px hover:shadow-md"
+          ? "bg-card-hover border-l-2 border-l-[#0EA5E9] shadow-[0_0_20px_rgba(14,165,233,0.08)]"
+          : "hover:bg-card/60 border-l-2 border-l-transparent hover:-translate-y-px hover:shadow-md"
         }
       `}
     >
@@ -79,16 +79,16 @@ export default function JobCard({ job, selected = false, onClick, onSaveToggle }
             <img
               src={job.company_logo_url}
               alt={job.company_name}
-              className="w-9 h-9 rounded-lg object-cover flex-shrink-0 bg-[#1e2235]"
+              className="w-9 h-9 rounded-lg object-cover flex-shrink-0 bg-border"
             />
           ) : (
-            <div className="w-9 h-9 rounded-lg bg-[#1e2235] flex items-center justify-center flex-shrink-0">
-              <Briefcase size={16} className="text-[#8b95a1]" />
+            <div className="w-9 h-9 rounded-lg bg-border flex items-center justify-center flex-shrink-0">
+              <Briefcase size={16} className="text-muted-foreground" />
             </div>
           )}
           <div className="min-w-0">
             <p className="text-[13px] font-medium text-[#0EA5E9] truncate">{job.company_name}</p>
-            <p className="text-[11px] text-[#8b95a1] truncate">
+            <p className="text-[11px] text-muted-foreground truncate">
               {job.poster?.display_name ?? "Unknown"}
             </p>
           </div>
@@ -97,7 +97,7 @@ export default function JobCard({ job, selected = false, onClick, onSaveToggle }
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex-shrink-0 p-1 text-[#8b95a1] hover:text-[#0EA5E9] transition-colors opacity-0 group-hover:opacity-100"
+            className="flex-shrink-0 p-1 text-muted-foreground hover:text-[#0EA5E9] transition-colors opacity-0 group-hover:opacity-100"
             title={saved ? "Unsave" : "Save"}
           >
             {saved ? <BookmarkCheck size={16} className="text-[#0EA5E9]" /> : <Bookmark size={16} />}
@@ -106,12 +106,12 @@ export default function JobCard({ job, selected = false, onClick, onSaveToggle }
       </div>
 
       <div>
-        <h3 className="text-[15px] font-semibold text-white leading-snug line-clamp-2">
+        <h3 className="text-[15px] font-semibold text-foreground leading-snug line-clamp-2">
           {job.title}
         </h3>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 text-[12px] text-[#8b95a1]">
+      <div className="flex flex-wrap items-center gap-2 text-[12px] text-muted-foreground">
         {job.location && (
           <span className="flex items-center gap-1">
             <MapPin size={11} />
@@ -123,10 +123,10 @@ export default function JobCard({ job, selected = false, onClick, onSaveToggle }
             Remote
           </span>
         )}
-        <span className="bg-[#1e2235] px-1.5 py-0.5 rounded text-[11px]">
+        <span className="bg-border px-1.5 py-0.5 rounded text-[11px]">
           {JOB_TYPE_LABELS[job.job_type] ?? job.job_type}
         </span>
-        <span className="bg-[#1e2235] px-1.5 py-0.5 rounded text-[11px]">
+        <span className="bg-border px-1.5 py-0.5 rounded text-[11px]">
           {EXP_LABELS[job.experience_level] ?? job.experience_level}
         </span>
         {salaryText && (

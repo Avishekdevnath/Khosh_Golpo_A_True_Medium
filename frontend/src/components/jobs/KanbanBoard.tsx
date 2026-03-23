@@ -25,15 +25,15 @@ export default function KanbanBoard({ applications, onMoveStage, onViewProfile, 
   return (
     <div className="flex flex-col h-full">
       {/* Board header */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-[#1e2235] shrink-0">
-        <span className="text-[12px] text-[#636f8d]">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-border shrink-0">
+        <span className="text-[12px] text-muted-foreground">
           {applications.length} total applicants
         </span>
         {rejectedCount > 0 && (
           <button
             type="button"
             onClick={() => setShowRejected((v) => !v)}
-            className="text-[12px] text-[#636f8d] border-0 bg-transparent cursor-pointer hover:text-[#e8eaf2] transition-colors"
+            className="text-[12px] text-muted-foreground border-0 bg-transparent cursor-pointer hover:text-foreground transition-colors"
           >
             {showRejected ? "Hide" : "Show"} rejected ({rejectedCount})
           </button>

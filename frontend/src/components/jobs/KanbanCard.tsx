@@ -33,7 +33,7 @@ export default function KanbanCard({ application, onMoveStage, onViewProfile, is
   return (
     <div
       className={[
-        "rounded-lg bg-[#141824] border border-[#1e2235] p-3 mb-2",
+        "rounded-lg bg-card-hover border border-border p-3 mb-2",
         "transition-opacity duration-200",
         isMoving ? "opacity-30" : "opacity-100",
       ].join(" ")}
@@ -47,13 +47,13 @@ export default function KanbanCard({ application, onMoveStage, onViewProfile, is
           {initials(name)}
         </span>
         <div className="min-w-0">
-          <div className="text-[13px] font-semibold text-[#e8eaf2] truncate">{name}</div>
-          {username && <div className="text-[11px] text-[#636f8d] truncate">@{username}</div>}
+          <div className="text-[13px] font-semibold text-foreground truncate">{name}</div>
+          {username && <div className="text-[11px] text-muted-foreground truncate">@{username}</div>}
         </div>
       </div>
 
       {/* Pipeline meta */}
-      <div className="text-[11px] text-[#636f8d] mb-2.5">
+      <div className="text-[11px] text-muted-foreground mb-2.5">
         In pipeline {daysInPipeline}d{transitionCount > 0 ? ` · ${transitionCount}→` : ""}
       </div>
 
@@ -66,28 +66,28 @@ export default function KanbanCard({ application, onMoveStage, onViewProfile, is
             type="button"
             onClick={() => setDropdownOpen((v) => !v)}
             disabled={isMoving}
-            className="flex items-center gap-1.5 h-7 px-2.5 rounded-md border border-[#1e2235] bg-transparent text-[11px] text-[#636f8d] hover:text-[#e8eaf2] hover:border-[#1e2235]/80 cursor-pointer transition-colors disabled:opacity-50 w-full justify-between"
+            className="flex items-center gap-1.5 h-7 px-2.5 rounded-md border border-border bg-transparent text-[11px] text-muted-foreground hover:text-foreground hover:border-border/80 cursor-pointer transition-colors disabled:opacity-50 w-full justify-between"
           >
             Move <ChevronDown size={12} />
           </button>
 
           {dropdownOpen && (
-            <div className="absolute top-full left-0 mt-1 w-full rounded-lg bg-[#10131d] border border-[#1e2235] shadow-xl z-20 py-1">
+            <div className="absolute top-full left-0 mt-1 w-full rounded-lg bg-card border border-border shadow-xl z-20 py-1">
               <button
                 type="button"
                 onClick={() => { setDropdownOpen(false); onViewProfile(application.applicant_id); }}
-                className="w-full text-left px-3 py-1.5 text-[12px] text-[#e8eaf2] hover:bg-white/5 cursor-pointer border-0 bg-transparent"
+                className="w-full text-left px-3 py-1.5 text-[12px] text-foreground hover:bg-foreground/5 cursor-pointer border-0 bg-transparent"
               >
                 <User size={12} className="inline mr-1.5" />
                 View Profile
               </button>
-              <div className="h-px bg-[#1e2235] my-1" />
+              <div className="h-px bg-border my-1" />
               {nextStages.map((stage) => (
                 <button
                   key={stage}
                   type="button"
                   onClick={() => { setDropdownOpen(false); onMoveStage(stage); }}
-                  className={`w-full text-left px-3 py-1.5 text-[12px] hover:bg-white/5 cursor-pointer border-0 bg-transparent capitalize ${stage === "rejected" ? "text-[#f06b6b]" : "text-[#e8eaf2]"}`}
+                  className={`w-full text-left px-3 py-1.5 text-[12px] hover:bg-foreground/5 cursor-pointer border-0 bg-transparent capitalize ${stage === "rejected" ? "text-[#f06b6b]" : "text-foreground"}`}
                 >
                   → {stage}
                 </button>

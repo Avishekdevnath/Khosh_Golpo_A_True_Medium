@@ -40,21 +40,21 @@ export default function JobApplyModal({ job, onClose, onApplied }: Props) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="bg-[#10131d] border border-[#1e2235] rounded-xl w-full max-w-lg shadow-2xl">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#1e2235]">
+      <div className="bg-card border border-border rounded-xl w-full max-w-lg shadow-2xl">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <div>
-            <h2 className="text-[16px] font-semibold text-white">Apply to {job.company_name}</h2>
-            <p className="text-[13px] text-[#8b95a1] mt-0.5">{job.title}</p>
+            <h2 className="text-[16px] font-semibold text-foreground">Apply to {job.company_name}</h2>
+            <p className="text-[13px] text-muted-foreground mt-0.5">{job.title}</p>
           </div>
-          <button onClick={onClose} className="text-[#8b95a1] hover:text-white transition-colors">
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
             <X size={18} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-5">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-medium text-[#c5ccd6]">
-              Cover Letter <span className="text-[#8b95a1] font-normal">(optional)</span>
+            <label className="text-[13px] font-medium text-foreground/80">
+              Cover Letter <span className="text-muted-foreground font-normal">(optional)</span>
             </label>
             <textarea
               value={coverLetter}
@@ -62,21 +62,21 @@ export default function JobApplyModal({ job, onClose, onApplied }: Props) {
               maxLength={2000}
               rows={5}
               placeholder="Tell them why you're a great fit..."
-              className="w-full px-3 py-2 bg-[#151927] border border-[#1e2235] rounded-lg text-[13px] text-white placeholder-[#8b95a1] focus:outline-none focus:border-[#0EA5E9]/50 resize-none"
+              className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#0EA5E9]/50 resize-none"
             />
-            <p className="text-[11px] text-[#8b95a1] text-right">{coverLetter.length}/2000</p>
+            <p className="text-[11px] text-muted-foreground text-right">{coverLetter.length}/2000</p>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-medium text-[#c5ccd6]">
-              Resume URL <span className="text-[#8b95a1] font-normal">(optional)</span>
+            <label className="text-[13px] font-medium text-foreground/80">
+              Resume URL <span className="text-muted-foreground font-normal">(optional)</span>
             </label>
             <input
               type="url"
               value={resumeUrl}
               onChange={(e) => setResumeUrl(e.target.value)}
               placeholder="https://drive.google.com/..."
-              className="w-full px-3 py-2 bg-[#151927] border border-[#1e2235] rounded-lg text-[13px] text-white placeholder-[#8b95a1] focus:outline-none focus:border-[#0EA5E9]/50"
+              className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#0EA5E9]/50"
             />
           </div>
 
@@ -90,7 +90,7 @@ export default function JobApplyModal({ job, onClose, onApplied }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-[13px] text-[#8b95a1] hover:text-white border border-[#1e2235] rounded-lg transition-colors"
+              className="px-4 py-2 text-[13px] text-muted-foreground hover:text-foreground border border-border rounded-lg transition-colors"
             >
               Cancel
             </button>

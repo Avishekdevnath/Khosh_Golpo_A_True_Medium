@@ -30,13 +30,13 @@ export default function JobFilters({ filters, onChange }: Props) {
     <div className="flex flex-col gap-2 px-3 py-2">
       {/* Search */}
       <div className="relative">
-        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8b95a1]" />
+        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <input
           type="text"
           placeholder="Search jobs..."
           value={filters.search ?? ""}
           onChange={(e) => set({ search: e.target.value || undefined })}
-          className="w-full pl-8 pr-3 py-1.5 bg-[#151927] border border-[#1e2235] rounded-lg text-[13px] text-white placeholder-[#8b95a1] focus:outline-none focus:border-[#0EA5E9]/50"
+          className="w-full pl-8 pr-3 py-1.5 bg-secondary border border-border rounded-lg text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#0EA5E9]/50"
         />
       </div>
 
@@ -45,7 +45,7 @@ export default function JobFilters({ filters, onChange }: Props) {
         <select
           value={filters.job_type ?? ""}
           onChange={(e) => set({ job_type: (e.target.value as JobFilters["job_type"]) || undefined })}
-          className="flex-1 min-w-[110px] px-2 py-1.5 bg-[#151927] border border-[#1e2235] rounded-lg text-[12px] text-white focus:outline-none focus:border-[#0EA5E9]/50 appearance-none"
+          className="flex-1 min-w-[110px] px-2 py-1.5 bg-secondary border border-border rounded-lg text-[12px] text-foreground focus:outline-none focus:border-[#0EA5E9]/50 appearance-none"
         >
           <option value="">All types</option>
           <option value="full_time">Full-time</option>
@@ -61,7 +61,7 @@ export default function JobFilters({ filters, onChange }: Props) {
           onChange={(e) =>
             set({ experience_level: (e.target.value as JobFilters["experience_level"]) || undefined })
           }
-          className="flex-1 min-w-[110px] px-2 py-1.5 bg-[#151927] border border-[#1e2235] rounded-lg text-[12px] text-white focus:outline-none focus:border-[#0EA5E9]/50 appearance-none"
+          className="flex-1 min-w-[110px] px-2 py-1.5 bg-secondary border border-border rounded-lg text-[12px] text-foreground focus:outline-none focus:border-[#0EA5E9]/50 appearance-none"
         >
           <option value="">All levels</option>
           <option value="entry">Entry</option>
@@ -78,7 +78,7 @@ export default function JobFilters({ filters, onChange }: Props) {
           className={`px-3 py-1.5 rounded-lg text-[12px] border transition-colors ${
             filters.is_remote === true
               ? "bg-[#3dd68c]/15 border-[#3dd68c]/40 text-[#3dd68c]"
-              : "bg-[#151927] border-[#1e2235] text-[#8b95a1] hover:border-[#0EA5E9]/50"
+              : "bg-secondary border-border text-muted-foreground hover:border-[#0EA5E9]/50"
           }`}
         >
           Remote
@@ -92,22 +92,22 @@ export default function JobFilters({ filters, onChange }: Props) {
           placeholder="Min salary"
           value={filters.salary_min ?? ""}
           onChange={(e) => set({ salary_min: e.target.value ? Number(e.target.value) : undefined })}
-          className="flex-1 px-2 py-1.5 bg-[#151927] border border-[#1e2235] rounded-lg text-[12px] text-white placeholder-[#8b95a1] focus:outline-none focus:border-[#0EA5E9]/50"
+          className="flex-1 px-2 py-1.5 bg-secondary border border-border rounded-lg text-[12px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#0EA5E9]/50"
         />
-        <span className="text-[#8b95a1] text-[12px]">–</span>
+        <span className="text-muted-foreground text-[12px]">–</span>
         <input
           type="number"
           placeholder="Max salary"
           value={filters.salary_max ?? ""}
           onChange={(e) => set({ salary_max: e.target.value ? Number(e.target.value) : undefined })}
-          className="flex-1 px-2 py-1.5 bg-[#151927] border border-[#1e2235] rounded-lg text-[12px] text-white placeholder-[#8b95a1] focus:outline-none focus:border-[#0EA5E9]/50"
+          className="flex-1 px-2 py-1.5 bg-secondary border border-border rounded-lg text-[12px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#0EA5E9]/50"
         />
       </div>
 
       {hasFilters && (
         <button
           onClick={clear}
-          className="flex items-center gap-1 text-[11px] text-[#8b95a1] hover:text-white self-end transition-colors"
+          className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground self-end transition-colors"
         >
           <X size={11} /> Clear filters
         </button>

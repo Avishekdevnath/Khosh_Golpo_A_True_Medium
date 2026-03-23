@@ -10,9 +10,9 @@ import { useApplications } from "@/hooks/useJobs";
 const STATUS_BADGES: Record<string, { bg: string; text: string; label: string }> = {
   active: { bg: "bg-[#3dd68c]/15", text: "text-[#3dd68c]", label: "Active" },
   pending_review: { bg: "bg-[#f5b64a]/15", text: "text-[#f5b64a]", label: "Under Review" },
-  closed: { bg: "bg-[#1e2235]", text: "text-[#636f8d]", label: "Closed" },
-  rejected: { bg: "bg-[#f06b6b]/15", text: "text-[#f06b6b]", label: "Rejected" },
-  draft: { bg: "bg-[#1e2235]", text: "text-[#636f8d]", label: "Draft" },
+  closed: { bg: "bg-border", text: "text-muted-foreground", label: "Closed" },
+  rejected: { bg: "bg-destructive/15", text: "text-destructive", label: "Rejected" },
+  draft: { bg: "bg-border", text: "text-muted-foreground", label: "Draft" },
 };
 
 const STAGE_COLORS: Record<string, string> = {
@@ -57,16 +57,16 @@ export default function MyJobDetailPanel({ job, onJobUpdated }: Props) {
   }
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto bg-[#080a10] p-5">
+    <div className="flex flex-col h-full overflow-y-auto bg-background p-5">
       {/* Header */}
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-1">
-          <h2 className="text-[18px] font-bold text-[#e8eaf2]">{job.title}</h2>
+          <h2 className="text-[18px] font-bold text-foreground">{job.title}</h2>
           <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${badge.bg} ${badge.text}`}>
             {badge.label}
           </span>
         </div>
-        <div className="flex items-center gap-4 text-[12px] text-[#636f8d]">
+        <div className="flex items-center gap-4 text-[12px] text-muted-foreground">
           <span>Posted {daysAgo}d ago</span>
           <span className="flex items-center gap-1"><Users size={12} /> {job.application_count} applicants</span>
           <span className="flex items-center gap-1"><Bookmark size={12} /> {job.save_count} saved</span>
@@ -85,7 +85,7 @@ export default function MyJobDetailPanel({ job, onJobUpdated }: Props) {
         <button
           type="button"
           onClick={() => router.push(`/jobs/post?edit=${job.id}`)}
-          className="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-[#1e2235] bg-transparent text-[#e8eaf2] text-[13px] font-medium cursor-pointer hover:bg-white/5 transition-colors"
+          className="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-border bg-transparent text-foreground text-[13px] font-medium cursor-pointer hover:bg-foreground/5 transition-colors"
         >
           <PenLine size={14} /> Edit Job
         </button>
@@ -103,12 +103,12 @@ export default function MyJobDetailPanel({ job, onJobUpdated }: Props) {
       {/* Applicant breakdown */}
       {apps.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-[13px] font-semibold text-[#e8eaf2] mb-3">Applicant Breakdown</h3>
+          <h3 className="text-[13px] font-semibold text-foreground mb-3">Applicant Breakdown</h3>
           <div className="flex flex-col gap-2">
             {stageBreakdown.map(({ stage, color, count }) => (
               <div key={stage} className="flex items-center gap-3">
-                <span className="text-[12px] text-[#636f8d] w-[80px] capitalize">{stage}</span>
-                <div className="flex-1 h-5 bg-[#10131d] rounded overflow-hidden">
+                <span className="text-[12px] text-muted-foreground w-[80px] capitalize">{stage}</span>
+                <div className="flex-1 h-5 bg-card rounded overflow-hidden">
                   <div
                     className="h-full rounded transition-all duration-300"
                     style={{
@@ -118,7 +118,7 @@ export default function MyJobDetailPanel({ job, onJobUpdated }: Props) {
                     }}
                   />
                 </div>
-                <span className="text-[12px] text-[#e8eaf2] font-medium w-[24px] text-right">{count}</span>
+                <span className="text-[12px] text-foreground font-medium w-[24px] text-right">{count}</span>
               </div>
             ))}
           </div>
@@ -127,11 +127,11 @@ export default function MyJobDetailPanel({ job, onJobUpdated }: Props) {
 
       {/* Job description preview */}
       <details className="group">
-        <summary className="text-[13px] font-semibold text-[#e8eaf2] cursor-pointer list-none flex items-center gap-2 mb-2">
+        <summary className="text-[13px] font-semibold text-foreground cursor-pointer list-none flex items-center gap-2 mb-2">
           <span className="transition-transform group-open:rotate-90">▶</span>
           Job Description
         </summary>
-        <div className="text-[13px] text-[#c5ccd6] leading-relaxed whitespace-pre-wrap break-words mt-2">
+        <div className="text-[13px] text-foreground/80 leading-relaxed whitespace-pre-wrap break-words mt-2">
           {job.description}
         </div>
       </details>
@@ -139,16 +139,16 @@ export default function MyJobDetailPanel({ job, onJobUpdated }: Props) {
       {/* Close confirmation dialog */}
       {confirmClose && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="w-[400px] rounded-xl bg-[#10131d] border border-[#1e2235] p-6 shadow-xl">
-            <h3 className="text-[16px] font-semibold text-[#e8eaf2] mb-2">Close this job posting?</h3>
-            <p className="text-[13px] text-[#636f8d] mb-5 leading-relaxed">
+          <div className="w-[400px] rounded-xl bg-card border border-border p-6 shadow-xl">
+            <h3 className="text-[16px] font-semibold text-foreground mb-2">Close this job posting?</h3>
+            <p className="text-[13px] text-muted-foreground mb-5 leading-relaxed">
               This will stop accepting new applications. Existing applications remain in your pipeline.
             </p>
             <div className="flex items-center gap-3 justify-end">
               <button
                 type="button"
                 onClick={() => setConfirmClose(false)}
-                className="h-9 px-4 rounded-lg border border-[#1e2235] bg-transparent text-[#e8eaf2] text-[13px] font-medium cursor-pointer hover:bg-white/5 transition-colors"
+                className="h-9 px-4 rounded-lg border border-border bg-transparent text-foreground text-[13px] font-medium cursor-pointer hover:bg-foreground/5 transition-colors"
               >
                 Keep Open
               </button>
