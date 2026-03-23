@@ -133,11 +133,27 @@ export interface ApplicationListResponse {
 export interface MyApplicationOut {
   id: string;
   job_id: string;
+  // Snapshot (always available, even if job was deleted):
   job_title: string;
   company_name: string;
+  company_logo_url: string | null;
+  job_slug: string;
+  job_location: string | null;
+  job_is_remote: boolean;
+  job_type: string | null;
+  poster_display_name: string | null;
+  poster_username: string | null;
+  poster_avatar_url: string | null;
+  job_deleted: boolean;
+  // Application content:
+  cover_letter: string | null;
+  resume_url: string | null;
+  custom_answers: Record<string, unknown>;
+  // Status:
   stage: ApplicationStage;
   stage_history: StageHistoryEntry[];
   employer_note: string | null;
+  is_read_by_candidate: boolean;
   is_external_redirect: boolean;
   created_at: string;
   updated_at: string;
@@ -263,6 +279,10 @@ export async function withdrawApplication(
 
 export async function listMyApplications(): Promise<MyApplicationOut[]> {
   return api.get("jobs/applications/me").json();
+}
+
+export async function deleteMyApplication(jobId: string): Promise<void> {
+  await api.delete(`jobs/${jobId}/applications/me`);
 }
 
 // ── Reports ───────────────────────────────────────────────────────────────────
