@@ -91,6 +91,7 @@ class JobPosterOut(BaseModel):
 
 class JobPostOut(BaseModel):
     id: str
+    slug: str = ""
     title: str
     description: str
     company_name: str
