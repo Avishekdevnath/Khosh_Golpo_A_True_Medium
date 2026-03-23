@@ -23,7 +23,7 @@ export default function SavedJobsPage() {
   const { job: selectedJob } = useJob(selectedId);
 
   const handleSelect = useCallback((jobId: string) => {
-    if (typeof window !== "undefined" && window.innerWidth < 860) {
+    if (typeof window !== "undefined" && window.innerWidth < 1024) {
       router.push(`/jobs/${jobId}`);
       return;
     }
@@ -43,7 +43,6 @@ export default function SavedJobsPage() {
         selectedId={selectedId}
         onSelect={handleSelect}
         onSaveToggle={() => mutate()}
-        showFilters={false}
         headerTitle={`${total} saved`}
         emptyState={
           <div className="flex flex-col items-center justify-center h-48 text-muted-foreground gap-3">
@@ -59,7 +58,7 @@ export default function SavedJobsPage() {
           </div>
         }
       />
-      <div className="flex-1 overflow-y-auto max-[859px]:hidden">
+      <div className="flex-1 overflow-y-auto max-[1023px]:hidden border-l border-border">
         {selectedJob ? (
           <JobDetailPanel job={selectedJob} onApplied={() => mutate()} />
         ) : (
