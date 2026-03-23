@@ -100,17 +100,17 @@ export default function JobPostForm({ existing, onSuccess }: Props) {
   }
 
   const inputClass =
-    "w-full px-3 py-2 bg-[#151927] border border-[#1e2235] rounded-lg text-[13px] text-white placeholder-[#8b95a1] focus:outline-none focus:border-[#0EA5E9]/50";
+    "w-full px-3 py-2 bg-secondary border border-border rounded-lg text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#0EA5E9]/50";
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5 max-w-2xl mx-auto p-5">
-      <h1 className="text-[20px] font-bold text-white">
+      <h1 className="text-[20px] font-bold text-foreground">
         {existing ? "Edit Job Post" : "Post a Job"}
       </h1>
 
       {/* Basic info */}
       <div className="flex flex-col gap-1.5">
-        <label className="text-[13px] font-medium text-[#c5ccd6]">Job Title *</label>
+        <label className="text-[13px] font-medium text-foreground/80">Job Title *</label>
         <input
           required minLength={3} maxLength={120}
           value={form.title} onChange={(e) => set("title", e.target.value)}
@@ -121,7 +121,7 @@ export default function JobPostForm({ existing, onSuccess }: Props) {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="text-[13px] font-medium text-[#c5ccd6]">Company Name *</label>
+          <label className="text-[13px] font-medium text-foreground/80">Company Name *</label>
           <input
             required maxLength={120}
             value={form.company_name} onChange={(e) => set("company_name", e.target.value)}
@@ -130,7 +130,7 @@ export default function JobPostForm({ existing, onSuccess }: Props) {
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className="text-[13px] font-medium text-[#c5ccd6]">Company Logo URL</label>
+          <label className="text-[13px] font-medium text-foreground/80">Company Logo URL</label>
           <input
             type="url"
             value={form.company_logo_url} onChange={(e) => set("company_logo_url", e.target.value)}
@@ -141,20 +141,20 @@ export default function JobPostForm({ existing, onSuccess }: Props) {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-[13px] font-medium text-[#c5ccd6]">Description *</label>
+        <label className="text-[13px] font-medium text-foreground/80">Description *</label>
         <textarea
           required minLength={20} maxLength={10000} rows={8}
           value={form.description} onChange={(e) => set("description", e.target.value)}
           placeholder="Describe the role, responsibilities, and requirements..."
           className={`${inputClass} resize-none`}
         />
-        <p className="text-[11px] text-[#8b95a1] text-right">{form.description.length}/10000</p>
+        <p className="text-[11px] text-muted-foreground text-right">{form.description.length}/10000</p>
       </div>
 
       {/* Location + remote */}
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="text-[13px] font-medium text-[#c5ccd6]">Location</label>
+          <label className="text-[13px] font-medium text-foreground/80">Location</label>
           <input
             value={form.location} onChange={(e) => set("location", e.target.value)}
             placeholder="New York, NY"
@@ -169,7 +169,7 @@ export default function JobPostForm({ existing, onSuccess }: Props) {
               onChange={(e) => set("is_remote", e.target.checked)}
               className="accent-[#0EA5E9]"
             />
-            <span className="text-[13px] text-[#c5ccd6]">Remote OK</span>
+            <span className="text-[13px] text-foreground/80">Remote OK</span>
           </label>
         </div>
       </div>
@@ -177,7 +177,7 @@ export default function JobPostForm({ existing, onSuccess }: Props) {
       {/* Type + experience */}
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="text-[13px] font-medium text-[#c5ccd6]">Job Type</label>
+          <label className="text-[13px] font-medium text-foreground/80">Job Type</label>
           <select
             value={form.job_type}
             onChange={(e) => set("job_type", e.target.value)}
@@ -191,7 +191,7 @@ export default function JobPostForm({ existing, onSuccess }: Props) {
           </select>
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className="text-[13px] font-medium text-[#c5ccd6]">Experience Level</label>
+          <label className="text-[13px] font-medium text-foreground/80">Experience Level</label>
           <select
             value={form.experience_level}
             onChange={(e) => set("experience_level", e.target.value)}
@@ -207,12 +207,12 @@ export default function JobPostForm({ existing, onSuccess }: Props) {
 
       {/* Salary */}
       <div className="flex flex-col gap-2">
-        <label className="text-[13px] font-medium text-[#c5ccd6]">Salary Range</label>
+        <label className="text-[13px] font-medium text-foreground/80">Salary Range</label>
         <div className="flex items-center gap-2">
           <select
             value={form.salary_currency}
             onChange={(e) => set("salary_currency", e.target.value)}
-            className="w-20 px-2 py-2 bg-[#151927] border border-[#1e2235] rounded-lg text-[12px] text-white focus:outline-none appearance-none"
+            className="w-20 px-2 py-2 bg-secondary border border-border rounded-lg text-[12px] text-foreground focus:outline-none appearance-none"
           >
             <option>USD</option>
             <option>EUR</option>
@@ -223,16 +223,16 @@ export default function JobPostForm({ existing, onSuccess }: Props) {
             type="number" min={0}
             value={form.salary_min} onChange={(e) => set("salary_min", e.target.value)}
             placeholder="Min"
-            className="flex-1 px-3 py-2 bg-[#151927] border border-[#1e2235] rounded-lg text-[13px] text-white placeholder-[#8b95a1] focus:outline-none focus:border-[#0EA5E9]/50"
+            className="flex-1 px-3 py-2 bg-secondary border border-border rounded-lg text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#0EA5E9]/50"
           />
-          <span className="text-[#8b95a1]">–</span>
+          <span className="text-muted-foreground">–</span>
           <input
             type="number" min={0}
             value={form.salary_max} onChange={(e) => set("salary_max", e.target.value)}
             placeholder="Max"
-            className="flex-1 px-3 py-2 bg-[#151927] border border-[#1e2235] rounded-lg text-[13px] text-white placeholder-[#8b95a1] focus:outline-none focus:border-[#0EA5E9]/50"
+            className="flex-1 px-3 py-2 bg-secondary border border-border rounded-lg text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#0EA5E9]/50"
           />
-          <label className="flex items-center gap-1.5 text-[12px] text-[#8b95a1] cursor-pointer">
+          <label className="flex items-center gap-1.5 text-[12px] text-muted-foreground cursor-pointer">
             <input
               type="checkbox"
               checked={form.salary_visible}
@@ -246,16 +246,16 @@ export default function JobPostForm({ existing, onSuccess }: Props) {
 
       {/* Skills */}
       <div className="flex flex-col gap-1.5">
-        <label className="text-[13px] font-medium text-[#c5ccd6]">Required Skills</label>
+        <label className="text-[13px] font-medium text-foreground/80">Required Skills</label>
         <div className="flex gap-2">
           <input
             value={skillInput}
             onChange={(e) => setSkillInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addSkill())}
             placeholder="e.g. React"
-            className="flex-1 px-3 py-2 bg-[#151927] border border-[#1e2235] rounded-lg text-[13px] text-white placeholder-[#8b95a1] focus:outline-none focus:border-[#0EA5E9]/50"
+            className="flex-1 px-3 py-2 bg-secondary border border-border rounded-lg text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#0EA5E9]/50"
           />
-          <button type="button" onClick={addSkill} className="px-3 py-2 bg-[#1e2235] hover:bg-[#0EA5E9]/20 text-[#0EA5E9] rounded-lg">
+          <button type="button" onClick={addSkill} className="px-3 py-2 bg-border hover:bg-[#0EA5E9]/20 text-[#0EA5E9] rounded-lg">
             <Plus size={14} />
           </button>
         </div>
@@ -273,22 +273,22 @@ export default function JobPostForm({ existing, onSuccess }: Props) {
 
       {/* Tags */}
       <div className="flex flex-col gap-1.5">
-        <label className="text-[13px] font-medium text-[#c5ccd6]">Tags</label>
+        <label className="text-[13px] font-medium text-foreground/80">Tags</label>
         <div className="flex gap-2">
           <input
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
             placeholder="e.g. startup"
-            className="flex-1 px-3 py-2 bg-[#151927] border border-[#1e2235] rounded-lg text-[13px] text-white placeholder-[#8b95a1] focus:outline-none focus:border-[#0EA5E9]/50"
+            className="flex-1 px-3 py-2 bg-secondary border border-border rounded-lg text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#0EA5E9]/50"
           />
-          <button type="button" onClick={addTag} className="px-3 py-2 bg-[#1e2235] hover:bg-[#0EA5E9]/20 text-[#0EA5E9] rounded-lg">
+          <button type="button" onClick={addTag} className="px-3 py-2 bg-border hover:bg-[#0EA5E9]/20 text-[#0EA5E9] rounded-lg">
             <Plus size={14} />
           </button>
         </div>
         <div className="flex flex-wrap gap-1.5">
           {form.tags.map((t) => (
-            <span key={t} className="flex items-center gap-1 px-2 py-0.5 bg-[#1e2235] text-[#8b95a1] rounded text-[12px]">
+            <span key={t} className="flex items-center gap-1 px-2 py-0.5 bg-border text-muted-foreground rounded text-[12px]">
               #{t}
               <button type="button" onClick={() => set("tags", form.tags.filter((x) => x !== t))}>
                 <X size={10} />
@@ -300,7 +300,7 @@ export default function JobPostForm({ existing, onSuccess }: Props) {
 
       {/* Deadline */}
       <div className="flex flex-col gap-1.5">
-        <label className="text-[13px] font-medium text-[#c5ccd6]">Application Deadline</label>
+        <label className="text-[13px] font-medium text-foreground/80">Application Deadline</label>
         <input
           type="date"
           value={form.application_deadline}
@@ -325,7 +325,7 @@ export default function JobPostForm({ existing, onSuccess }: Props) {
       </button>
 
       {!existing && (
-        <p className="text-[12px] text-[#8b95a1] text-center">
+        <p className="text-[12px] text-muted-foreground text-center">
           Your post will be reviewed by an admin before going live.
         </p>
       )}

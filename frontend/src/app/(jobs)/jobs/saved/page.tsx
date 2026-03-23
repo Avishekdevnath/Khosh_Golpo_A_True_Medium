@@ -48,7 +48,7 @@ export default function SavedJobsPage() {
         showFilters={false}
         headerTitle={`${total} saved`}
         emptyState={
-          <div className="flex flex-col items-center justify-center h-48 text-[#636f8d] gap-3">
+          <div className="flex flex-col items-center justify-center h-48 text-muted-foreground gap-3">
             <Bookmark size={32} strokeWidth={1.2} />
             <p className="text-[13px]">No saved jobs yet</p>
             <button
@@ -65,7 +65,7 @@ export default function SavedJobsPage() {
         {selectedJob ? (
           <JobDetailPanel job={selectedJob} onApplied={() => mutate()} />
         ) : (
-          <div className="flex items-center justify-center h-full text-[13px] text-[#636f8d]">
+          <div className="flex items-center justify-center h-full text-[13px] text-muted-foreground">
             Select a saved job to view details
           </div>
         )}

@@ -68,10 +68,10 @@ export default function JobDetailPanel({ job, onApplied }: Props) {
     : null;
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto bg-[#10131d]">
+    <div className="flex flex-col h-full overflow-y-auto bg-card">
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#1e2235] border border-[#0EA5E9]/30 text-white text-[13px] px-4 py-2.5 rounded-full shadow-lg">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-border border border-[#0EA5E9]/30 text-white text-[13px] px-4 py-2.5 rounded-full shadow-lg">
           {toast}
         </div>
       )}
@@ -100,25 +100,25 @@ export default function JobDetailPanel({ job, onApplied }: Props) {
         />
       )}
 
-      <div className="p-5 border-b border-[#1e2235]">
+      <div className="p-5 border-b border-border">
         {/* Header */}
         <div className="flex items-start gap-3 mb-4">
           {job.company_logo_url ? (
             <img
               src={job.company_logo_url}
               alt={job.company_name}
-              className="w-14 h-14 rounded-xl object-cover bg-[#1e2235] flex-shrink-0"
+              className="w-14 h-14 rounded-xl object-cover bg-border flex-shrink-0"
             />
           ) : (
-            <div className="w-14 h-14 rounded-xl bg-[#1e2235] flex items-center justify-center flex-shrink-0">
-              <Briefcase size={24} className="text-[#8b95a1]" />
+            <div className="w-14 h-14 rounded-xl bg-border flex items-center justify-center flex-shrink-0">
+              <Briefcase size={24} className="text-muted-foreground" />
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <h1 className="text-[18px] font-bold text-white leading-tight">{job.title}</h1>
+            <h1 className="text-[18px] font-bold text-foreground leading-tight">{job.title}</h1>
             <p className="text-[14px] text-[#0EA5E9] mt-0.5">{job.company_name}</p>
             {job.poster && (
-              <p className="text-[12px] text-[#8b95a1] mt-0.5">
+              <p className="text-[12px] text-muted-foreground mt-0.5">
                 Posted by @{job.poster.username}
               </p>
             )}
@@ -128,17 +128,17 @@ export default function JobDetailPanel({ job, onApplied }: Props) {
         {/* Meta chips */}
         <div className="flex flex-wrap gap-2 text-[12px] mb-4">
           {job.location && (
-            <span className="flex items-center gap-1 text-[#8b95a1]">
+            <span className="flex items-center gap-1 text-muted-foreground">
               <MapPin size={12} /> {job.location}
             </span>
           )}
           {job.is_remote && (
             <span className="bg-[#3dd68c]/10 text-[#3dd68c] px-2 py-0.5 rounded-full">Remote</span>
           )}
-          <span className="bg-[#1e2235] text-[#c5ccd6] px-2 py-0.5 rounded-full">
+          <span className="bg-border text-foreground/80 px-2 py-0.5 rounded-full">
             {JOB_TYPE_LABELS[job.job_type]}
           </span>
-          <span className="bg-[#1e2235] text-[#c5ccd6] px-2 py-0.5 rounded-full">
+          <span className="bg-border text-foreground/80 px-2 py-0.5 rounded-full">
             {EXP_LABELS[job.experience_level]}
           </span>
           {salaryText && (
@@ -154,7 +154,7 @@ export default function JobDetailPanel({ job, onApplied }: Props) {
         </div>
 
         {/* Stats */}
-        <div className="flex items-center gap-4 text-[12px] text-[#8b95a1] mb-4">
+        <div className="flex items-center gap-4 text-[12px] text-muted-foreground mb-4">
           <span className="flex items-center gap-1">
             <Users size={13} /> {job.application_count} applicants
           </span>
@@ -166,7 +166,7 @@ export default function JobDetailPanel({ job, onApplied }: Props) {
         {/* Actions */}
         {!user && (
           <div className="flex items-center justify-between px-4 py-2.5 mt-3 rounded-lg bg-[#0EA5E9]/5 border border-[#0EA5E9]/20">
-            <span className="text-[13px] text-[#636f8d]">Sign in to apply or save jobs</span>
+            <span className="text-[13px] text-muted-foreground">Sign in to apply or save jobs</span>
             <a
               href="/login"
               className="text-[13px] font-medium text-[#0EA5E9] no-underline hover:underline"
@@ -194,7 +194,7 @@ export default function JobDetailPanel({ job, onApplied }: Props) {
               className={`flex items-center gap-1.5 px-3 py-2 text-[13px] border rounded-lg transition-colors ${
                 saved
                   ? "border-[#0EA5E9]/40 text-[#0EA5E9]"
-                  : "border-[#1e2235] text-[#8b95a1] hover:border-[#0EA5E9]/30 hover:text-[#0EA5E9]"
+                  : "border-border text-muted-foreground hover:border-[#0EA5E9]/30 hover:text-[#0EA5E9]"
               }`}
             >
               {saved ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
@@ -202,7 +202,7 @@ export default function JobDetailPanel({ job, onApplied }: Props) {
             </button>
             <button
               onClick={() => setReportOpen(true)}
-              className="ml-auto p-2 text-[#8b95a1] hover:text-[#f06b6b] transition-colors"
+              className="ml-auto p-2 text-muted-foreground hover:text-[#f06b6b] transition-colors"
               title="Report this job"
             >
               <Flag size={15} />
@@ -213,15 +213,15 @@ export default function JobDetailPanel({ job, onApplied }: Props) {
 
       {/* Description */}
       <div className="p-5">
-        <h2 className="text-[14px] font-semibold text-white mb-3">Job Description</h2>
-        <div className="text-[13px] text-[#c5ccd6] leading-relaxed whitespace-pre-wrap break-words">
+        <h2 className="text-[14px] font-semibold text-foreground mb-3">Job Description</h2>
+        <div className="text-[13px] text-foreground/80 leading-relaxed whitespace-pre-wrap break-words">
           {job.description}
         </div>
 
         {/* Skills */}
         {job.required_skills.length > 0 && (
           <div className="mt-5">
-            <h3 className="text-[13px] font-semibold text-white mb-2">Required Skills</h3>
+            <h3 className="text-[13px] font-semibold text-foreground mb-2">Required Skills</h3>
             <div className="flex flex-wrap gap-1.5">
               {job.required_skills.map((s) => (
                 <span
@@ -241,7 +241,7 @@ export default function JobDetailPanel({ job, onApplied }: Props) {
             {job.tags.map((t) => (
               <span
                 key={t}
-                className="px-2 py-0.5 bg-[#1e2235] text-[#8b95a1] rounded text-[11px]"
+                className="px-2 py-0.5 bg-border text-muted-foreground rounded text-[11px]"
               >
                 #{t}
               </span>

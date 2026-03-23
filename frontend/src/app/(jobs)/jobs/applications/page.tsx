@@ -15,10 +15,10 @@ function ApplicationRow({ app }: { app: MyApplicationOut }) {
   );
 
   return (
-    <div className="flex items-center gap-4 px-5 py-4 border-b border-[#1e2235] hover:bg-white/[0.02] transition-colors">
+    <div className="flex items-center gap-4 px-5 py-4 border-b border-border hover:bg-foreground/[0.02] transition-colors">
       <div className="flex-1 min-w-0">
-        <div className="text-[14px] font-semibold text-[#e8eaf2] truncate">{app.job_title}</div>
-        <div className="text-[12px] text-[#636f8d] mt-0.5">{app.company_name} · {daysAgo}d ago</div>
+        <div className="text-[14px] font-semibold text-foreground truncate">{app.job_title}</div>
+        <div className="text-[12px] text-muted-foreground mt-0.5">{app.company_name} · {daysAgo}d ago</div>
       </div>
       <ApplicationStatusBadge stage={app.stage} />
     </div>
@@ -44,9 +44,9 @@ export default function ApplicationsPage() {
   return (
     <div className="flex-1 overflow-y-auto">
       {isLoading ? (
-        <div className="flex items-center justify-center h-32 text-[13px] text-[#636f8d]">Loading...</div>
+        <div className="flex items-center justify-center h-32 text-[13px] text-muted-foreground">Loading...</div>
       ) : apps.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-48 text-[#636f8d] gap-3 mt-16">
+        <div className="flex flex-col items-center justify-center h-48 text-muted-foreground gap-3 mt-16">
           <FileText size={32} strokeWidth={1.2} />
           <p className="text-[13px]">No applications yet</p>
           <button
@@ -61,7 +61,7 @@ export default function ApplicationsPage() {
         <div className="max-w-2xl mx-auto py-6">
           {activeApps.length > 0 && (
             <div className="mb-8">
-              <h2 className="text-[13px] font-semibold text-[#636f8d] uppercase tracking-wider px-5 mb-2">
+              <h2 className="text-[13px] font-semibold text-muted-foreground uppercase tracking-wider px-5 mb-2">
                 Active ({activeApps.length})
               </h2>
               {activeApps.map((app) => <ApplicationRow key={app.id} app={app} />)}
@@ -69,7 +69,7 @@ export default function ApplicationsPage() {
           )}
           {completedApps.length > 0 && (
             <div>
-              <h2 className="text-[13px] font-semibold text-[#636f8d] uppercase tracking-wider px-5 mb-2">
+              <h2 className="text-[13px] font-semibold text-muted-foreground uppercase tracking-wider px-5 mb-2">
                 Completed ({completedApps.length})
               </h2>
               {completedApps.map((app) => <ApplicationRow key={app.id} app={app} />)}

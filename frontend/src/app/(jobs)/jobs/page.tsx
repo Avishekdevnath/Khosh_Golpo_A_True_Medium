@@ -47,7 +47,7 @@ export default function JobsBrowsePage() {
       <div className="flex flex-col shrink-0 max-[859px]:flex-1">
         {/* Filter panel (slide-down) */}
         {showFilters && (
-          <div className="w-[300px] max-[859px]:w-full border-r border-b border-[#1e2235] p-3 bg-[#080a10]">
+          <div className="w-[300px] max-[859px]:w-full border-r border-b border-border p-3 bg-background">
             <JobFiltersPanel filters={filters} onChange={setFilters} />
           </div>
         )}
@@ -61,7 +61,7 @@ export default function JobsBrowsePage() {
           activeFilterCount={activeFilterCount}
           onToggleFilters={() => setShowFilters((v) => !v)}
           emptyState={
-            <div className="flex flex-col items-center justify-center h-48 text-[#636f8d] gap-3">
+            <div className="flex flex-col items-center justify-center h-48 text-muted-foreground gap-3">
               <Search size={32} strokeWidth={1.2} />
               <p className="text-[13px]">
                 {activeFilterCount > 0 ? "No jobs match your filters" : "No jobs posted yet"}
@@ -85,7 +85,7 @@ export default function JobsBrowsePage() {
         {selectedJob ? (
           <JobDetailPanel job={selectedJob} onApplied={() => mutateList()} />
         ) : (
-          <div className="flex items-center justify-center h-full text-[13px] text-[#636f8d]">
+          <div className="flex items-center justify-center h-full text-[13px] text-muted-foreground">
             Select a job to view details
           </div>
         )}

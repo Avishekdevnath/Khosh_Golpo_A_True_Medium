@@ -23,7 +23,7 @@ export default function JobCanonicalPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full text-[13px] text-[#636f8d]">
+      <div className="flex items-center justify-center h-full text-[13px] text-muted-foreground">
         Loading...
       </div>
     );
@@ -31,7 +31,7 @@ export default function JobCanonicalPage() {
 
   if (!job) {
     return (
-      <div className="flex items-center justify-center h-full text-[13px] text-[#636f8d]">
+      <div className="flex items-center justify-center h-full text-[13px] text-muted-foreground">
         Job not found
       </div>
     );

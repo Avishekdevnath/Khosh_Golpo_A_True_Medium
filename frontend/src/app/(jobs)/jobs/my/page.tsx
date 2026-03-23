@@ -41,7 +41,7 @@ export default function MyPostsPage() {
         showFilters={false}
         headerTitle={`${total} posts`}
         emptyState={
-          <div className="flex flex-col items-center justify-center h-48 text-[#636f8d] gap-3">
+          <div className="flex flex-col items-center justify-center h-48 text-muted-foreground gap-3">
             <Briefcase size={32} strokeWidth={1.2} />
             <p className="text-[13px]">You haven't posted any jobs</p>
             <button
@@ -58,7 +58,7 @@ export default function MyPostsPage() {
         {selectedJob ? (
           <MyJobDetailPanel job={selectedJob} onJobUpdated={() => mutate()} />
         ) : (
-          <div className="flex items-center justify-center h-full text-[13px] text-[#636f8d]">
+          <div className="flex items-center justify-center h-full text-[13px] text-muted-foreground">
             Select a job to view stats
           </div>
         )}

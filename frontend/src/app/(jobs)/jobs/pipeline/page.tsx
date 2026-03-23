@@ -71,11 +71,11 @@ export default function PipelinePage() {
       </div>
 
       {/* Mobile job selector */}
-      <div className="min-[860px]:hidden w-full px-3 py-2 border-b border-[#1e2235] shrink-0">
+      <div className="min-[860px]:hidden w-full px-3 py-2 border-b border-border shrink-0">
         <select
           value={selectedJobId ?? ""}
           onChange={(e) => handleSelectJob(e.target.value)}
-          className="w-full h-9 bg-[#151927] border border-[#1e2235] rounded-lg text-[13px] text-white px-3"
+          className="w-full h-9 bg-secondary border border-border rounded-lg text-[13px] text-foreground px-3"
         >
           {myJobs.map((job) => (
             <option key={job.id} value={job.id}>{job.title} ({job.application_count})</option>
@@ -86,12 +86,12 @@ export default function PipelinePage() {
       {/* Kanban Board — desktop */}
       <div className="hidden min-[860px]:flex flex-1 min-w-0">
         {!selectedJobId ? (
-          <div className="flex flex-col items-center justify-center h-full w-full text-[#636f8d] gap-3">
+          <div className="flex flex-col items-center justify-center h-full w-full text-muted-foreground gap-3">
             <Users size={32} strokeWidth={1.2} />
             <p className="text-[13px]">Select a job to view its pipeline</p>
           </div>
         ) : appsLoading ? (
-          <div className="flex items-center justify-center h-full w-full text-[13px] text-[#636f8d]">
+          <div className="flex items-center justify-center h-full w-full text-[13px] text-muted-foreground">
             Loading applications...
           </div>
         ) : (
@@ -110,13 +110,13 @@ export default function PipelinePage() {
           const stageApps = applications.filter((a) => a.stage === stage);
           return (
             <details key={stage} open={i === 0}>
-              <summary className="flex items-center justify-between px-4 py-3 border-b border-[#1e2235] cursor-pointer text-[13px] font-semibold text-[#e8eaf2] capitalize">
+              <summary className="flex items-center justify-between px-4 py-3 border-b border-border cursor-pointer text-[13px] font-semibold text-foreground capitalize">
                 {stage}
-                <span className="text-[11px] font-bold text-[#636f8d]">{stageApps.length}</span>
+                <span className="text-[11px] font-bold text-muted-foreground">{stageApps.length}</span>
               </summary>
               <div className="px-3 py-2">
                 {stageApps.length === 0 ? (
-                  <p className="text-[12px] text-[#636f8d] py-2 text-center">No applicants</p>
+                  <p className="text-[12px] text-muted-foreground py-2 text-center">No applicants</p>
                 ) : (
                   stageApps.map((app) => (
                     <KanbanCard
