@@ -68,7 +68,7 @@ export function normalizeCustomQuestionsForSubmit(
   const invalidQuestion = normalized.find((question) => {
     if (!question.label) return true;
     if (question.type === "single_select" || question.type === "multi_select") {
-      return question.options.length < 2;
+      return (question.options?.length ?? 0) < 2;
     }
     return false;
   });

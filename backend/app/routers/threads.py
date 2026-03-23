@@ -122,6 +122,20 @@ async def create_thread(payload: ThreadCreate, request: Request, current_user: U
     return _to_thread_out(thread, current_user, current_user_id=str(current_user.id))
 
 
+@router.get("/trending-tags")
+async def trending_tags(limit: int = Query(default=10, ge=1, le=50)) -> dict:
+    pipeline = [
+        {"$match": {"status": "active", "tags": {"$exists": True, "$ne": []}}},
+        {"$unwind": "$tags"},
+        {"$group": {"_id": "$tags", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": limit},
+        {"$project": {"_id": 0, "tag": "$_id", "count": 1}},
+    ]
+    results = await Thread.get_motor_collection().aggregate(pipeline).to_list(limit)
+    return {"tags": results}
+
+
 @router.get("/{thread_id}")
 async def get_thread(
     thread_id: str,
