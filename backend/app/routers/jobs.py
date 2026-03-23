@@ -194,10 +194,7 @@ async def list_jobs(
     if search:
         query = search.strip()
         if query:
-            pattern = {"$regex": query, "$options": "i"}
-            filters.append(
-                {"$or": [{"title": pattern}, {"description": pattern}, {"company_name": pattern}]}
-            )
+            filters.append({"$text": {"$search": query}})
     if job_type:
         filters.append({"job_type": job_type})
     if experience_level:

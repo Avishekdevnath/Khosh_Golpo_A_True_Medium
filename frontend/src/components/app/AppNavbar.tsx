@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Bell, LogOut, Menu, PenLine, Search, Settings, User } from "lucide-react";
+import { Bell, LogOut, Menu, PenLine, Settings, User } from "lucide-react";
 
 import { useAuthStore } from "@/store/authStore";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -68,22 +68,6 @@ export default function AppNavbar() {
         <span className="font-serif text-[15px] font-bold text-foreground tracking-tight hidden min-[860px]:block">
           KhoshGolpo
         </span>
-      </button>
-
-      {/* ── Search pill (desktop) ── */}
-      <button
-        type="button"
-        onClick={() => router.push("/threads")}
-        className={cn(
-          "hidden min-[860px]:flex items-center gap-2 ml-2",
-          "h-9 px-4 rounded-full border border-border bg-card",
-          "text-[13px] text-muted-foreground w-[200px]",
-          "hover:border-border/80 hover:bg-card-hover transition-colors cursor-text",
-        )}
-        aria-label="Search threads"
-      >
-        <Search size={13} strokeWidth={2} className="shrink-0" />
-        Search
       </button>
 
       {/* ── Spacer ── */}

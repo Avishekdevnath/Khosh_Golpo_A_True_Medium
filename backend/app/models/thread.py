@@ -2,6 +2,7 @@ from datetime import datetime
 from enum import Enum
 
 from beanie import Document, Insert, PydanticObjectId, Replace, before_event
+from pymongo import ASCENDING, IndexModel
 from pydantic import Field
 
 from app.models.common import timestamps_for_insert, timestamps_for_replace, utc_now
@@ -53,4 +54,9 @@ class Thread(Document):
             "feed_suppressed",
             "is_flagged",
             "is_deleted",
+            IndexModel(
+                [("title", "text"), ("body", "text")],
+                weights={"title": 10, "body": 1},
+                name="threads_text_search",
+            ),
         ]

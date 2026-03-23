@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bookmark, BookmarkCheck, Briefcase, MapPin } from "lucide-react";
+import { Bookmark, BookmarkCheck, Briefcase, MapPin, Clock } from "lucide-react";
 import type { JobPostOut } from "@/lib/jobsApi";
 import { saveJob, unsaveJob } from "@/lib/jobsApi";
 import { useAuthStore } from "@/store/authStore";
@@ -27,6 +27,16 @@ function formatCompact(n: number): string {
     return k % 1 === 0 ? `${k}K` : `${parseFloat(k.toFixed(1))}K`;
   }
   return `${n}`;
+}
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days === 0) return "Today";
+  if (days === 1) return "1d ago";
+  if (days < 7) return `${days}d ago`;
+  if (days < 30) return `${Math.floor(days / 7)}w ago`;
+  return `${Math.floor(days / 30)}mo ago`;
 }
 
 interface Props {
@@ -71,7 +81,7 @@ export default function JobCard({ job, selected = false, onClick, onSaveToggle }
       const formattedMax = formatCompact(max);
       return formattedMin === formattedMax
         ? `${currency} ${formattedMax}`
-        : `${currency} ${formattedMin}-${formattedMax}`;
+        : `${currency} ${formattedMin}–${formattedMax}`;
     }
     if (min) return `${currency} ${formatCompact(min)}+`;
     return `Up to ${currency} ${formatCompact(max!)}`;
@@ -81,82 +91,92 @@ export default function JobCard({ job, selected = false, onClick, onSaveToggle }
     <div
       onClick={onClick}
       className={[
-        "group relative flex flex-col gap-3 px-4 py-4 cursor-pointer transition-all",
+        "group relative flex flex-col gap-3.5 px-5 py-5 cursor-pointer transition-all duration-150",
         "border-b border-border",
         selected
-          ? "bg-card-hover border-l-2 border-l-[#0EA5E9] shadow-[0_0_20px_rgba(14,165,233,0.08)]"
-          : "hover:bg-card/60 border-l-2 border-l-transparent hover:-translate-y-px hover:shadow-md",
+          ? "bg-primary/[0.04] border-l-2 border-l-primary"
+          : "hover:bg-secondary/60 border-l-2 border-l-transparent",
       ].join(" ")}
     >
+      {/* Row 1: title + save */}
       <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
-          {job.company_logo_url ? (
-            <img
-              src={job.company_logo_url}
-              alt={job.company_name}
-              className="w-9 h-9 rounded-lg object-cover flex-shrink-0 bg-border"
-            />
-          ) : (
-            <div className="w-9 h-9 rounded-lg bg-border flex items-center justify-center flex-shrink-0">
-              <Briefcase size={16} className="text-muted-foreground" />
-            </div>
-          )}
-          <div className="min-w-0">
-            <p className="text-[13px] font-medium text-[#0EA5E9] truncate">{job.company_name}</p>
-            <p className="text-[11px] text-muted-foreground truncate">
-              {job.poster?.display_name ?? "Unknown"}
-            </p>
-          </div>
-        </div>
+        <h3 className="text-[15.5px] font-semibold text-foreground leading-snug line-clamp-2 flex-1">
+          {job.title}
+        </h3>
         {user && (
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex-shrink-0 p-1 text-muted-foreground hover:text-[#0EA5E9] transition-colors opacity-0 group-hover:opacity-100"
+            className="shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors opacity-0 group-hover:opacity-100"
             title={saved ? "Unsave" : "Save"}
           >
-            {saved ? <BookmarkCheck size={16} className="text-[#0EA5E9]" /> : <Bookmark size={16} />}
+            {saved
+              ? <BookmarkCheck size={15} className="text-primary" />
+              : <Bookmark size={15} />}
           </button>
         )}
       </div>
 
-      <div>
-        <h3 className="text-[15px] font-semibold text-foreground leading-snug line-clamp-2">
-          {job.title}
-        </h3>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2 text-[12px] text-muted-foreground">
-        {job.location && (
-          <span className="flex items-center gap-1">
-            <MapPin size={11} />
-            {job.location}
-          </span>
+      {/* Row 2: logo + company + time */}
+      <div className="flex items-center gap-2.5 min-w-0">
+        {job.company_logo_url ? (
+          <img
+            src={job.company_logo_url}
+            alt={job.company_name}
+            className="w-8 h-8 rounded-lg object-cover shrink-0 border border-border bg-secondary"
+            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; (e.currentTarget.nextSibling as HTMLElement).style.display = "flex"; }}
+          />
+        ) : null}
+        {(!job.company_logo_url) && (
+          <div className="w-8 h-8 rounded-lg bg-secondary border border-border flex items-center justify-center shrink-0 text-[11px] font-bold text-muted-foreground uppercase">
+            {job.company_name?.charAt(0) ?? <Briefcase size={14} />}
+          </div>
         )}
-        {job.is_remote && (
-          <span className="bg-[#3dd68c]/10 text-[#3dd68c] px-1.5 py-0.5 rounded text-[11px]">
-            Remote
-          </span>
-        )}
-        <span className="bg-border px-1.5 py-0.5 rounded text-[11px]">
-          {JOB_TYPE_LABELS[job.job_type] ?? job.job_type}
-        </span>
-        <span className="bg-border px-1.5 py-0.5 rounded text-[11px]">
-          {EXP_LABELS[job.experience_level] ?? job.experience_level}
-        </span>
-        {salaryText && <span className="text-[#3dd68c] font-medium">{salaryText}</span>}
-        {job.external_apply_url && (
-          <span className="bg-[#f0834a]/10 text-[#f0834a] px-1.5 py-0.5 rounded text-[11px]">
-            External
+        <span className="text-[13px] font-medium text-primary truncate">{job.company_name}</span>
+        {job.created_at && (
+          <span className="hidden sm:flex items-center gap-1 text-[11px] text-muted-foreground/60 shrink-0">
+            <Clock size={10} />
+            {timeAgo(job.created_at)}
           </span>
         )}
       </div>
 
-      {job.has_applied && (
-        <span className="text-[11px] text-[#3dd68c] font-medium">
-          {job.external_apply_url ? "✓ Redirected" : "✓ Applied"}
-        </span>
-      )}
+      {/* Row 3: meta tags + salary on right */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+          {job.location && (
+            <span className="flex items-center gap-1 text-[12px] text-muted-foreground">
+              <MapPin size={11} />
+              {job.location}
+            </span>
+          )}
+          {job.location && <span className="text-border">·</span>}
+          {job.is_remote && (
+            <span className="text-[11.5px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+              Remote
+            </span>
+          )}
+          <span className="text-[11.5px] font-medium px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground border border-border">
+            {JOB_TYPE_LABELS[job.job_type] ?? job.job_type}
+          </span>
+          <span className="text-[11.5px] font-medium px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground border border-border">
+            {EXP_LABELS[job.experience_level] ?? job.experience_level}
+          </span>
+          {job.external_apply_url && (
+            <span className="text-[11.5px] font-medium px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-500 border border-orange-500/20">
+              External
+            </span>
+          )}
+          {job.has_applied && (
+            <span className="text-[11px] font-medium text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+              {job.external_apply_url ? "✓ Redirected" : "✓ Applied"}
+            </span>
+          )}
+        </div>
+        {salaryText && (
+          <span className="shrink-0 text-[13px] font-semibold text-emerald-500">{salaryText}</span>
+        )}
+      </div>
     </div>
   );
 }

@@ -94,4 +94,9 @@ class JobPost(Document):
             IndexModel([("required_skills", ASCENDING), ("status", ASCENDING)]),
             IndexModel([("tags", ASCENDING), ("status", ASCENDING)]),
             IndexModel([("slug", ASCENDING)], unique=True, sparse=True),
+            IndexModel(
+                [("title", "text"), ("description", "text"), ("company_name", "text")],
+                weights={"title": 10, "company_name": 5, "description": 1},
+                name="jobs_text_search",
+            ),
         ]

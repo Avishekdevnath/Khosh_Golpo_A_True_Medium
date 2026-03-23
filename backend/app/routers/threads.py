@@ -50,8 +50,7 @@ async def list_threads(
     if search:
         query = search.strip()
         if query:
-            regex = {"$regex": query, "$options": "i"}
-            filters.append({"$or": [{"title": regex}, {"body": regex}]})
+            filters.append({"$text": {"$search": query}})
 
     query_builder = Thread.find(*filters)
     total = await query_builder.count()
