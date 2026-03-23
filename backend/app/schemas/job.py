@@ -176,14 +176,30 @@ class MyApplicationOut(BaseModel):
     """Candidate's view of their own application."""
     id: str
     job_id: str
+    # Snapshot fields — always available even if job was deleted:
     job_title: str
     company_name: str
+    company_logo_url: Optional[str] = None
+    job_slug: str = ""
+    job_location: Optional[str] = None
+    job_is_remote: bool = False
+    job_type: Optional[str] = None
+    poster_display_name: Optional[str] = None
+    poster_username: Optional[str] = None
+    poster_avatar_url: Optional[str] = None
+    job_deleted: bool = False
+    # Application content:
+    cover_letter: Optional[str] = None
+    resume_url: Optional[str] = None
+    custom_answers: dict[str, Any] = Field(default_factory=dict)
+    # Status:
     stage: ApplicationStage
     stage_history: list[StageHistoryEntry]
-    employer_note: Optional[str]
+    employer_note: Optional[str] = None
+    is_read_by_candidate: bool = True
+    is_external_redirect: bool = False
     created_at: datetime
     updated_at: datetime
-    is_external_redirect: bool = False
 
 
 # ── Report ────────────────────────────────────────────────────────────────────
