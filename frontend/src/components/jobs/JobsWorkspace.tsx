@@ -1,20 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Search } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import type { JobFilters } from "@/lib/jobsApi";
-import { useJob, useJobs } from "@/hooks/useJobs";
+import { useJobs } from "@/hooks/useJobs";
 import JobsFilterRail from "./JobsFilterRail";
 import JobsListPanel from "./JobsListPanel";
-import JobDetailPanel from "./JobDetailPanel";
+import JobFiltersPanel from "./JobFilters";
 
 export default function JobsWorkspace() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const selectedSlug = searchParams.get("job") ?? null;
 
   const [col1Expanded, setCol1Expanded] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filters, setFilters] = useState<JobFilters>({});
@@ -31,7 +30,6 @@ export default function JobsWorkspace() {
     };
   }, [search]);
 
-  // Active filter count (is_remote handled separately so false counts)
   const activeFilterCount = [
     filters.job_type,
     filters.experience_level,
@@ -45,54 +43,35 @@ export default function JobsWorkspace() {
     ...(debouncedSearch ? { search: debouncedSearch } : {}),
   };
 
-  const { jobs, total, isLoading, mutate: mutateList } = useJobs(activeFilters);
-  const { job: selectedJob } = useJob(selectedSlug);
+  const { jobs, total, isLoading } = useJobs(activeFilters);
 
   const handleSelect = useCallback(
     (slug: string) => {
-      if (typeof window !== "undefined" && window.innerWidth < 1024) {
-        router.push(`/jobs/${slug}`);
-        return;
-      }
-      const params = new URLSearchParams(searchParams.toString());
-      params.set("job", slug);
-      router.replace(`/jobs?${params.toString()}`, { scroll: false });
+      router.push(`/jobs/${slug}`);
     },
-    [router, searchParams],
+    [router],
   );
-
-  const handleClose = useCallback(() => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("job");
-    const qs = params.toString();
-    router.replace(qs ? `/jobs?${qs}` : "/jobs", { scroll: false });
-  }, [router, searchParams]);
-
-  const handleApplied = useCallback(() => {
-    mutateList();
-  }, [mutateList]);
 
   return (
     <div className="flex h-full overflow-hidden">
+      {/* Col 1 — left nav rail */}
       <JobsFilterRail
         expanded={col1Expanded}
         onToggle={() => setCol1Expanded((v) => !v)}
-        filters={filters}
-        onFiltersChange={setFilters}
-        activeFilterCount={activeFilterCount}
       />
 
-      {/* Col 2 — expands to fill when no detail selected */}
-      <div className={selectedJob ? "w-[320px] shrink-0 border-r border-border" : "flex-1"}>
+      {/* Col 2 — full-width job list */}
+      <div className="flex-1 overflow-hidden">
         <JobsListPanel
           jobs={jobs}
           total={total}
           isLoading={isLoading}
-          selectedId={selectedSlug}
+          selectedId={null}
           onSelect={handleSelect}
           searchValue={search}
           onSearchChange={setSearch}
           activeFilterCount={activeFilterCount}
+          onToggleFilters={() => setFiltersOpen((v) => !v)}
           emptyState={
             <div className="flex flex-col items-center justify-center h-48 text-muted-foreground gap-3">
               <Search size={32} strokeWidth={1.2} />
@@ -115,14 +94,33 @@ export default function JobsWorkspace() {
         />
       </div>
 
-      {/* Col 3 — hidden on <1024px */}
-      {selectedJob && (
-        <div className="flex-1 overflow-y-auto border-l border-border max-[1023px]:hidden">
-          <JobDetailPanel
-            job={selectedJob}
-            onApplied={handleApplied}
-            onClose={handleClose}
-          />
+      {/* Right filter panel */}
+      {filtersOpen && (
+        <div className="w-[240px] shrink-0 border-l border-border bg-background flex flex-col h-full overflow-y-auto">
+          <div className="flex items-center justify-between px-3 h-11 border-b border-border shrink-0">
+            <div className="flex items-center gap-2 text-[12px] font-medium text-foreground">
+              <SlidersHorizontal size={13} />
+              Filters
+              {activeFilterCount > 0 && (
+                <span className="w-4 h-4 rounded-full bg-[#0EA5E9] text-[9px] font-bold text-white flex items-center justify-center">
+                  {activeFilterCount}
+                </span>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => setFiltersOpen(false)}
+              className="w-6 h-6 flex items-center justify-center rounded text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X size={13} />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            <JobFiltersPanel
+              filters={filters}
+              onChange={(f) => setFilters({ ...f, search: undefined })}
+            />
+          </div>
         </div>
       )}
     </div>
