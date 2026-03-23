@@ -1,6 +1,9 @@
 """Business logic for the job board: apply, stage moves, notifications."""
 from __future__ import annotations
 
+import re
+import unicodedata
+from secrets import token_hex
 from typing import Any, Optional
 from urllib.parse import urlparse
 
@@ -16,6 +19,14 @@ from app.models.job_application import (
 from app.models.job_post import JobPost, JobStatus, QuestionType
 from app.models.notification import Notification, NotificationType
 from app.models.user import User
+
+
+def make_slug(title: str, company: str) -> str:
+    """Convert title + company to a URL-safe slug, max 100 chars."""
+    raw = f"{title} {company}"
+    normalized = unicodedata.normalize("NFKD", raw).encode("ascii", "ignore").decode("ascii")
+    slugified = re.sub(r"[^a-z0-9]+", "-", normalized.lower()).strip("-")
+    return slugified[:100]
 
 
 async def _send_notification(
