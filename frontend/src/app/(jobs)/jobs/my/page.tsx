@@ -20,7 +20,7 @@ export default function MyPostsPage() {
 
   const { jobs, total, isLoading, mutate } = useMyJobs(1);
 
-  const selectedJob = jobs.find((j) => j.id === selectedId) ?? null;
+  const selectedJob = jobs.find((j) => j.slug === selectedId || j.id === selectedId) ?? null;
 
   const handleSelect = useCallback((jobId: string) => {
     if (typeof window !== "undefined" && window.innerWidth < 860) {

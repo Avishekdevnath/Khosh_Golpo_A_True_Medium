@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { ApplicationOut, ApplicationStage } from "@/lib/jobsApi";
+import type { ApplicationOut, ApplicationStage, CustomQuestion } from "@/lib/jobsApi";
 import KanbanColumn from "./KanbanColumn";
 
 const VISIBLE_STAGES: ApplicationStage[] = ["applied", "screening", "interview", "offer", "hired"];
@@ -11,9 +11,10 @@ interface Props {
   onMoveStage: (appId: string, newStage: ApplicationStage, note?: string) => void;
   onViewProfile: (userId: string) => void;
   movingAppId?: string | null;
+  customQuestions?: CustomQuestion[];
 }
 
-export default function KanbanBoard({ applications, onMoveStage, onViewProfile, movingAppId }: Props) {
+export default function KanbanBoard({ applications, onMoveStage, onViewProfile, movingAppId, customQuestions = [] }: Props) {
   const [showRejected, setShowRejected] = useState(false);
 
   const rejectedCount = applications.filter((a) => a.stage === "rejected").length;
@@ -51,6 +52,7 @@ export default function KanbanBoard({ applications, onMoveStage, onViewProfile, 
               onMoveStage={onMoveStage}
               onViewProfile={onViewProfile}
               movingAppId={movingAppId}
+              customQuestions={customQuestions}
             />
           ))}
         </div>
