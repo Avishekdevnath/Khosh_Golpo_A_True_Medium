@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, User } from "lucide-react";
+import { ChevronDown, FileText, User } from "lucide-react";
 import { STAGE_TRANSITIONS, TERMINAL_STAGES } from "@/lib/jobsApi";
 import type { ApplicationOut, ApplicationStage } from "@/lib/jobsApi";
+import { formatScreeningAnswer } from "@/lib/jobApplicationFlow";
 import { avatarSeed, initials } from "@/lib/workspaceUtils";
 import ApplicationStatusBadge from "./ApplicationStatusBadge";
 
@@ -20,29 +21,29 @@ export default function KanbanCard({ application, onMoveStage, onViewProfile, is
   const applicant = application.applicant;
   const name = applicant?.display_name ?? applicant?.username ?? "Unknown";
   const username = applicant?.username ?? "";
-  const [av1, av2] = avatarSeed(application.applicant_id);
+  const [avatarStart, avatarEnd] = avatarSeed(application.applicant_id);
 
-  const daysInPipeline = Math.floor(
-    (Date.now() - new Date(application.created_at).getTime()) / 86400000
-  );
+  const submittedOn = new Date(application.created_at).toLocaleDateString();
   const transitionCount = (application.stage_history?.length ?? 1) - 1;
 
   const isTerminal = TERMINAL_STAGES.includes(application.stage);
   const nextStages = STAGE_TRANSITIONS[application.stage] ?? [];
+  const answerEntries = Object.entries(application.custom_answers ?? {});
 
   return (
     <div
       className={[
-        "rounded-lg bg-card-hover border border-border p-3 mb-2",
-        "transition-opacity duration-200",
+        "rounded-lg border p-3 mb-2 transition-opacity duration-200",
+        application.is_external_redirect
+          ? "bg-[#f0834a]/5 border-[#f0834a]/20"
+          : "bg-card-hover border-border",
         isMoving ? "opacity-30" : "opacity-100",
       ].join(" ")}
     >
-      {/* Identity row */}
       <div className="flex items-center gap-2.5 mb-2">
         <span
           className="w-8 h-8 rounded-full grid place-items-center text-[10px] font-bold text-white shrink-0"
-          style={{ background: `linear-gradient(135deg,${av1},${av2})` }}
+          style={{ background: `linear-gradient(135deg,${avatarStart},${avatarEnd})` }}
         >
           {initials(name)}
         </span>
@@ -52,19 +53,49 @@ export default function KanbanCard({ application, onMoveStage, onViewProfile, is
         </div>
       </div>
 
-      {/* Pipeline meta */}
       <div className="text-[11px] text-muted-foreground mb-2.5">
-        In pipeline {daysInPipeline}d{transitionCount > 0 ? ` · ${transitionCount}→` : ""}
+        Submitted {submittedOn}{transitionCount > 0 ? ` · ${transitionCount} moves` : ""}
       </div>
 
-      {/* Actions */}
+      {application.is_external_redirect && (
+        <div className="mb-2 rounded-md bg-[#f0834a]/10 px-2 py-1 text-[11px] text-[#f0834a]">
+          Applied via external company site
+        </div>
+      )}
+
+      {application.resume_url && (
+        <a
+          href={application.resume_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-[11px] text-[#0EA5E9] hover:underline mb-2"
+        >
+          <FileText size={11} />
+          Resume
+        </a>
+      )}
+
+      {answerEntries.length > 0 && (
+        <div className="mb-3 flex flex-col gap-1.5 rounded-md bg-card border border-border px-2.5 py-2">
+          <div className="text-[11px] font-medium text-foreground">Screening Answers</div>
+          {answerEntries.map(([key, value]) => (
+            <div key={key} className="flex flex-col gap-0.5">
+              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{key}</span>
+              <span className="text-[11px] text-foreground/85 break-words">
+                {formatScreeningAnswer(value)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
       {isTerminal ? (
         <ApplicationStatusBadge stage={application.stage} />
       ) : (
         <div className="relative">
           <button
             type="button"
-            onClick={() => setDropdownOpen((v) => !v)}
+            onClick={() => setDropdownOpen((value) => !value)}
             disabled={isMoving}
             className="flex items-center gap-1.5 h-7 px-2.5 rounded-md border border-border bg-transparent text-[11px] text-muted-foreground hover:text-foreground hover:border-border/80 cursor-pointer transition-colors disabled:opacity-50 w-full justify-between"
           >
@@ -75,7 +106,10 @@ export default function KanbanCard({ application, onMoveStage, onViewProfile, is
             <div className="absolute top-full left-0 mt-1 w-full rounded-lg bg-card border border-border shadow-xl z-20 py-1">
               <button
                 type="button"
-                onClick={() => { setDropdownOpen(false); onViewProfile(application.applicant_id); }}
+                onClick={() => {
+                  setDropdownOpen(false);
+                  onViewProfile(application.applicant_id);
+                }}
                 className="w-full text-left px-3 py-1.5 text-[12px] text-foreground hover:bg-foreground/5 cursor-pointer border-0 bg-transparent"
               >
                 <User size={12} className="inline mr-1.5" />
@@ -86,10 +120,15 @@ export default function KanbanCard({ application, onMoveStage, onViewProfile, is
                 <button
                   key={stage}
                   type="button"
-                  onClick={() => { setDropdownOpen(false); onMoveStage(stage); }}
-                  className={`w-full text-left px-3 py-1.5 text-[12px] hover:bg-foreground/5 cursor-pointer border-0 bg-transparent capitalize ${stage === "rejected" ? "text-[#f06b6b]" : "text-foreground"}`}
+                  onClick={() => {
+                    setDropdownOpen(false);
+                    onMoveStage(stage);
+                  }}
+                  className={`w-full text-left px-3 py-1.5 text-[12px] hover:bg-foreground/5 cursor-pointer border-0 bg-transparent capitalize ${
+                    stage === "rejected" ? "text-[#f06b6b]" : "text-foreground"
+                  }`}
                 >
-                  → {stage}
+                  Next: {stage}
                 </button>
               ))}
             </div>

@@ -3,22 +3,29 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FileText } from "lucide-react";
-import { useAuthStore } from "@/store/authStore";
-import { useMyApplications } from "@/hooks/useJobs";
 import ApplicationStatusBadge from "@/components/jobs/ApplicationStatusBadge";
-import type { MyApplicationOut } from "@/lib/jobsApi";
+import { useMyApplications } from "@/hooks/useJobs";
 import { TERMINAL_STAGES } from "@/lib/jobsApi";
+import type { MyApplicationOut } from "@/lib/jobsApi";
+import { useAuthStore } from "@/store/authStore";
 
 function ApplicationRow({ app }: { app: MyApplicationOut }) {
-  const daysAgo = Math.floor(
-    (Date.now() - new Date(app.created_at).getTime()) / 86400000
-  );
+  const submittedOn = new Date(app.created_at).toLocaleDateString();
 
   return (
     <div className="flex items-center gap-4 px-5 py-4 border-b border-border hover:bg-foreground/[0.02] transition-colors">
       <div className="flex-1 min-w-0">
-        <div className="text-[14px] font-semibold text-foreground truncate">{app.job_title}</div>
-        <div className="text-[12px] text-muted-foreground mt-0.5">{app.company_name} · {daysAgo}d ago</div>
+        <div className="flex items-center gap-2">
+          <div className="text-[14px] font-semibold text-foreground truncate">{app.job_title}</div>
+          {app.is_external_redirect && (
+            <span className="shrink-0 rounded-full bg-[#f0834a]/10 px-2 py-0.5 text-[10px] font-medium text-[#f0834a]">
+              Redirected
+            </span>
+          )}
+        </div>
+        <div className="text-[12px] text-muted-foreground mt-0.5">
+          {app.company_name} · Submitted {submittedOn}
+        </div>
       </div>
       <ApplicationStatusBadge stage={app.stage} />
     </div>
@@ -36,15 +43,17 @@ export default function ApplicationsPage() {
   const { applications, isLoading } = useMyApplications();
   const apps = applications ?? [];
 
-  const activeApps = apps.filter((a) => !TERMINAL_STAGES.includes(a.stage));
-  const completedApps = apps.filter((a) => TERMINAL_STAGES.includes(a.stage));
+  const activeApps = apps.filter((app) => !TERMINAL_STAGES.includes(app.stage));
+  const completedApps = apps.filter((app) => TERMINAL_STAGES.includes(app.stage));
 
   if (!user) return null;
 
   return (
     <div className="flex-1 overflow-y-auto">
       {isLoading ? (
-        <div className="flex items-center justify-center h-32 text-[13px] text-muted-foreground">Loading...</div>
+        <div className="flex items-center justify-center h-32 text-[13px] text-muted-foreground">
+          Loading...
+        </div>
       ) : apps.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-48 text-muted-foreground gap-3 mt-16">
           <FileText size={32} strokeWidth={1.2} />

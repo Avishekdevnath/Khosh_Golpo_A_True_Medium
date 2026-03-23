@@ -3,7 +3,6 @@ import useSWRMutation from "swr/mutation";
 import { api } from "@/lib/api";
 import type {
   ApplicationListResponse,
-  ApplicationOut,
   ApplicationStage,
   JobFilters,
   JobListResponse,
@@ -12,8 +11,6 @@ import type {
 } from "@/lib/jobsApi";
 import {
   applyToJob,
-  closeJob,
-  deleteJob,
   listApplications,
   listJobs,
   listMyApplications,
@@ -63,7 +60,7 @@ export function useSavedJobs(page = 1) {
 
 export function useMyApplications() {
   const { data, error, isLoading, mutate } = useSWR<MyApplicationOut[]>(
-    "jobs/me/applications",
+    "jobs/applications/me",
     () => listMyApplications(),
   );
   return { applications: data ?? [], isLoading, error, mutate };
@@ -98,7 +95,10 @@ export function useSaveJob(jobId: string) {
 export function useApply(jobId: string) {
   const { trigger, isMutating, error } = useSWRMutation(
     `jobs/${jobId}/apply`,
-    (_key: string, { arg }: { arg: { cover_letter?: string; resume_url?: string } }) =>
+    (
+      _key: string,
+      { arg }: { arg: { cover_letter?: string; resume_url?: string; custom_answers?: Record<string, unknown> } },
+    ) =>
       applyToJob(jobId, arg),
   );
   return { apply: trigger, isApplying: isMutating, applyError: error };

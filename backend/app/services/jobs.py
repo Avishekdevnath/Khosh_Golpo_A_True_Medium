@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from typing import Any, Optional
+from urllib.parse import urlparse
 
 from beanie import PydanticObjectId
 
@@ -12,7 +13,7 @@ from app.models.job_application import (
     STAGE_TRANSITIONS,
     StageHistoryEntry,
 )
-from app.models.job_post import JobPost, JobStatus
+from app.models.job_post import JobPost, JobStatus, QuestionType
 from app.models.notification import Notification, NotificationType
 from app.models.user import User
 
@@ -37,13 +38,13 @@ async def _send_notification(
 async def build_profile_snapshot(user: User) -> dict[str, Any]:
     """Capture a frozen snapshot of the user's profile at application time.
 
-    Returns a plain dict — not a live reference — so it stays accurate even
+    Returns a plain dict, not a live reference, so it stays accurate even
     if the user edits their profile later.
     """
-    from app.models.user_skill import UserSkill
-    from app.models.user_experience import UserExperience
     from app.models.user_education import UserEducation
+    from app.models.user_experience import UserExperience
     from app.models.user_profile import UserProfile
+    from app.models.user_skill import UserSkill
 
     profile = await UserProfile.find_one(UserProfile.user_id == user.id)
     skills = await UserSkill.find(UserSkill.user_id == user.id).to_list()
@@ -61,15 +62,47 @@ async def build_profile_snapshot(user: User) -> dict[str, Any]:
         "location": basics.location if basics else None,
         "website": basics.website if basics else None,
         "skills": [s.name for s in skills],
-        "experience": [
-            {"title": e.title, "company": e.company}
-            for e in experiences
-        ],
-        "education": [
-            {"degree": e.degree, "institution": e.institution}
-            for e in educations
-        ],
+        "experience": [{"title": e.title, "company": e.company} for e in experiences],
+        "education": [{"degree": e.degree, "institution": e.institution} for e in educations],
     }
+
+
+def validate_custom_answers(
+    answers: dict[str, Any],
+    questions: list[Any],
+) -> dict[str, Any]:
+    """Validate custom answers against a job's screening questions."""
+    cleaned: dict[str, Any] = {}
+
+    for question in questions:
+        value = answers.get(question.id)
+        if question.required and value in (None, "", []):
+            raise ValueError(f"Question '{question.label}' is required")
+        if value is None:
+            continue
+
+        if question.type == QuestionType.short_text:
+            if not isinstance(value, str) or len(value) > 500:
+                raise ValueError(f"'{question.label}': must be text (max 500 chars)")
+        elif question.type == QuestionType.url:
+            if not isinstance(value, str):
+                raise ValueError(f"'{question.label}': must be a URL string")
+            parsed = urlparse(value)
+            if not parsed.scheme or not parsed.netloc:
+                raise ValueError(f"'{question.label}': must be a valid URL")
+        elif question.type == QuestionType.yes_no:
+            if not isinstance(value, bool):
+                raise ValueError(f"'{question.label}': must be true or false")
+        elif question.type == QuestionType.single_select:
+            if value not in question.options:
+                raise ValueError(f"'{question.label}': must be one of {question.options}")
+        elif question.type == QuestionType.multi_select:
+            if not isinstance(value, list) or not all(item in question.options for item in value):
+                raise ValueError(f"'{question.label}': all values must be from {question.options}")
+
+        cleaned[question.id] = value
+
+    return cleaned
 
 
 async def apply_to_job(
@@ -77,6 +110,7 @@ async def apply_to_job(
     applicant: User,
     cover_letter: Optional[str],
     resume_url: Optional[str],
+    custom_answers: dict[str, Any] | None = None,
 ) -> JobApplication:
     """Create a job application. Raises ValueError on duplicates or closed jobs."""
     if job.status != JobStatus.active:
@@ -88,6 +122,8 @@ async def apply_to_job(
     )
     if existing:
         raise ValueError("Already applied to this job")
+    if job.external_apply_url:
+        raise ValueError("This job accepts applications through an external site")
 
     snapshot = await build_profile_snapshot(applicant)
 
@@ -104,13 +140,12 @@ async def apply_to_job(
                 changed_by=str(applicant.id),
             )
         ],
+        custom_answers=custom_answers or {},
     )
     await app.insert()
 
-    # Increment cached counter on the job
     await JobPost.find_one(JobPost.id == job.id).update({"$inc": {"application_count": 1}})
 
-    # Notify the job poster
     await _send_notification(
         recipient_id=job.poster_id,
         actor_id=applicant.id,
@@ -145,7 +180,6 @@ async def move_stage(
     app.updated_at = utc_now()
     await app.replace()
 
-    # Notify applicant
     job = await JobPost.get(app.job_id)
     if job:
         msg = f"Your application for '{job.title[:50]}' moved to {new_stage.value}"

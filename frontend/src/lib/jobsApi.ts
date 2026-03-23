@@ -28,6 +28,23 @@ export const STAGE_TRANSITIONS: Record<ApplicationStage, ApplicationStage[]> = {
 export const TERMINAL_STAGES: ApplicationStage[] = ["hired", "rejected", "withdrawn"];
 
 export type ReportReason = "fake_job" | "misleading" | "spam" | "inappropriate" | "scam" | "other";
+export type QuestionType = "short_text" | "url" | "yes_no" | "single_select" | "multi_select";
+
+export interface CustomQuestionInput {
+  id?: string;
+  label: string;
+  type: QuestionType;
+  required?: boolean;
+  options?: string[];
+}
+
+export interface CustomQuestion {
+  id: string;
+  label: string;
+  type: QuestionType;
+  required: boolean;
+  options: string[];
+}
 
 export interface JobPosterOut {
   id: string;
@@ -58,6 +75,8 @@ export interface JobPostOut {
   status: JobStatus;
   application_count: number;
   save_count: number;
+  custom_questions: CustomQuestion[];
+  external_apply_url: string | null;
   is_saved: boolean;
   has_applied: boolean;
   created_at: string;
@@ -99,6 +118,8 @@ export interface ApplicationOut {
   employer_note: string | null;
   is_read_by_employer: boolean;
   is_read_by_candidate: boolean;
+  custom_answers: Record<string, unknown>;
+  is_external_redirect: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -116,6 +137,7 @@ export interface MyApplicationOut {
   stage: ApplicationStage;
   stage_history: StageHistoryEntry[];
   employer_note: string | null;
+  is_external_redirect: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -164,6 +186,8 @@ export async function createJob(data: {
   required_skills?: string[];
   tags?: string[];
   application_deadline?: string;
+  custom_questions?: CustomQuestionInput[];
+  external_apply_url?: string;
 }): Promise<JobPostOut> {
   return api.post("jobs", { json: data }).json();
 }
@@ -202,9 +226,13 @@ export async function listSavedJobs(page = 1, page_size = 20): Promise<JobListRe
 
 export async function applyToJob(
   jobId: string,
-  data: { cover_letter?: string; resume_url?: string },
+  data: { cover_letter?: string; resume_url?: string; custom_answers?: Record<string, unknown> },
 ): Promise<ApplicationOut> {
   return api.post(`jobs/${jobId}/apply`, { json: data }).json();
+}
+
+export async function redirectToJob(jobId: string): Promise<ApplicationOut> {
+  return api.post(`jobs/${jobId}/redirect`).json();
 }
 
 export async function listApplications(
@@ -233,7 +261,7 @@ export async function withdrawApplication(
 }
 
 export async function listMyApplications(): Promise<MyApplicationOut[]> {
-  return api.get("jobs/me/applications").json();
+  return api.get("jobs/applications/me").json();
 }
 
 // ── Reports ───────────────────────────────────────────────────────────────────

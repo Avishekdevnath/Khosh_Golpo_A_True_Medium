@@ -14,10 +14,20 @@ export default function JobsMobileTabs() {
   const router = useRouter();
   const pathname = usePathname();
 
+  // Hide tabs on job detail pages (/jobs/[id])
+  const knownSections = ["/jobs/saved", "/jobs/my", "/jobs/pipeline", "/jobs/applications", "/jobs/post"];
+  const isDetailPage =
+    pathname !== "/jobs" &&
+    pathname !== "/jobs/" &&
+    pathname.startsWith("/jobs/") &&
+    !knownSections.some((s) => pathname.startsWith(s));
+
   const isActive = (href: string) => {
     if (href === "/jobs") return pathname === "/jobs" || pathname === "/jobs/";
     return pathname.startsWith(href);
   };
+
+  if (isDetailPage) return null;
 
   return (
     /* Only visible below 860px; zero height above that breakpoint */

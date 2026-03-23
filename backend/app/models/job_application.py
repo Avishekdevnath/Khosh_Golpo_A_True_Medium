@@ -53,6 +53,8 @@ class JobApplication(Document):
     employer_note: Optional[str] = None
     is_read_by_employer: bool = False
     is_read_by_candidate: bool = True
+    custom_answers: dict[str, Any] = Field(default_factory=dict)
+    is_external_redirect: bool = False
 
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)

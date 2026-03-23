@@ -12,7 +12,14 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.core.config import get_settings
 from app.models import DOCUMENT_MODELS
-from app.models.job_post import ExperienceLevel, JobPost, JobStatus, JobType
+from app.models.job_post import (
+    CustomQuestion,
+    ExperienceLevel,
+    JobPost,
+    JobStatus,
+    JobType,
+    QuestionType,
+)
 from app.models.user import User
 
 
@@ -28,10 +35,7 @@ def future(**kwargs) -> datetime:
     return now_utc() + timedelta(**kwargs)
 
 
-# ── Job data ──────────────────────────────────────────────────────────────────
-
 JOB_DATA = [
-    # ── Posted by admin (company recruiter persona) ──
     {
         "title": "Senior Backend Engineer (Python / FastAPI)",
         "company_name": "Nexora Labs",
@@ -69,7 +73,7 @@ JOB_DATA = [
         "save_count": 27,
     },
     {
-        "title": "Frontend Engineer — React / Next.js",
+        "title": "Frontend Engineer - React / Next.js",
         "company_name": "Nexora Labs",
         "location": "Remote",
         "is_remote": True,
@@ -86,12 +90,12 @@ JOB_DATA = [
             "**Role overview:**\n"
             "- Build fast, accessible UI components with React 19 and Next.js App Router\n"
             "- Work closely with design to turn Figma specs into pixel-perfect, delightful experiences\n"
-            "- Own the performance budget — we care about Core Web Vitals\n"
+            "- Own the performance budget - we care about Core Web Vitals\n"
             "- Contribute to our shared component library\n\n"
             "**Requirements:**\n"
             "- 3+ years React experience, ideally with Next.js\n"
             "- Strong TypeScript skills\n"
-            "- Eye for detail — you notice when spacing is off by 2px\n\n"
+            "- Eye for detail - you notice when spacing is off by 2px\n\n"
             "**Bonus points:**\n"
             "- Experience with Zustand, SWR, or similar state/data libraries\n"
             "- Contributions to open-source projects"
@@ -134,7 +138,6 @@ JOB_DATA = [
         "application_count": 5,
         "save_count": 14,
     },
-    # ── Posted by user1 (Alice — individual / startup) ──
     {
         "title": "Junior Full-Stack Developer (Internship)",
         "company_name": "Bloom Startup Studio",
@@ -150,7 +153,7 @@ JOB_DATA = [
         "tags": ["internship", "fullstack", "entry-level", "remote", "startup"],
         "description": (
             "Bloom Startup Studio is a small product studio that builds B2B SaaS tools for SMEs across South Asia.\n\n"
-            "We're looking for a motivated junior developer to join us as a full-stack intern for 3–6 months, "
+            "We're looking for a motivated junior developer to join us as a full-stack intern for 3-6 months, "
             "with the possibility of a permanent role.\n\n"
             "**You'll work on:**\n"
             "- Building new features in our React frontend and Node/Express backend\n"
@@ -158,7 +161,7 @@ JOB_DATA = [
             "- Participating in weekly product reviews and sprint planning\n\n"
             "**We're looking for:**\n"
             "- Basic JavaScript and React knowledge\n"
-            "- Eagerness to learn — attitude matters more than experience\n"
+            "- Eagerness to learn - attitude matters more than experience\n"
             "- Availability for at least 30 hours/week\n\n"
             "This is a paid remote internship. We're a friendly team of 6 and we take mentorship seriously."
         ),
@@ -175,8 +178,8 @@ JOB_DATA = [
         "is_remote": True,
         "job_type": JobType.contract,
         "experience_level": ExperienceLevel.mid,
-        "salary_min": 50,
-        "salary_max": 80,
+        "salary_min": 5_000,
+        "salary_max": 8_000,
         "salary_currency": "USD",
         "salary_visible": True,
         "required_skills": ["Figma", "User Research", "Prototyping", "Design Systems"],
@@ -186,14 +189,14 @@ JOB_DATA = [
             "greenfield SaaS products.\n\n"
             "**Scope:**\n"
             "- Lead user research: interviews, usability testing, synthesis\n"
-            "- Design end-to-end flows in Figma — wireframes through final hi-fi\n"
+            "- Design end-to-end flows in Figma - wireframes through final hi-fi\n"
             "- Build and maintain a shared component library\n"
             "- Work closely with our two developers to ensure pixel-accurate implementation\n\n"
             "**Requirements:**\n"
             "- Portfolio demonstrating product thinking, not just visual polish\n"
             "- Proficiency in Figma (auto-layout, variables, components)\n"
             "- Ability to work async with a small distributed team\n\n"
-            "Rate: $50–$80/hr depending on experience. 20–30 hrs/week."
+            "Budget: $5,000-$8,000/month depending on experience. 20-30 hrs/week."
         ),
         "application_deadline": future(days=10),
         "status": JobStatus.active,
@@ -201,7 +204,6 @@ JOB_DATA = [
         "application_count": 7,
         "save_count": 22,
     },
-    # ── Posted by user2 (Bob — tech lead) ──
     {
         "title": "Machine Learning Engineer",
         "company_name": "DataPulse AI",
@@ -217,12 +219,12 @@ JOB_DATA = [
         "tags": ["ml", "ai", "python", "remote", "london"],
         "description": (
             "DataPulse AI builds real-time anomaly detection for financial services. "
-            "We're a Series A company (£8M raised) with a team of 18.\n\n"
+            "We're a Series A company (GBP 8M raised) with a team of 18.\n\n"
             "**The role:**\n"
             "- Train and deploy ML models for time-series anomaly detection\n"
             "- Maintain and improve our MLflow experiment tracking and model registry\n"
             "- Work with data engineers to design feature pipelines at scale\n"
-            "- Write production Python — clean, tested, reviewed\n\n"
+            "- Write production Python - clean, tested, reviewed\n\n"
             "**Must-haves:**\n"
             "- 4+ years ML engineering (not just research) experience\n"
             "- PyTorch or TensorFlow in production\n"
@@ -237,7 +239,7 @@ JOB_DATA = [
         "save_count": 58,
     },
     {
-        "title": "Technical Writer — Developer Docs",
+        "title": "Technical Writer - Developer Docs",
         "company_name": "DataPulse AI",
         "location": "Remote",
         "is_remote": True,
@@ -250,7 +252,7 @@ JOB_DATA = [
         "required_skills": ["Technical Writing", "Markdown", "API Documentation", "Git"],
         "tags": ["docs", "writing", "api", "part-time", "remote"],
         "description": (
-            "Part-time (20–25 hrs/week) technical writer to own developer-facing documentation "
+            "Part-time (20-25 hrs/week) technical writer to own developer-facing documentation "
             "for our REST API and Python SDK.\n\n"
             "**Responsibilities:**\n"
             "- Write, maintain, and improve API reference docs (OpenAPI/Swagger)\n"
@@ -269,7 +271,82 @@ JOB_DATA = [
         "application_count": 9,
         "save_count": 16,
     },
-    # ── A closed job (for realistic variety) ──
+    {
+        "title": "QA Engineer - Manual & Automation",
+        "company_name": "DataPulse AI",
+        "location": "Remote",
+        "is_remote": True,
+        "job_type": JobType.full_time,
+        "experience_level": ExperienceLevel.mid,
+        "salary_min": 70_000,
+        "salary_max": 95_000,
+        "salary_currency": "GBP",
+        "salary_visible": True,
+        "required_skills": ["Selenium", "Python", "CI/CD", "API Testing"],
+        "tags": ["qa", "testing", "automation", "remote"],
+        "description": (
+            "Join our QA team to help ship reliable ML-powered products.\n\n"
+            "**Responsibilities:**\n"
+            "- Design and execute test plans for API and web applications\n"
+            "- Write and maintain automated test suites (Selenium + pytest)\n"
+            "- Integrate tests into CI/CD pipelines\n\n"
+            "**Requirements:**\n"
+            "- 3+ years QA experience with both manual and automated testing\n"
+            "- Strong Python skills\n"
+            "- Experience with REST API testing"
+        ),
+        "custom_questions": [
+            CustomQuestion(
+                id="q1",
+                label="Do you have experience with ML model testing?",
+                type=QuestionType.yes_no,
+                required=True,
+            ),
+            CustomQuestion(
+                id="q2",
+                label="Which testing frameworks have you used?",
+                type=QuestionType.multi_select,
+                required=True,
+                options=["Selenium", "Cypress", "Playwright", "pytest", "Jest"],
+            ),
+            CustomQuestion(
+                id="q3",
+                label="Link to a test portfolio or GitHub with test examples",
+                type=QuestionType.url,
+                required=False,
+            ),
+        ],
+        "application_deadline": future(days=20),
+        "status": JobStatus.active,
+        "created_at_offset": ago(days=3),
+        "application_count": 4,
+        "save_count": 11,
+    },
+    {
+        "title": "Data Analyst - Growth Team",
+        "company_name": "Nexora Labs",
+        "location": "Berlin, Germany",
+        "is_remote": False,
+        "job_type": JobType.full_time,
+        "experience_level": ExperienceLevel.mid,
+        "salary_min": 65_000,
+        "salary_max": 85_000,
+        "salary_currency": "EUR",
+        "salary_visible": True,
+        "required_skills": ["SQL", "Python", "Looker", "dbt"],
+        "tags": ["data", "analytics", "growth"],
+        "description": (
+            "Join our Growth team to turn data into product decisions.\n\n"
+            "**Note:** This role uses our external application portal. "
+            "Click 'Apply on Company Site' to submit your application through our careers page."
+        ),
+        "external_apply_url": "https://careers.nexoralabs.example.com/data-analyst",
+        "application_deadline": future(days=35),
+        "status": JobStatus.active,
+        "created_at_offset": ago(days=6),
+        "application_count": 15,
+        "save_count": 20,
+    },
     {
         "title": "iOS Developer (Swift)",
         "company_name": "Nexora Labs",
@@ -305,7 +382,6 @@ async def seed_jobs() -> None:
 
     print("Seeding dummy job postings (non-destructive)...")
 
-    # Resolve poster users by username
     poster_map: dict[str, User] = {}
     for username in ("admin", "user1", "user2"):
         user = await User.find_one(User.username == username)
@@ -314,8 +390,7 @@ async def seed_jobs() -> None:
             return
         poster_map[username] = user
 
-    # Assign posters in round-robin order matching JOB_DATA
-    poster_usernames = ["admin", "admin", "admin", "user1", "user1", "user2", "user2", "admin"]
+    poster_usernames = ["admin", "admin", "admin", "user1", "user1", "user2", "user2", "user2", "admin", "admin"]
 
     inserted = 0
     for job_data, poster_username in zip(JOB_DATA, poster_usernames):
