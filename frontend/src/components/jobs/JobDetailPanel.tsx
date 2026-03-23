@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
+  ArrowUpRight,
   Bookmark,
   BookmarkCheck,
   Briefcase,
@@ -14,6 +16,7 @@ import {
   Globe,
   MapPin,
   Users,
+  X,
 } from "lucide-react";
 import type { JobPostOut } from "@/lib/jobsApi";
 import { redirectToJob, saveJob, unsaveJob } from "@/lib/jobsApi";
@@ -24,6 +27,7 @@ import JobReportModal from "./JobReportModal";
 interface Props {
   job: JobPostOut;
   onApplied?: () => void;
+  onClose?: () => void;
 }
 
 const JOB_TYPE_LABELS: Record<string, string> = {
@@ -41,7 +45,8 @@ const EXP_LABELS: Record<string, string> = {
   lead: "Lead",
 };
 
-export default function JobDetailPanel({ job, onApplied }: Props) {
+export default function JobDetailPanel({ job, onApplied, onClose }: Props) {
+  const router = useRouter();
   const { user } = useAuthStore();
   const [applyOpen, setApplyOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
@@ -94,7 +99,28 @@ export default function JobDetailPanel({ job, onApplied }: Props) {
     : null;
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto bg-card">
+    <div className="flex flex-col h-full bg-card">
+      {/* Workspace top bar — only shown when onClose is provided (inline Col 3 context) */}
+      {onClose && (
+        <div className="flex items-center justify-end gap-1 px-3 h-10 border-b border-border shrink-0 sticky top-0 bg-background z-10">
+          <button
+            type="button"
+            onClick={() => router.push(`/jobs/${job.slug}`)}
+            className="flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-[12px] text-muted-foreground hover:text-foreground hover:bg-[#1e2235] border border-transparent hover:border-border transition-colors"
+          >
+            View Full Page
+            <ArrowUpRight size={12} />
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            title="Close"
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-[#1e2235] transition-colors"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
       {toast && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-border border border-[#0EA5E9]/30 text-white text-[13px] px-4 py-2.5 rounded-full shadow-lg">
           {toast}
