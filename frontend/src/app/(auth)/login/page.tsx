@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { type FormEvent, useEffect, useState } from "react";
 import { MessageSquare, Sparkles, Users, ArrowRight, Loader2 } from "lucide-react";
 
@@ -105,6 +105,7 @@ function BrandPanel() {
 ══════════════════════════════════════════════════════════════════════════ */
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login, isLoading, error, user, accessToken } = useAuth();
 
   const [authHydrated, setAuthHydrated] = useState(false);
@@ -130,7 +131,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!authHydrated || !user || !accessToken) return;
-    router.replace("/threads");
+    router.replace(searchParams.get("next") ?? "/threads");
   }, [accessToken, authHydrated, router, user]);
 
   const handleLoginSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -142,7 +143,7 @@ export default function LoginPage() {
     else if (password.length < 6) next.password = "Password must be at least 6 characters";
     setErrors(next);
     if (Object.keys(next).length > 0) return;
-    try { await login(email.trim().toLowerCase(), password, rememberMe); router.push("/threads"); } catch {}
+    try { await login(email.trim().toLowerCase(), password, rememberMe); router.push(searchParams.get("next") ?? "/threads"); } catch {}
   };
 
   const handleForgotSubmit = async (e: FormEvent<HTMLFormElement>) => {
