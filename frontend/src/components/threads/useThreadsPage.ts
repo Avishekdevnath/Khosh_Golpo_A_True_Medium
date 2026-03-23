@@ -176,11 +176,22 @@ export function useThreadsPage(
     return `threads?${params.toString()}`;
   }
 
+  function buildSearchQuery(p: number) {
+    const params = new URLSearchParams({ page: String(p), limit: String(PAGE_SIZE), sort: "newest" });
+    params.set("search", debouncedSearch);
+    return `threads?${params.toString()}`;
+  }
+
   function setTabBucket(tabKey: TabKey, next: (state: TabState) => TabState) {
     setTabState(prev => ({ ...prev, [tabKey]: next(prev[tabKey]) }));
   }
 
   async function requestFirstPage(tabKey: TabKey): Promise<{ threads: ThreadOut[]; total: number; nextCursor: string | null; page: number }> {
+    // When search is active, bypass feed APIs and hit /threads directly for all tabs
+    if (debouncedSearch && tabKey !== "Mine") {
+      const res = await apiGet<ThreadListResponse>(buildSearchQuery(1));
+      return { threads: res.data, total: res.total, nextCursor: null, page: 1 };
+    }
     if (tabKey === "Mine") {
       const res = await apiGet<ThreadListResponse>(buildMineQuery(1));
       return { threads: res.data, total: res.total, nextCursor: null, page: 1 };
@@ -247,6 +258,15 @@ export function useThreadsPage(
     setTabBucket(tab, () => createEmptyTabState());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sortMode]);
+
+  // Reload current tab when search changes (all tabs)
+  const prevSearchRef = useRef(debouncedSearch);
+  useEffect(() => {
+    if (prevSearchRef.current === debouncedSearch) return;
+    prevSearchRef.current = debouncedSearch;
+    setTabBucket(tab, () => createEmptyTabState());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
 
   // Auto-fetch Mine tab
   useEffect(() => {

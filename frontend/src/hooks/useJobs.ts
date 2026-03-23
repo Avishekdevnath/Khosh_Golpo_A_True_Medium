@@ -25,7 +25,8 @@ import {
 // ── Job listings ──────────────────────────────────────────────────────────────
 
 export function useJobs(filters: JobFilters = {}) {
-  const key = ["jobs", filters];
+  // Stable serialized key so SWR refetches when any filter changes
+  const key = `jobs?${JSON.stringify(filters)}`;
   const { data, error, isLoading, mutate } = useSWR<JobListResponse>(key, () =>
     listJobs(filters),
   );

@@ -10,7 +10,9 @@ import {
   MoreHorizontal,
   PenLine,
   RefreshCw,
+  Search,
   SlidersHorizontal,
+  X,
 } from "lucide-react";
 
 import { useAuthStore } from "@/store/authStore";
@@ -51,6 +53,9 @@ export type ThreadListPanelProps = {
   setTabBucket: (tabKey: TabKey, next: (state: TabState) => TabState) => void;
   listPanelRef: React.RefObject<HTMLDivElement | null>;
   onOpenCustomize?: () => void;
+  onSearchChange?: (v: string) => void;
+  onSearchSubmit?: () => void;
+  onSearchClear?: () => void;
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -150,6 +155,9 @@ export default function ThreadListPanel({
   setTabBucket,
   listPanelRef,
   onOpenCustomize,
+  onSearchChange,
+  onSearchSubmit,
+  onSearchClear,
 }: ThreadListPanelProps) {
   const { user } = useAuthStore();
   const tabButtonRefs = useRef<Partial<Record<TabKey, HTMLButtonElement | null>>>({});
@@ -261,6 +269,48 @@ export default function ThreadListPanel({
             </button>
           </div>
         </div>
+
+        {/* ── Search bar ── */}
+        {onSearchChange && (
+          <div className="px-4 pb-2.5 pt-1 border-b border-border">
+            <div className="flex items-center gap-2">
+              <div className={`flex items-center gap-2.5 flex-1 h-9 px-3 rounded-xl border transition-all duration-150 ${
+                search ? "border-primary/50 bg-card shadow-[0_0_0_3px_rgba(14,165,233,0.08)]" : "border-border bg-card-hover"
+              }`}>
+                <Search size={13} className="text-text-tertiary shrink-0" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={e => onSearchChange(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter") onSearchSubmit?.(); }}
+                  placeholder="Search threads…"
+                  className="flex-1 bg-transparent text-[13px] text-foreground placeholder:text-text-tertiary outline-none font-sans"
+                />
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => onSearchClear?.()}
+                    className="w-4 h-4 flex items-center justify-center rounded-full bg-text-tertiary/20 text-text-tertiary hover:bg-text-tertiary/30 hover:text-foreground transition-colors"
+                  >
+                    <X size={10} />
+                  </button>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => onSearchSubmit?.()}
+                className="h-9 px-3 rounded-xl bg-primary text-primary-foreground text-[12px] font-medium border-0 cursor-pointer hover:opacity-90 transition-opacity shrink-0"
+              >
+                Search
+              </button>
+            </div>
+            {search && (
+              <p className="text-[11px] text-text-tertiary mt-1.5 px-1">
+                Press Enter or click Search
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Error */}

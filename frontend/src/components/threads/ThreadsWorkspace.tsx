@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, useCallback } from "react";
 
 import { useRouter } from "next/navigation";
 
@@ -43,7 +43,7 @@ export default function ThreadsWorkspace() {
     typeof window !== "undefined" && localStorage.getItem("kg_topics_skipped") === "true"
   );
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [submittedSearch, setSubmittedSearch] = useState("");
   const searchInputId = useId();
 
   const { selectedTopics, topicsSelected, availableTopics, loading: topicsLoading, saving: topicsSaving, saveTopics } = useUserTopics();
@@ -54,15 +54,14 @@ export default function ThreadsWorkspace() {
 
   const enabledTabs: TabKey[] = ["Explore"];
 
-  // Debounce search
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      setDebouncedSearch(search.trim());
-    }, 400);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  const handleSearchSubmit = useCallback(() => {
+    setSubmittedSearch(search.trim());
   }, [search]);
+
+  const handleSearchClear = useCallback(() => {
+    setSearch("");
+    setSubmittedSearch("");
+  }, []);
 
   // Build explore options from user prefs (guests get defaults — no filtering)
   const exploreOptions = user?.id ? {
@@ -81,7 +80,7 @@ export default function ThreadsWorkspace() {
     handleThreadCreated: hookThreadCreated,
     handleThreadUpdated,
     handleThreadDeleted,
-  } = useThreadsPage(tab, setTab, sortMode, debouncedSearch, topicsSelected, topicsSkipped, setTopicsSkipped, topicsLoading, exploreOptions);
+  } = useThreadsPage(tab, setTab, sortMode, submittedSearch, topicsSelected, topicsSkipped, setTopicsSkipped, topicsLoading, exploreOptions);
 
   // Resizable columns (desktop only)
   const { width: listW, onDragStart: onListDragStart } = useDragResize(420, 420, 600);
@@ -204,6 +203,9 @@ export default function ThreadsWorkspace() {
           setTabBucket={setTabBucket}
           listPanelRef={listPanelRef}
           onOpenCustomize={user?.id ? () => setCustomizeOpen(v => !v) : undefined}
+          onSearchChange={setSearch}
+          onSearchSubmit={handleSearchSubmit}
+          onSearchClear={handleSearchClear}
         />
 
         {/* ── Drag handle ── */}
