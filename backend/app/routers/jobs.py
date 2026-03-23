@@ -35,7 +35,9 @@ from app.schemas.job import (
     MyApplicationOut,
     StageMove,
 )
-from app.services.jobs import apply_to_job, move_stage, validate_custom_answers
+from pymongo.errors import DuplicateKeyError as MongoDuplicateKeyError
+from secrets import token_hex
+from app.services.jobs import apply_to_job, make_slug, move_stage, validate_custom_answers
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -61,6 +63,7 @@ def _job_to_out(
         )
     return JobPostOut(
         id=str(job.id),
+        slug=job.slug or "",
         title=job.title,
         description=job.description,
         company_name=job.company_name,
@@ -158,6 +161,21 @@ def _app_to_out(app: JobApplication, applicant: Optional[User] = None) -> Applic
     )
 
 
+async def resolve_job(job_ref: str) -> JobPost:
+    """Resolve a job by ObjectId string OR slug. Raises 404 if not found."""
+    try:
+        oid = PydanticObjectId(job_ref)
+        job = await JobPost.get(oid)
+        if job:
+            return job
+    except Exception:
+        pass
+    job = await JobPost.find_one({"slug": job_ref})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return job
+
+
 @router.get("", response_model=JobListResponse)
 async def list_jobs(
     page: int = Query(1, ge=1),
@@ -220,12 +238,25 @@ async def create_job(
         if not question.get("id"):
             question["id"] = str(uuid4())
 
-    job = JobPost(
-        poster_id=current_user.id,
-        status=JobStatus.pending_review,
-        **data,
-    )
-    await job.insert()
+    base_slug = make_slug(body.title, body.company_name)
+
+    # Attempt insert with clean slug; retry once with suffix on collision
+    for attempt in range(2):
+        slug = base_slug if attempt == 0 else f"{base_slug[:90]}-{token_hex(3)}"
+        job = JobPost(
+            poster_id=current_user.id,
+            status=JobStatus.pending_review,
+            slug=slug,
+            **data,
+        )
+        try:
+            await job.insert()
+            break
+        except MongoDuplicateKeyError:
+            if attempt == 1:
+                raise HTTPException(status_code=500, detail="Could not generate unique slug")
+            continue
+
     return _job_to_out(job, poster=current_user)
 
 
@@ -253,11 +284,11 @@ async def my_job_posts(
 
 @router.get("/{job_id}", response_model=JobPostOut)
 async def get_job(
-    job_id: PydanticObjectId,
+    job_id: str,
     current_user: Optional[User] = Depends(get_optional_current_user),
 ) -> JobPostOut:
-    job = await JobPost.get(job_id)
-    if not job or job.status == JobStatus.draft:
+    job = await resolve_job(job_id)
+    if job.status == JobStatus.draft:
         raise HTTPException(status_code=404, detail="Job not found")
 
     is_saved = False
@@ -281,13 +312,11 @@ async def get_job(
 
 @router.patch("/{job_id}", response_model=JobPostOut)
 async def update_job(
-    job_id: PydanticObjectId,
+    job_id: str,
     body: JobPostUpdate,
     current_user: User = Depends(get_current_user),
 ) -> JobPostOut:
-    job = await JobPost.get(job_id)
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
+    job = await resolve_job(job_id)
     if job.poster_id != current_user.id and current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Not your job post")
 
@@ -308,12 +337,10 @@ async def update_job(
 
 @router.delete("/{job_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_job(
-    job_id: PydanticObjectId,
+    job_id: str,
     current_user: User = Depends(get_current_user),
 ) -> None:
-    job = await JobPost.get(job_id)
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
+    job = await resolve_job(job_id)
     if job.poster_id != current_user.id and current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Not your job post")
     await job.delete()
@@ -321,12 +348,10 @@ async def delete_job(
 
 @router.post("/{job_id}/close", response_model=JobPostOut)
 async def close_job(
-    job_id: PydanticObjectId,
+    job_id: str,
     current_user: User = Depends(get_current_user),
 ) -> JobPostOut:
-    job = await JobPost.get(job_id)
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
+    job = await resolve_job(job_id)
     if job.poster_id != current_user.id and current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Not your job post")
     job.status = JobStatus.closed
@@ -337,35 +362,34 @@ async def close_job(
 
 @router.post("/{job_id}/save", status_code=status.HTTP_204_NO_CONTENT)
 async def save_job(
-    job_id: PydanticObjectId,
+    job_id: str,
     current_user: User = Depends(get_current_user),
 ) -> None:
-    job = await JobPost.get(job_id)
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
+    job = await resolve_job(job_id)
     existing = await SavedJob.find_one(
         SavedJob.user_id == current_user.id,
-        SavedJob.job_id == job_id,
+        SavedJob.job_id == job.id,
     )
     if existing:
         return
-    saved_job = SavedJob(user_id=current_user.id, job_id=job_id)
+    saved_job = SavedJob(user_id=current_user.id, job_id=job.id)
     await saved_job.insert()
-    await JobPost.find_one(JobPost.id == job_id).update({"$inc": {"save_count": 1}})
+    await JobPost.find_one(JobPost.id == job.id).update({"$inc": {"save_count": 1}})
 
 
 @router.delete("/{job_id}/save", status_code=status.HTTP_204_NO_CONTENT)
 async def unsave_job(
-    job_id: PydanticObjectId,
+    job_id: str,
     current_user: User = Depends(get_current_user),
 ) -> None:
+    job = await resolve_job(job_id)
     saved_job = await SavedJob.find_one(
         SavedJob.user_id == current_user.id,
-        SavedJob.job_id == job_id,
+        SavedJob.job_id == job.id,
     )
     if saved_job:
         await saved_job.delete()
-        await JobPost.find_one(JobPost.id == job_id).update({"$inc": {"save_count": -1}})
+        await JobPost.find_one(JobPost.id == job.id).update({"$inc": {"save_count": -1}})
 
 
 @router.get("/saved/list", response_model=JobListResponse)
@@ -393,13 +417,11 @@ async def list_saved_jobs(
 
 @router.post("/{job_id}/apply", response_model=ApplicationOut, status_code=status.HTTP_201_CREATED)
 async def apply(
-    job_id: PydanticObjectId,
+    job_id: str,
     body: ApplicationCreate,
     current_user: User = Depends(get_current_user),
 ) -> ApplicationOut:
-    job = await JobPost.get(job_id)
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
+    job = await resolve_job(job_id)
     if job.external_apply_url:
         raise HTTPException(
             status_code=400,
@@ -425,12 +447,10 @@ async def apply(
 
 @router.post("/{job_id}/redirect", response_model=ApplicationOut, status_code=status.HTTP_201_CREATED)
 async def redirect_to_external(
-    job_id: PydanticObjectId,
+    job_id: str,
     current_user: User = Depends(get_current_user),
 ):
-    job = await JobPost.get(job_id)
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
+    job = await resolve_job(job_id)
     if not job.external_apply_url:
         raise HTTPException(
             status_code=400,
@@ -470,17 +490,15 @@ async def legacy_my_applications(
 
 @router.get("/{job_id}/applications", response_model=ApplicationListResponse)
 async def list_applications(
-    job_id: PydanticObjectId,
+    job_id: str,
     stage: Optional[ApplicationStage] = None,
     current_user: User = Depends(get_current_user),
 ) -> ApplicationListResponse:
-    job = await JobPost.get(job_id)
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
+    job = await resolve_job(job_id)
     if job.poster_id != current_user.id and current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Not your job")
 
-    filters: list[Any] = [JobApplication.job_id == job_id]
+    filters: list[Any] = [JobApplication.job_id == job.id]
     if stage:
         filters.append({"stage": stage})
 
@@ -504,15 +522,14 @@ async def list_applications(
 
 @router.get("/{job_id}/applications/{app_id}", response_model=ApplicationOut)
 async def get_application(
-    job_id: PydanticObjectId,
+    job_id: str,
     app_id: PydanticObjectId,
     current_user: User = Depends(get_current_user),
 ) -> ApplicationOut:
+    job = await resolve_job(job_id)
     app = await JobApplication.get(app_id)
-    if not app or app.job_id != job_id:
+    if not app or app.job_id != job.id:
         raise HTTPException(status_code=404, detail="Application not found")
-
-    job = await JobPost.get(job_id)
     is_employer = job and job.poster_id == current_user.id
     is_applicant = app.applicant_id == current_user.id
     is_admin = current_user.role == UserRole.ADMIN
@@ -526,17 +543,17 @@ async def get_application(
 
 @router.post("/{job_id}/applications/{app_id}/move", response_model=ApplicationOut)
 async def move_application_stage(
-    job_id: PydanticObjectId,
+    job_id: str,
     app_id: PydanticObjectId,
     body: StageMove,
     current_user: User = Depends(get_current_user),
 ) -> ApplicationOut:
+    job = await resolve_job(job_id)
     app = await JobApplication.get(app_id)
-    if not app or app.job_id != job_id:
+    if not app or app.job_id != job.id:
         raise HTTPException(status_code=404, detail="Application not found")
 
-    job = await JobPost.get(job_id)
-    if not job or (job.poster_id != current_user.id and current_user.role != UserRole.ADMIN):
+    if job.poster_id != current_user.id and current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Not your job")
 
     try:
@@ -555,12 +572,13 @@ async def move_application_stage(
 
 @router.post("/{job_id}/applications/{app_id}/withdraw", response_model=ApplicationOut)
 async def withdraw_application(
-    job_id: PydanticObjectId,
+    job_id: str,
     app_id: PydanticObjectId,
     current_user: User = Depends(get_current_user),
 ) -> ApplicationOut:
+    job = await resolve_job(job_id)
     app = await JobApplication.get(app_id)
-    if not app or app.job_id != job_id:
+    if not app or app.job_id != job.id:
         raise HTTPException(status_code=404, detail="Application not found")
     if app.applicant_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not your application")
@@ -608,23 +626,21 @@ async def my_applications(
 
 @router.post("/{job_id}/report", response_model=JobReportOut, status_code=status.HTTP_201_CREATED)
 async def report_job(
-    job_id: PydanticObjectId,
+    job_id: str,
     body: JobReportCreate,
     current_user: User = Depends(get_current_user),
 ) -> JobReportOut:
-    job = await JobPost.get(job_id)
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
+    job = await resolve_job(job_id)
 
     existing = await JobReport.find_one(
-        JobReport.job_id == job_id,
+        JobReport.job_id == job.id,
         JobReport.reported_by == current_user.id,
     )
     if existing:
         raise HTTPException(status_code=409, detail="Already reported this job")
 
     report = JobReport(
-        job_id=job_id,
+        job_id=job.id,
         reported_by=current_user.id,
         reason=body.reason,
         details=body.details,
