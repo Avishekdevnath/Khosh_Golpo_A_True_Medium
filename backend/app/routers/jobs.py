@@ -501,6 +501,51 @@ async def redirect_to_external(
     return _app_to_out(app, applicant=current_user)
 
 
+@router.get("/applications/me", response_model=list[MyApplicationOut])
+async def my_applications(
+    current_user: User = Depends(get_current_user),
+) -> list[MyApplicationOut]:
+    apps = await JobApplication.find({"applicant_id": current_user.id}).sort("-created_at").to_list()
+
+    job_ids = list({app.job_id for app in apps})
+    jobs_list = await JobPost.find({"_id": {"$in": job_ids}}).to_list()
+    jobs: dict[PydanticObjectId, JobPost] = {job.id: job for job in jobs_list}
+
+    result = []
+    for app in apps:
+        job = jobs.get(app.job_id)
+        snap: dict[str, Any] = getattr(app, "job_snapshot", {}) or {}
+        job_deleted = job is None
+        result.append(
+            MyApplicationOut(
+                id=str(app.id),
+                job_id=str(app.job_id),
+                job_title=job.title if job else snap.get("title", "(deleted)"),
+                company_name=job.company_name if job else snap.get("company_name", ""),
+                company_logo_url=job.company_logo_url if job else snap.get("company_logo_url"),
+                job_slug=(job.slug or "") if job else snap.get("slug", ""),
+                job_location=job.location if job else snap.get("location"),
+                job_is_remote=job.is_remote if job else snap.get("is_remote", False),
+                job_type=job.job_type.value if job else snap.get("job_type"),
+                poster_display_name=snap.get("poster_display_name"),
+                poster_username=snap.get("poster_username"),
+                poster_avatar_url=snap.get("poster_avatar_url"),
+                job_deleted=job_deleted,
+                cover_letter=app.cover_letter,
+                resume_url=app.resume_url,
+                custom_answers=getattr(app, "custom_answers", {}),
+                stage=app.stage,
+                stage_history=app.stage_history,
+                employer_note=app.employer_note,
+                is_read_by_candidate=app.is_read_by_candidate,
+                is_external_redirect=getattr(app, "is_external_redirect", False),
+                created_at=app.created_at,
+                updated_at=app.updated_at,
+            )
+        )
+    return result
+
+
 @router.get("/me/applications", response_model=list[MyApplicationOut])
 async def legacy_my_applications(
     current_user: User = Depends(get_current_user),
@@ -612,36 +657,6 @@ async def withdraw_application(
     app.updated_at = utc_now()
     await app.replace()
     return _app_to_out(app, applicant=current_user)
-
-
-@router.get("/applications/me", response_model=list[MyApplicationOut])
-async def my_applications(
-    current_user: User = Depends(get_current_user),
-) -> list[MyApplicationOut]:
-    apps = await JobApplication.find({"applicant_id": current_user.id}).sort("-created_at").to_list()
-
-    job_ids = list({app.job_id for app in apps})
-    jobs_list = await JobPost.find({"_id": {"$in": job_ids}}).to_list()
-    jobs: dict[PydanticObjectId, JobPost] = {job.id: job for job in jobs_list}
-
-    result = []
-    for app in apps:
-        job = jobs.get(app.job_id)
-        result.append(
-            MyApplicationOut(
-                id=str(app.id),
-                job_id=str(app.job_id),
-                job_title=job.title if job else "(deleted)",
-                company_name=job.company_name if job else "",
-                stage=app.stage,
-                stage_history=app.stage_history,
-                employer_note=app.employer_note,
-                created_at=app.created_at,
-                updated_at=app.updated_at,
-                is_external_redirect=getattr(app, "is_external_redirect", False),
-            )
-        )
-    return result
 
 
 @router.post("/{job_id}/report", response_model=JobReportOut, status_code=status.HTTP_201_CREATED)
