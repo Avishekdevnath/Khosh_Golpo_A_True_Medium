@@ -207,17 +207,30 @@ async def move_stage(
     app.updated_at = utc_now()
     await app.replace()
 
+    STAGE_MESSAGES: dict[ApplicationStage, str] = {
+        ApplicationStage.screening: "Your application is moving to the screening stage.",
+        ApplicationStage.interview: "Congratulations! You've been selected for an interview.",
+        ApplicationStage.offer: "Great news! You've received a job offer.",
+        ApplicationStage.hired: "Congratulations! You've been hired!",
+        ApplicationStage.rejected: "Your application has been reviewed. Unfortunately, you weren't selected this time.",
+    }
     job = await JobPost.get(app.job_id)
-    if job:
-        msg = f"Your application for '{job.title[:50]}' moved to {new_stage.value}"
-        if note:
-            msg = f"{msg}: {note[:80]}"
-        await _send_notification(
-            recipient_id=app.applicant_id,
-            actor_id=moved_by_id,
-            notif_type=NotificationType.SYSTEM,
-            message=msg,
-            metadata={"job_id": str(job.id), "link": "/profile/applications"},
-        )
+    job_title = job.title[:50] if job else "the job"
+    base_msg = STAGE_MESSAGES.get(new_stage, f"Your application stage changed to {new_stage.value}.")
+    msg = f"{job_title}: {base_msg}"
+    if note:
+        msg = f"{msg} Note: {note[:80]}"
+    await _send_notification(
+        recipient_id=app.applicant_id,
+        actor_id=moved_by_id,
+        notif_type=NotificationType.JOB_APPLICATION,
+        message=msg,
+        metadata={
+            "stage": new_stage.value,
+            "app_id": str(app.id),
+            "job_id": str(job.id) if job else "",
+            "link": "/jobs/applications",
+        },
+    )
 
     return app
