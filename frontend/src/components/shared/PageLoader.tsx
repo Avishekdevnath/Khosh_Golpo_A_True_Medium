@@ -1,13 +1,21 @@
 "use client";
 
+import { useLoadingStore, type LoaderStatus } from "@/store/loadingStore";
+
 /**
  * PageLoader — full-screen branded loading state for KhoshGolpo.
  *
  * Shows a centered logo animation with ambient orbs matching the app's
- * dark theme. Used as the fallback in Next.js loading.tsx files.
+ * dark theme. Displays warmup status messages while backend responds.
+ * Used as the fallback in Next.js loading.tsx files.
  */
 
 export default function PageLoader() {
+  const { isShowing, status, message } = useLoadingStore();
+
+  // Don't render if loader is hidden
+  if (!isShowing) return null;
+
   return (
     <div className="pg-loader">
       {/* Ambient orbs */}
@@ -27,10 +35,25 @@ export default function PageLoader() {
         {/* Brand name */}
         <h1 className="pg-brand">KhoshGolpo</h1>
 
+        {/* Status message */}
+        {message && (
+          <p className={`pg-status-message pg-status-${status}`}>
+            {message}
+          </p>
+        )}
+
         {/* Loading bar */}
         <div className="pg-bar-track">
           <div className="pg-bar-fill" />
         </div>
+
+        {/* Pulse indicator for warmup */}
+        {status === "warming-up" && (
+          <div className="pg-warmup-indicator">
+            <span className="pg-pulse-dot" />
+            <span className="pg-pulse-text">Connecting...</span>
+          </div>
+        )}
       </div>
 
       <style jsx>{`
@@ -166,12 +189,89 @@ export default function PageLoader() {
           100% { transform: translateX(-100%); }
         }
 
+        /* ── Status message ── */
+        .pg-status-message {
+          font-family: var(--font-plus-jakarta-sans), sans-serif;
+          font-size: 13px;
+          letter-spacing: 0.3px;
+          color: rgba(228, 232, 244, 0.7);
+          margin: 0;
+          transition: all 0.3s ease;
+          text-transform: uppercase;
+          font-weight: 500;
+          min-height: 20px;
+          opacity: 0;
+          animation: slideInMessage 0.4s ease forwards;
+        }
+
+        .pg-status-message.pg-status-warming-up {
+          color: rgba(240, 131, 74, 0.85);
+        }
+
+        .pg-status-message.pg-status-connecting {
+          color: rgba(124, 115, 240, 0.85);
+        }
+
+        .pg-status-message.pg-status-ready {
+          color: rgba(61, 214, 140, 0.85);
+        }
+
+        @keyframes slideInMessage {
+          from {
+            opacity: 0;
+            transform: translateY(-8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        /* ── Warmup indicator ── */
+        .pg-warmup-indicator {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          animation: fadeIn 0.5s ease;
+        }
+
+        .pg-pulse-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #f0834a;
+          box-shadow: 0 0 6px rgba(240, 131, 74, 0.6);
+          animation: doublePulse 1.4s ease-in-out infinite;
+        }
+
+        @keyframes doublePulse {
+          0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.4;
+            transform: scale(1.3);
+          }
+        }
+
+        .pg-pulse-text {
+          font-family: var(--font-plus-jakarta-sans), sans-serif;
+          font-size: 11px;
+          color: rgba(228, 232, 244, 0.5);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          font-weight: 500;
+        }
+
         /* ── Mobile ── */
         @media (max-width: 640px) {
           .pg-logo-wrap { width: 60px; height: 60px; }
           .pg-logo-text { font-size: 24px; }
           .pg-brand { font-size: 17px; }
           .pg-bar-track { width: 110px; }
+          .pg-status-message { font-size: 12px; }
+          .pg-pulse-text { font-size: 10px; }
         }
       `}</style>
     </div>
