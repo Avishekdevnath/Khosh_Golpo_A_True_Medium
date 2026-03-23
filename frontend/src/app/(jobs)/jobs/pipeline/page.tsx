@@ -64,7 +64,7 @@ export default function PipelinePage() {
   return (
     <div className="flex h-full overflow-hidden">
       {/* Jobs Rail — desktop only */}
-      <div className="hidden min-[860px]:block">
+      <div className="hidden min-[1024px]:block">
         <JobsRail
           jobs={myJobs}
           selectedId={selectedJobId}
@@ -74,7 +74,7 @@ export default function PipelinePage() {
       </div>
 
       {/* Mobile job selector */}
-      <div className="min-[860px]:hidden w-full px-3 py-2 border-b border-border shrink-0">
+      <div className="min-[1024px]:hidden w-full px-3 py-2 border-b border-border shrink-0">
         <select
           value={selectedJobId ?? ""}
           onChange={(e) => handleSelectJob(e.target.value)}
@@ -88,7 +88,7 @@ export default function PipelinePage() {
       </div>
 
       {/* Kanban Board — desktop */}
-      <div className="hidden min-[860px]:flex flex-1 min-w-0">
+      <div className="hidden min-[1024px]:flex flex-1 min-w-0">
         {!selectedJobId ? (
           <div className="flex flex-col items-center justify-center h-full w-full text-muted-foreground gap-3">
             <Users size={32} strokeWidth={1.2} />
@@ -110,7 +110,7 @@ export default function PipelinePage() {
       </div>
 
       {/* Mobile accordion view */}
-      <div className="min-[860px]:hidden flex-1 overflow-y-auto">
+      <div className="min-[1024px]:hidden flex-1 overflow-y-auto">
         {["applied", "screening", "interview", "offer", "hired"].map((stage, i) => {
           const stageApps = applications.filter((a) => a.stage === stage);
           return (
