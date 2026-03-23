@@ -122,6 +122,7 @@ async def apply_to_job(
     cover_letter: Optional[str],
     resume_url: Optional[str],
     custom_answers: dict[str, Any] | None = None,
+    poster: Optional[User] = None,
 ) -> JobApplication:
     """Create a job application. Raises ValueError on duplicates or closed jobs."""
     if job.status != JobStatus.active:
@@ -138,12 +139,27 @@ async def apply_to_job(
 
     snapshot = await build_profile_snapshot(applicant)
 
+    job_snapshot = {
+        "title": job.title,
+        "company_name": job.company_name,
+        "company_logo_url": job.company_logo_url,
+        "location": job.location,
+        "is_remote": job.is_remote,
+        "job_type": job.job_type.value,
+        "slug": job.slug or "",
+        "poster_id": str(job.poster_id),
+        "poster_display_name": poster.display_name if poster else None,
+        "poster_username": poster.username if poster else None,
+        "poster_avatar_url": poster.avatar_url if poster else None,
+    }
+
     app = JobApplication(
         job_id=job.id,
         applicant_id=applicant.id,
         cover_letter=cover_letter,
         resume_url=resume_url,
         profile_snapshot=snapshot,
+        job_snapshot=job_snapshot,
         stage=ApplicationStage.applied,
         stage_history=[
             StageHistoryEntry(

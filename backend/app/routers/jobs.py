@@ -434,6 +434,7 @@ async def apply(
     if body.custom_answers and job.custom_questions:
         cleaned_answers = validate_custom_answers(body.custom_answers, job.custom_questions)
 
+    poster: Optional[User] = await User.get(job.poster_id)
     try:
         app = await apply_to_job(
             job=job,
@@ -441,6 +442,7 @@ async def apply(
             cover_letter=body.cover_letter,
             resume_url=body.resume_url,
             custom_answers=cleaned_answers,
+            poster=poster,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
@@ -464,6 +466,21 @@ async def redirect_to_external(
         out = _app_to_out(existing, applicant=current_user)
         return JSONResponse(content=out.model_dump(mode="json"), status_code=status.HTTP_200_OK)
 
+    poster_for_snap: Optional[User] = await User.get(job.poster_id)
+    job_snapshot = {
+        "title": job.title,
+        "company_name": job.company_name,
+        "company_logo_url": job.company_logo_url,
+        "location": job.location,
+        "is_remote": job.is_remote,
+        "job_type": job.job_type.value,
+        "slug": job.slug or "",
+        "poster_id": str(job.poster_id),
+        "poster_display_name": poster_for_snap.display_name if poster_for_snap else None,
+        "poster_username": poster_for_snap.username if poster_for_snap else None,
+        "poster_avatar_url": poster_for_snap.avatar_url if poster_for_snap else None,
+    }
+
     app = JobApplication(
         job_id=job.id,
         applicant_id=current_user.id,
@@ -476,6 +493,7 @@ async def redirect_to_external(
             )
         ],
         is_external_redirect=True,
+        job_snapshot=job_snapshot,
     )
     await app.insert()
     await JobPost.find_one({"_id": job.id}).update({"$inc": {"application_count": 1}})

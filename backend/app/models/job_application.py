@@ -55,6 +55,7 @@ class JobApplication(Document):
     is_read_by_candidate: bool = True
     custom_answers: dict[str, Any] = Field(default_factory=dict)
     is_external_redirect: bool = False
+    job_snapshot: dict[str, Any] = Field(default_factory=dict)
 
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
