@@ -9,6 +9,7 @@ interface WorkspaceShellProps {
   /** Unused legacy props — accepted to avoid TS errors from callers */
   wrapPanel?: boolean;
   sidebarProps?: Record<string, unknown>;
+  sidebarResize?: Record<string, unknown>;
 }
 
 export default function WorkspaceShell({

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Sora } from "next/font/google";
 
 import { ThemeProvider } from "@/components/theme-provider";
+import { AppWrapper } from "@/components/AppWrapper";
 
 import "./globals.css";
 
@@ -38,7 +39,7 @@ export default function RootLayout({
           defaultTheme="dark"
           enableSystem={false}
         >
-          {children}
+          <AppWrapper>{children}</AppWrapper>
         </ThemeProvider>
       </body>
     </html>
