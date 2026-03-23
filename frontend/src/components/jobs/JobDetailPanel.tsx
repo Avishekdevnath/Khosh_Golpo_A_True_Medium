@@ -164,6 +164,17 @@ export default function JobDetailPanel({ job, onApplied }: Props) {
         </div>
 
         {/* Actions */}
+        {!user && (
+          <div className="flex items-center justify-between px-4 py-2.5 mt-3 rounded-lg bg-[#0EA5E9]/5 border border-[#0EA5E9]/20">
+            <span className="text-[13px] text-[#636f8d]">Sign in to apply or save jobs</span>
+            <a
+              href="/login"
+              className="text-[13px] font-medium text-[#0EA5E9] no-underline hover:underline"
+            >
+              Sign In →
+            </a>
+          </div>
+        )}
         {user && (
           <div className="flex items-center gap-2">
             {applied ? (
@@ -203,7 +214,7 @@ export default function JobDetailPanel({ job, onApplied }: Props) {
       {/* Description */}
       <div className="p-5">
         <h2 className="text-[14px] font-semibold text-white mb-3">Job Description</h2>
-        <div className="text-[13px] text-[#c5ccd6] leading-relaxed whitespace-pre-wrap">
+        <div className="text-[13px] text-[#c5ccd6] leading-relaxed whitespace-pre-wrap break-words">
           {job.description}
         </div>
 
