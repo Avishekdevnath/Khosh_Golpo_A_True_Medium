@@ -29,8 +29,8 @@ function useTopBarConfig() {
   if (pathname.startsWith("/jobs/applications")) {
     return { mode: "sub" as const, title: "My Applications", showPost: false };
   }
-  // /jobs/[id] detail page
-  return { mode: "browse" as const };
+  // /jobs/[slug] detail page
+  return { mode: "detail" as const };
 }
 
 export default function JobsTopBar() {
@@ -51,18 +51,29 @@ export default function JobsTopBar() {
           >
             <span className="font-bold text-white text-[10px] leading-none">◆</span>
           </span>
-          <span className="font-serif text-[18px] font-bold text-foreground tracking-tight hidden min-[860px]:block">
+          <span className="font-serif text-[18px] font-bold text-foreground tracking-tight hidden min-[1024px]:block">
             Khosh Jobs
           </span>
         </Link>
-      ) : (
+      ) : config.mode === "detail" ? (
+        /* Detail page — back button goes to browse */
         <button
           type="button"
           onClick={() => router.push("/jobs")}
           className="flex items-center gap-1.5 border-0 bg-transparent text-muted-foreground hover:text-foreground cursor-pointer transition-colors text-[13px] font-medium shrink-0"
         >
           <ArrowLeft size={16} strokeWidth={2} />
-          <span className="hidden min-[860px]:inline">Back</span>
+          <span>Browse</span>
+        </button>
+      ) : (
+        /* Sub-pages — back to jobs */
+        <button
+          type="button"
+          onClick={() => router.push("/jobs")}
+          className="flex items-center gap-1.5 border-0 bg-transparent text-muted-foreground hover:text-foreground cursor-pointer transition-colors text-[13px] font-medium shrink-0"
+        >
+          <ArrowLeft size={16} strokeWidth={2} />
+          <span className="hidden min-[1024px]:inline">Back</span>
         </button>
       )}
 
@@ -71,12 +82,12 @@ export default function JobsTopBar() {
         {config.mode === "browse" ? (
           <button
             type="button"
-            className="hidden min-[860px]:flex items-center gap-2 h-9 px-4 rounded-full border border-border bg-card text-[13px] text-muted-foreground w-[240px] hover:border-border/80 transition-colors cursor-text"
+            className="hidden min-[1024px]:flex items-center gap-2 h-9 px-4 rounded-full border border-border bg-card text-[13px] text-muted-foreground w-[240px] hover:border-border/80 transition-colors cursor-text"
           >
             <Search size={13} strokeWidth={2} className="shrink-0" />
             Search jobs...
           </button>
-        ) : (
+        ) : config.mode === "detail" ? null : (
           <h1 className="text-[14px] font-semibold text-foreground tracking-tight">
             {config.title}
           </h1>
@@ -89,7 +100,7 @@ export default function JobsTopBar() {
         {(config.mode === "browse" || (config.mode === "sub" && (config as { showPost?: boolean }).showPost)) && (
           <Link
             href="/jobs/post"
-            className="hidden min-[860px]:flex items-center gap-1.5 h-8 px-3.5 rounded-full border-0 bg-primary text-primary-foreground text-[12.5px] font-semibold no-underline transition-all duration-150 hover:brightness-110 active:scale-[0.97]"
+            className="hidden min-[1024px]:flex items-center gap-1.5 h-8 px-3.5 rounded-full border-0 bg-primary text-primary-foreground text-[12.5px] font-semibold no-underline transition-all duration-150 hover:brightness-110 active:scale-[0.97]"
           >
             <Plus size={13} strokeWidth={2.5} />
             Post a Job
