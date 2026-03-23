@@ -13,6 +13,20 @@ export type ApplicationStage =
   | "hired"
   | "rejected"
   | "withdrawn";
+
+/** Valid stage transitions — mirrors backend STAGE_TRANSITIONS */
+export const STAGE_TRANSITIONS: Record<ApplicationStage, ApplicationStage[]> = {
+  applied: ["screening", "rejected"],
+  screening: ["interview", "rejected"],
+  interview: ["offer", "rejected"],
+  offer: ["hired", "rejected"],
+  hired: [],
+  rejected: [],
+  withdrawn: [],
+};
+
+export const TERMINAL_STAGES: ApplicationStage[] = ["hired", "rejected", "withdrawn"];
+
 export type ReportReason = "fake_job" | "misleading" | "spam" | "inappropriate" | "scam" | "other";
 
 export interface JobPosterOut {

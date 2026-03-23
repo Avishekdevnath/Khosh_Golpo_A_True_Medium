@@ -68,8 +68,8 @@ export default function JobCard({ job, selected = false, onClick, onSaveToggle }
         group relative flex flex-col gap-3 px-4 py-4 cursor-pointer transition-all
         border-b border-[#1e2235]
         ${selected
-          ? "bg-[#151927] border-l-2 border-l-[#0EA5E9]"
-          : "hover:bg-[#10131d]/60 border-l-2 border-l-transparent"
+          ? "bg-[#141824] border-l-2 border-l-[#0EA5E9] shadow-[0_0_20px_rgba(14,165,233,0.08)]"
+          : "hover:bg-[#10131d]/60 border-l-2 border-l-transparent hover:-translate-y-px hover:shadow-md"
         }
       `}
     >
