@@ -344,7 +344,7 @@ async def delete_job(
     if job.poster_id != current_user.id and current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Not your job post")
     await JobApplication.find(JobApplication.job_id == job.id).delete()
-    await SavedJob.find(SavedJob.job_id == job.id).delete()
+    await SavedJob.find({"job_id": job.id}).delete()
     await job.delete()
 
 

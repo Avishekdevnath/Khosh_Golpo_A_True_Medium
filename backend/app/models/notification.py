@@ -16,6 +16,7 @@ class NotificationType(str, Enum):
     MESSAGE = "message"
     MODERATION = "moderation"
     SYSTEM = "system"
+    JOB_APPLICATION = "job_application"
 
 
 class Notification(Document):
