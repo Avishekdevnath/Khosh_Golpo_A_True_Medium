@@ -16,6 +16,7 @@ export type ThreadOut = {
   id: string;
   title: string;
   body: string;
+  image_url?: string | null;
   tags: string[];
   author_id: string;
   author_username?: string | null;

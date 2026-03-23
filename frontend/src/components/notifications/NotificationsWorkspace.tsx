@@ -59,7 +59,7 @@ export default function NotificationsWorkspace() {
   const [markingAll, setMarkingAll]   = useState(false);
   const [followBackMap, setFollowBackMap] = useState<Record<string, "loading">>({});
   const [followRelationshipMap, setFollowRelationshipMap] = useState<Record<string, FollowRelationshipState>>({});
-  const [appealMap, setAppealMap]     = useState<Record<string, "loading" | "done">>({});
+  const [appealMap, setAppealMap]     = useState<Partial<Record<string, "loading" | "done">>>({});
   const [appealTargetId, setAppealTargetId] = useState<string | null>(null);
   const [rejectionNote, setRejectionNote] = useState<string | null>(null);
   const [connectionActionMap, setConnectionActionMap] = useState<Record<string, ConnectionActionState>>({});

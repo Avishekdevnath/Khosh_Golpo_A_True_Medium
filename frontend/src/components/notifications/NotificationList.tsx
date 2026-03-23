@@ -55,7 +55,7 @@ export type NotificationListHandlers = {
   followBackMap: Record<string, "loading">;
   followRelationshipMap: Record<string, FollowRelationshipState>;
   onAppeal: (notificationId: string) => void;
-  appealMap: Record<string, "loading" | "done">;
+  appealMap: Partial<Record<string, "loading" | "done">>;
   onViewReason: (note: string) => void;
   connectionActionMap: Record<string, ConnectionActionState>;
   onConnectionAccept: (requestId: string, notifId: string) => void;
