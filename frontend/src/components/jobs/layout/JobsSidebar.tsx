@@ -184,27 +184,6 @@ export default function JobsSidebar() {
         </div>
       </aside>
 
-      {/* ── Mobile tab bar ── */}
-      <nav className="min-[860px]:hidden flex items-center gap-0 overflow-x-auto border-b border-border bg-background px-2 shrink-0 scrollbar-none">
-        {navItems.map((item) => {
-          const active = isActive(item.href);
-          return (
-            <button
-              key={item.href}
-              type="button"
-              onClick={() => router.push(item.href)}
-              className={[
-                "shrink-0 px-3 h-10 text-[13px] font-medium border-0 bg-transparent cursor-pointer transition-colors whitespace-nowrap",
-                active
-                  ? "text-primary border-b-2 border-primary"
-                  : "text-muted-foreground hover:text-foreground",
-              ].join(" ")}
-            >
-              {item.label}
-            </button>
-          );
-        })}
-      </nav>
     </>
   );
 }
