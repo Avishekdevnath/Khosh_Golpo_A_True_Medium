@@ -30,6 +30,10 @@ export default function JobsBrowsePage() {
   ].filter(Boolean).length;
 
   const handleSelect = useCallback((jobId: string) => {
+    if (typeof window !== "undefined" && window.innerWidth < 860) {
+      router.push(`/jobs/${jobId}`);
+      return;
+    }
     const params = new URLSearchParams(searchParams.toString());
     params.set("job", jobId);
     router.replace(`/jobs?${params.toString()}`, { scroll: false });

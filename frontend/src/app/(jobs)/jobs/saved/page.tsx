@@ -24,6 +24,10 @@ export default function SavedJobsPage() {
   const { job: selectedJob } = useJob(selectedId);
 
   const handleSelect = useCallback((jobId: string) => {
+    if (typeof window !== "undefined" && window.innerWidth < 860) {
+      router.push(`/jobs/${jobId}`);
+      return;
+    }
     const params = new URLSearchParams(searchParams.toString());
     params.set("job", jobId);
     router.replace(`/jobs/saved?${params.toString()}`, { scroll: false });
