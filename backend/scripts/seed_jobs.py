@@ -6,9 +6,11 @@ Run from project root (with venv activated):
 
 import asyncio
 from datetime import datetime, timedelta, timezone
+from secrets import token_hex
 
 from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo.errors import DuplicateKeyError as MongoDuplicateKeyError
 
 from app.core.config import get_settings
 from app.models import DOCUMENT_MODELS
@@ -21,6 +23,7 @@ from app.models.job_post import (
     QuestionType,
 )
 from app.models.user import User
+from app.services.jobs import make_slug
 
 
 def now_utc() -> datetime:
@@ -380,6 +383,9 @@ async def seed_jobs() -> None:
     database = client[settings.mongodb_db_name]
     await init_beanie(database=database, document_models=DOCUMENT_MODELS)
 
+    # Remove dev docs without slugs so re-seeding is idempotent
+    await JobPost.find({"slug": None}).delete()
+
     print("Seeding dummy job postings (non-destructive)...")
 
     poster_map: dict[str, User] = {}
@@ -397,15 +403,25 @@ async def seed_jobs() -> None:
         poster = poster_map[poster_username]
         created_at = job_data.pop("created_at_offset")
 
-        job = JobPost(
-            poster_id=poster.id,
-            created_at=created_at,
-            updated_at=created_at,
-            **job_data,
-        )
-        await job.insert()
+        base_slug = make_slug(job_data["title"], job_data["company_name"])
+        for attempt in range(2):
+            slug = base_slug if attempt == 0 else f"{base_slug[:90]}-{token_hex(3)}"
+            job = JobPost(
+                poster_id=poster.id,
+                created_at=created_at,
+                updated_at=created_at,
+                slug=slug,
+                **job_data,
+            )
+            try:
+                await job.insert()
+                break
+            except MongoDuplicateKeyError:
+                if attempt == 1:
+                    raise
+                continue
         inserted += 1
-        print(f"  + [{job.status.value:14s}] {job.title} @ {job.company_name}")
+        print(f"  + [{job.status.value:14s}] {job.slug} | {job.title}")
 
     print(f"\nDone -- inserted {inserted} job postings.")
     print("Open http://localhost:3000/jobs to browse them.")
