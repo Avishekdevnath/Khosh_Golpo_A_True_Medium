@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Search, X } from "lucide-react";
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import type { JobPostOut } from "@/lib/jobsApi";
 import JobCard from "./JobCard";
 
@@ -15,6 +15,7 @@ interface Props {
   activeFilterCount?: number;
   searchValue?: string;
   onSearchChange?: (v: string) => void;
+  onToggleFilters?: () => void;
   headerTitle?: string;
   emptyState?: React.ReactNode;
 }
@@ -29,6 +30,7 @@ export default function JobsListPanel({
   activeFilterCount = 0,
   searchValue = "",
   onSearchChange,
+  onToggleFilters,
   headerTitle,
   emptyState,
 }: Props) {
@@ -58,6 +60,16 @@ export default function JobsListPanel({
         <span className="text-[13px] font-medium text-foreground">
           {headerTitle ?? `${total} jobs`}
         </span>
+        {onToggleFilters && (
+          <button
+            type="button"
+            onClick={onToggleFilters}
+            className="flex items-center gap-1.5 h-7 px-2.5 rounded-lg border border-border bg-transparent text-[12px] text-muted-foreground hover:text-foreground hover:border-border/80 cursor-pointer transition-colors"
+          >
+            <SlidersHorizontal size={12} />
+            Filters{activeFilterCount > 0 ? ` · ${activeFilterCount}` : ""}
+          </button>
+        )}
       </div>
 
       {/* Search bar — only rendered when onSearchChange is provided */}
