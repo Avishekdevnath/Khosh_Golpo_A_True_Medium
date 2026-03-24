@@ -23,6 +23,7 @@ import { redirectToJob, saveJob, unsaveJob } from "@/lib/jobsApi";
 import { useAuthStore } from "@/store/authStore";
 import JobApplyModal from "./JobApplyModal";
 import JobReportModal from "./JobReportModal";
+import MatchBadge from "./MatchBadge";
 
 interface Props {
   job: JobPostOut;
@@ -195,6 +196,7 @@ export default function JobDetailPanel({ job, onApplied, onClose }: Props) {
               {salaryText}
             </span>
           )}
+          <MatchBadge score={job.match_score} size="md" />
           {deadline && (
             <span className="flex items-center gap-1 text-[#f0834a]">
               <Calendar size={12} /> Deadline: {deadline}

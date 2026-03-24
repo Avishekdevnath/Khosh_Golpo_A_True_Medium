@@ -80,6 +80,7 @@ export interface JobPostOut {
   external_apply_url: string | null;
   is_saved: boolean;
   has_applied: boolean;
+  match_score: number | null;
   created_at: string;
   updated_at: string;
 }
