@@ -20,6 +20,8 @@ from app.models.job_application import (
 from app.models.job_post import CustomQuestion as CustomQuestionModel, JobPost, JobStatus
 from app.models.job_report import JobReport
 from app.models.user import User, UserRole
+from app.models.user_skill import UserSkill
+from app.services.matching import compute_match_score
 from app.schemas.job import (
     ApplicantUserOut,
     ApplicationCreate,
@@ -97,7 +99,7 @@ async def _enrich_jobs(
     jobs: list[JobPost],
     current_user: Optional[User],
 ) -> list[JobPostOut]:
-    """Attach poster info, is_saved, has_applied for a list of jobs."""
+    """Attach poster info, is_saved, has_applied, match_score for a list of jobs."""
     if not jobs:
         return []
 
@@ -107,6 +109,8 @@ async def _enrich_jobs(
 
     saved_ids: set[PydanticObjectId] = set()
     applied_ids: set[PydanticObjectId] = set()
+    user_skill_names: list[str] = []
+
     if current_user:
         job_ids = [job.id for job in jobs]
         saved = await SavedJob.find(
@@ -120,15 +124,25 @@ async def _enrich_jobs(
         ).to_list()
         applied_ids = {application.job_id for application in applied}
 
-    return [
-        _job_to_out(
+        # Fetch only visible skills — one query for the whole batch
+        user_skills_docs = await UserSkill.find(
+            UserSkill.user_id == current_user.id,
+            UserSkill.is_visible == True,
+        ).to_list()
+        user_skill_names = [s.name.lower().strip() for s in user_skills_docs]
+
+    results = []
+    for job in jobs:
+        score = compute_match_score(user_skill_names, job) if current_user else None
+        out = _job_to_out(
             job,
             is_saved=job.id in saved_ids,
             has_applied=job.id in applied_ids,
             poster=posters.get(job.poster_id),
         )
-        for job in jobs
-    ]
+        out.match_score = score
+        results.append(out)
+    return results
 
 
 def _app_to_out(app: JobApplication, applicant: Optional[User] = None) -> ApplicationOut:

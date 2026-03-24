@@ -5,6 +5,7 @@ import { Bookmark, BookmarkCheck, Briefcase, MapPin, Clock } from "lucide-react"
 import type { JobPostOut } from "@/lib/jobsApi";
 import { saveJob, unsaveJob } from "@/lib/jobsApi";
 import { useAuthStore } from "@/store/authStore";
+import MatchBadge from "./MatchBadge";
 
 const JOB_TYPE_LABELS: Record<string, string> = {
   full_time: "Full-time",
@@ -172,6 +173,7 @@ export default function JobCard({ job, selected = false, onClick, onSaveToggle }
               {job.external_apply_url ? "✓ Redirected" : "✓ Applied"}
             </span>
           )}
+          <MatchBadge score={job.match_score} />
         </div>
         {salaryText && (
           <span className="shrink-0 text-[13px] font-semibold text-emerald-500">{salaryText}</span>

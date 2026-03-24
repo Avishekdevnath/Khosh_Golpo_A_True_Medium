@@ -116,6 +116,7 @@ class JobPostOut(BaseModel):
     external_apply_url: Optional[str] = None
     is_saved: bool = False
     has_applied: bool = False
+    match_score: int | None = None
     created_at: datetime
     updated_at: datetime
 
