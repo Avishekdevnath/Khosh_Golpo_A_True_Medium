@@ -152,7 +152,6 @@ export default function AppSidebar() {
         {/* ── Main nav ── */}
         <nav className="flex-1 overflow-y-auto px-5 pt-4 pb-3 flex flex-col gap-1 min-h-0" role="navigation">
           {TOP_NAV.map(item => <NavRow key={item.href} item={item} />)}
-
           <div className="my-2 h-px bg-sidebar-border" />
 
           {BOTTOM_NAV.map(item => <NavRow key={item.href} item={item} />)}
