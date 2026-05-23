@@ -47,7 +47,7 @@ async def get_following_feed(
 
     author_lookup = await _load_author_lookup({item.thread.author_id for item in ranked})
     return FeedListResponse(
-        data=[_to_feed_item(item.thread, author_lookup.get(str(item.thread.author_id)), item.score, item.reasons) for item in ranked],
+        data=[_to_feed_item(item.thread, author_lookup.get(str(item.thread.author_id)), item.score, item.reasons, current_user.id) for item in ranked],
         limit=limit,
         next_cursor=next_cursor,
         mode="following",
@@ -76,7 +76,7 @@ async def get_home_feed(
 
     author_lookup = await _load_author_lookup({item.thread.author_id for item in ranked})
     return FeedListResponse(
-        data=[_to_feed_item(item.thread, author_lookup.get(str(item.thread.author_id)), item.score, item.reasons) for item in ranked],
+        data=[_to_feed_item(item.thread, author_lookup.get(str(item.thread.author_id)), item.score, item.reasons, current_user.id) for item in ranked],
         limit=limit,
         next_cursor=next_cursor,
         mode="home",
@@ -251,7 +251,7 @@ async def get_my_feed(
         )
 
     author_lookup = await _load_author_lookup({t.author_id for t in threads})
-    data = [_to_feed_item(t, author_lookup.get(str(t.author_id)), 0.0, []) for t in threads]
+    data = [_to_feed_item(t, author_lookup.get(str(t.author_id)), 0.0, [], current_user.id) for t in threads]
     next_cursor = _encode_cursor(offset + len(threads)) if len(threads) == limit else None
     return MyFeedResponse(data=data, next_cursor=next_cursor, has_topics=True)
 
@@ -313,7 +313,7 @@ async def get_explore_feed(
         threads = followed + rest
 
     author_lookup = await _load_author_lookup({t.author_id for t in threads})
-    data = [_to_feed_item(t, author_lookup.get(str(t.author_id)), 0.0, []) for t in threads]
+    data = [_to_feed_item(t, author_lookup.get(str(t.author_id)), 0.0, [], current_user.id if current_user else None) for t in threads]
     next_cursor = _encode_cursor(offset + limit) if raw_count == limit else None
     return FeedListResponse(data=data, limit=limit, next_cursor=next_cursor, mode="home")
 
@@ -370,7 +370,9 @@ def _to_feed_item(
     author: User | None,
     score: float,
     reasons: list[str],
+    current_user_id: PydanticObjectId | None = None,
 ) -> FeedItemOut:
+    liked_by_me = bool(current_user_id and current_user_id in thread.likes)
     return FeedItemOut(
         id=str(thread.id),
         title=thread.title,
@@ -380,6 +382,8 @@ def _to_feed_item(
         author_username=author.username if author else None,
         author_display_name=author.display_name if author else None,
         post_count=thread.post_count,
+        like_count=len(thread.likes),
+        liked_by_me=liked_by_me,
         status=thread.status,
         is_pinned=thread.is_pinned,
         is_flagged=thread.is_flagged,

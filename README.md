@@ -1,139 +1,217 @@
 # KhoshGolpo
 
-> **AI-augmented community platform for meaningful conversations.**  
-> Built for modern product teams who want social engagement, smart moderation, and a production-ready stack.
+> **AI-augmented community and hiring platform** for threaded conversations, discovery, direct messaging, jobs, moderation, and personalized feeds.
 
-KhoshGolpo combines a high-performance FastAPI backend with a polished Next.js frontend to deliver a social discussion experience with threads, messaging, profiles, recommendations, and AI-assisted trust & safety.
-
-## Table of Contents
-
-- [Why KhoshGolpo](#why-khoshgolpo)
-- [Feature Highlights](#feature-highlights)
-- [Tech Stack](#tech-stack)
-- [Monorepo Structure](#monorepo-structure)
-- [Quick Start (Recommended)](#quick-start-recommended)
-- [Docker Setup (API + Mongo)](#docker-setup-api--mongo)
-- [Environment Configuration](#environment-configuration)
-- [Running Tests](#running-tests)
-- [Demo Data Seeding (Optional)](#demo-data-seeding-optional)
-- [API Overview](#api-overview)
-- [Architecture Snapshot](#architecture-snapshot)
-- [Production Deployment](#production-deployment)
-- [Operations Playbook](#operations-playbook)
-- [Security & Ops Notes](#security--ops-notes)
-- [Troubleshooting](#troubleshooting)
-- [FAQ](#faq)
-- [Product Positioning (Marketing Copy)](#product-positioning-marketing-copy)
-- [Launch Checklist](#launch-checklist)
-- [Contributing](#contributing)
-- [License](#license)
+![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.129.0-009688?logo=fastapi&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-Beanie%20%2B%20Motor-47A248?logo=mongodb&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=000000)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?logo=docker&logoColor=white)
+![OpenAI](https://img.shields.io/badge/OpenAI-AI%20features-412991?logo=openai&logoColor=white)
+![Cloudinary](https://img.shields.io/badge/Cloudinary-Media%20uploads-3448C5?logo=cloudinary&logoColor=white)
+![APScheduler](https://img.shields.io/badge/APScheduler-Scheduled%20jobs-6E56CF)
+![Celery](https://img.shields.io/badge/Celery-Background%20tasks-37814A)
 
 ---
 
-## Why KhoshGolpo
+## Overview
 
-- **Ship faster** with a clean, modular full-stack architecture.
-- **Scale confidently** with async-first APIs, MongoDB, and container-ready deployment.
-- **Grow engagement** through threaded discussions, personalized feed logic, and social graph features.
-- **Protect community quality** with optional AI moderation workflows and admin controls.
+KhoshGolpo is a production-minded full-stack platform built to showcase a modern social product architecture. It combines a FastAPI backend, a Next.js frontend, MongoDB persistence, AI-assisted ranking and moderation features, and a rich set of community workflows that make it suitable for hiring demonstrations, portfolio reviews, and real product iterations.
 
-If you need a "community layer" for your product, KhoshGolpo gives you a serious head start.
+The platform is organized around:
 
----
-
-## Feature Highlights
-
-### Core Product
-
-- Threaded conversations with replies
-- Posts, users, channels, and profile slugs
-- Connections and direct messaging
-- Notifications and read-state tracking
-- Admin APIs and moderation/audit primitives
-
-### AI & Feed Intelligence
-
-- Optional AI-assisted moderation and risk thresholds
-- AI model settings via environment configuration
-- Feed/ranking and interest job pipelines
-- Bot scheduler and bot personas for engagement scenarios
-
-### Developer Experience
-
-- FastAPI auto docs (`/docs`)
-- Typed frontend with TypeScript + React 19 + Next.js 16
-- Dockerized backend + Mongo composition
-- Test suite for key backend behavior
+- **Community discussions** — threads, replies, posts, reactions, shares, and reports
+- **People discovery** — profiles, follows, connection requests, search, and explore flows
+- **Direct communication** — messages, conversations, read-state tracking, and blocks
+- **Personalized feeds** — home, following, explore, my feed, topic selection, and ranking explainability
+- **Jobs and recruitment** — job posting, applications, saved jobs, and pipeline management
+- **Moderation and admin tools** — audit logs, appeals, bulk moderation, content review, and bot governance
 
 ---
 
-## Tech Stack
+## What’s implemented
 
-**Backend**
-- FastAPI (`fastapi[standard]`)
-- Beanie + Motor (MongoDB)
+### Community and content
+
+- Thread creation, browsing, editing, deletion, and detail views
+- Posts and replies with nested conversation handling
+- Likes, shares, reports, and read-state tracking
+- Topic tagging and content discovery controls
+- Content visibility controls and soft-delete support
+
+### Profiles and social graph
+
+- Profile pages with slug-based public URLs
+- Profile management for bio, experience, education, projects, skills, certifications, and contact links
+- Avatar and banner media handling through Cloudinary
+- Follow/unfollow support and follower/following views
+- Connection requests with accept, reject, and cancel flows
+- User search, people explore, and request management
+
+### Messaging and notifications
+
+- One-to-one conversation creation and message history
+- Unread counts and read-state handling
+- User blocking and unblock flows
+- Notification list, read/unread states, and appeal workflow
+- Moderation and notification-driven feedback loops
+
+### Feed and discovery
+
+- Home feed and following feed
+- Explore feed with filters such as topics-only, exclude-own, and following priority
+- My feed for topic-based personalization
+- Feed preference management for interests, hidden tags, muted users, and inclusion rules
+- Popular topics extraction
+- Explainability endpoint that shows why a thread appears in a feed
+- Admin feed controls for ranking weights, AI policy, debug inspection, and feed overrides
+
+### Jobs and recruitment
+
+- Job listing creation and management
+- Job detail pages and saved jobs
+- Application flow with stage tracking and application history
+- My applications view
+- Job reports for suspicious or inappropriate listings
+- Pipeline-style workspace for reviewing candidates
+
+### Administration and moderation
+
+- User administration with search, detail views, status changes, and role management
+- Content moderation for threads, posts, and related objects
+- Bulk moderation actions
+- Appeals handling and review workflows
+- Audit logging with severity, result tracking, and searchable history
+- Content removal and hard-delete flows with cascade behavior
+- Bot governance, including create/enable/update/trigger/delete operations
+
+### Authentication and security
+
+- Register, login, refresh, logout, and current-user endpoints
+- JWT-based auth with optional static auth mode for local/testing scenarios
+- Login lockout after repeated failures
+- Password change flow
+- Identity-verification-based password recovery using recovery code / security answers
+- Rate limiting for sensitive auth routes
+
+---
+
+## AI features
+
+KhoshGolpo includes several AI-enabled behaviors that are designed to degrade gracefully when no OpenAI key is configured:
+
+- **Tone check API** — pre-submit content scoring for posts and other text payloads
+- **AI-assisted moderation scoring** — content analysis used in moderation workflows
+- **AI-enhanced feed ranking** — feed scoring with configurable weighting and optional AI adjustments
+- **Feed explanations** — transparent reason breakdowns for ranked feed items
+- **Feed AI health and policy controls** — admin tooling to inspect AI usage, budget, timeout, and fallback metrics
+- **Interest suggestion jobs** — batch generation of user interest tags to improve personalization
+
+AI behavior is configured server-side and can be tuned through environment variables and admin feed policy controls.
+
+---
+
+## Tech stack
+
+### Backend
+
+- FastAPI
+- Beanie ODM
+- Motor / MongoDB
 - Pydantic Settings
-- JWT auth modes (`jwt` or `static`)
-- SlowAPI rate limiting + Loguru logging
+- PyJWT
+- SlowAPI rate limiting
+- Loguru logging
+- APScheduler
+- Celery task modules
 
-**Frontend**
+### Frontend
+
 - Next.js 16
 - React 19
+- TypeScript
 - Tailwind CSS 4
-- SWR + Zustand + Ky
+- shadcn/ui + Radix UI
+- SWR
+- Zustand
+- Ky
+- next-themes
+- React Markdown with sanitization support
 
-**Infra & Deploy**
-- Docker / Docker Compose
-- Render-ready backend config (`render.yaml`)
-- Vercel-friendly frontend deployment
+### Platform and services
+
+- Docker and Docker Compose
+- Render deployment configuration
+- Cloudinary for profile media assets
+- OpenAI for optional AI features
 
 ---
 
-## Monorepo Structure
+## Architecture
 
-- `backend/` — FastAPI app, models, services, routers, tests
-- `frontend/` — Next.js frontend app
-- `shared/` — shared TypeScript constants/types
-- `guide/` — internal guides, experiments, planning assets
+```mermaid
+flowchart LR
+    U[User Browser] --> F[Next.js Frontend]
+    F -->|HTTP / JSON| B[FastAPI Backend]
+    B --> M[(MongoDB)]
+    B --> O[OpenAI API optional]
+    B --> C[Cloudinary profile media]
+    B --> W[Background workers and schedulers]
+```
+
+The backend is async-first and keeps the app usable even if the database is temporarily unavailable, so API docs and the public surface remain accessible during local setup and troubleshooting.
+
+---
+
+## Repository layout
+
+- `backend/` — FastAPI application, routers, services, models, workers, and tests
+- `frontend/` — Next.js application with app routes, components, hooks, and UI primitives
+- `shared/` — shared TypeScript constants and types
+- `guide/` — internal guides and design experiments
+- `design-system/` — project visual references and UI direction
+- `docs/` — process notes, setup docs, and planning material
 - `docker-compose.yml` — local API + Mongo orchestration
-- `render.yaml` — Render backend deployment blueprint
+- `render.yaml` — Render deployment configuration
 
 ---
 
-## Quick Start (Recommended)
+## Local development
 
-### 1) Prerequisites
+### Prerequisites
 
-- Python **3.12+**
-- Node.js **LTS**
+- Python 3.12+
+- Node.js LTS
 - npm
-- Docker Desktop (optional, but recommended for Mongo)
+- Docker Desktop, if you want the easiest MongoDB setup
 
-### 2) Backend setup
+### Backend
 
-From repository root:
+From the repository root:
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\python -m pip install --upgrade pip
-.\.venv\Scripts\python -m pip install -r backend\requirements.txt
-Copy-Item backend\.env.example backend\.env
+./.venv/Scripts/python -m pip install --upgrade pip
+./.venv/Scripts/python -m pip install -r backend/requirements.txt
+Copy-Item backend/.env.example backend/.env
 ```
 
-> Important: In `backend/.env`, set a strong `JWT_SECRET_KEY` (32+ chars) when `AUTH_MODE=jwt`.
-
-Run backend (dev mode):
+Start the backend:
 
 ```powershell
-.\.venv\Scripts\python -m fastapi dev backend\app\main.py
+./.venv/Scripts/python -m fastapi dev backend/app/main.py
 ```
 
-Backend URLs:
-- API base: `http://127.0.0.1:8000`
-- Health: `http://127.0.0.1:8000/health`
-- OpenAPI docs: `http://127.0.0.1:8000/docs`
+Backend endpoints:
 
-### 3) Frontend setup
+- API: `http://127.0.0.1:8000`
+- Health: `http://127.0.0.1:8000/health`
+- API docs: `http://127.0.0.1:8000/docs`
+
+### Frontend
 
 ```powershell
 cd frontend
@@ -142,283 +220,114 @@ $env:NEXT_PUBLIC_API_URL="http://127.0.0.1:8000"
 cmd /c npm run dev
 ```
 
-Frontend URL:
+Frontend:
+
 - `http://127.0.0.1:3000`
 
----
-
-## Docker Setup (API + Mongo)
-
-Run from repository root:
+### Docker
 
 ```powershell
 docker compose up --build
 ```
 
-This starts:
-- API: `http://localhost:8000`
-- MongoDB: `mongodb://localhost:27017`
-
-> Frontend runs separately in `frontend/`.
+This starts the API and MongoDB locally. The frontend runs separately from `frontend/`.
 
 ---
 
-## Environment Configuration
+## Configuration
 
-### Backend: `backend/.env`
+Start with `backend/.env.example` and adjust values for your environment.
 
-Start from `backend/.env.example`.
+### Backend environment
 
-| Variable | Required | Default | Purpose |
-|---|---:|---|---|
-| `APP_NAME` | No | `KhoshGolpo API` | Service name in docs/logs |
-| `API_VERSION` | No | `0.1.0` | API version label |
-| `ENVIRONMENT` | No | `development` | `development/staging/production` |
-| `MONGODB_URI` | Yes | `mongodb://localhost:27017` | Mongo connection URI |
-| `MONGODB_DB_NAME` | Yes | `khoshgolpo` | Database name |
-| `CORS_ORIGINS` | Yes | local origins | Comma-separated frontend origins |
-| `AUTH_MODE` | Yes | `jwt` | `jwt` or `static` auth mode |
-| `JWT_SECRET_KEY` | Yes* | placeholder | Required + validated in `jwt` mode |
-| `JWT_ALGORITHM` | No | `HS256` | JWT signing algorithm |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | No | `1440` | Access token lifetime |
-| `OPENAI_API_KEY` | Optional | empty | Enables AI features requiring OpenAI |
-| `AI_MODEL` | No | `gpt-4o-mini` | AI model identifier |
-| `AI_WARNING_THRESHOLD` | No | `0.6` | AI warning threshold |
-| `AI_FLAG_THRESHOLD` | No | `0.8` | AI flag threshold |
+| Variable | Purpose |
+|---|---|
+| `MONGODB_URI` | MongoDB connection string |
+| `MONGODB_DB_NAME` | Database name |
+| `CORS_ORIGINS` | Allowed frontend origins |
+| `AUTH_MODE` | `jwt` or `static` |
+| `JWT_SECRET_KEY` | Signing secret for JWT mode |
+| `OPENAI_API_KEY` | Enables optional AI features |
+| `AI_MODEL` | AI model name |
+| `AI_WARNING_THRESHOLD` | Threshold for warning state |
+| `AI_FLAG_THRESHOLD` | Threshold for flagged state |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name |
+| `CLOUDINARY_API_KEY` | Cloudinary API key |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret |
 
-\* In `AUTH_MODE=jwt`, `JWT_SECRET_KEY` must be changed and be at least 32 characters.
+### Frontend environment
 
-### Frontend env
-
-| Variable | Required | Default fallback | Purpose |
-|---|---:|---|---|
-| `NEXT_PUBLIC_API_URL` | Recommended | `http://localhost:8000` | Backend API base URL |
+| Variable | Purpose |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | Backend base URL used by the UI |
 
 ---
 
-## Running Tests
+## Testing
 
-From `backend/`:
+Backend tests live in `backend/tests/` and can be run from `backend/` with pytest. The frontend also exposes a lint script through Next.js.
 
-```powershell
-..\.venv\Scripts\python -m pytest
-```
+Common quality checks:
 
-Tip: tests default `AUTH_MODE` to `static` in `backend/tests/conftest.py` to avoid JWT secret validation issues.
-
----
-
-## Demo Data Seeding (Optional)
-
-Populate a rich sample dataset (users, threads, posts, bots, notifications, etc.):
-
-```powershell
-cd backend
-..\.venv\Scripts\python scripts\seed.py
-```
-
-Seed script includes demo accounts (for local development only), such as:
-- `demo@demo.com / demo123`
-- `admin@demo.com / admin1234`
-
-> Never use demo credentials in production.
+- Backend test suite
+- Frontend linting
+- Manual smoke test of auth, threads, messaging, feed, jobs, and admin pages
 
 ---
 
-## API Overview
-
-Routers include:
-
-- auth
-- users
-- threads
-- posts
-- messages
-- channels
-- notifications
-- connections
-- feed
-- ai
-- bot
-- admin
-- admin_feed
-- health
-
-Explore all routes interactively at `/docs`.
-
----
-
-## Architecture Snapshot
-
-```mermaid
-flowchart LR
-	U[User Browser] --> F[Next.js Frontend]
-	F -->|HTTP/JSON| B[FastAPI Backend]
-	B --> M[(MongoDB)]
-	B --> O[OpenAI API Optional]
-	B --> S[Schedulers and Background Services]
-```
-
-### Request Flow
-
-1. User interacts with the Next.js UI.
-2. Frontend calls backend endpoints using `NEXT_PUBLIC_API_URL`.
-3. FastAPI validates/authenticates request and executes business logic.
-4. Data is read/written in MongoDB via Beanie/Motor.
-5. Optional AI logic runs for moderation/feed signals.
-6. JSON response is returned to the UI.
-
----
-
-## Production Deployment
+## Deployment
 
 ### Backend on Render
 
-This repo ships with `render.yaml` that points to:
-- `backend/Dockerfile`
-- health check: `/health`
-
-Set these env vars in Render dashboard:
-- `MONGODB_URI`
-- `MONGODB_DB_NAME`
-- `JWT_SECRET_KEY`
-- `CORS_ORIGINS` (your frontend URL)
-- optionally `OPENAI_API_KEY` and AI thresholds/model
+The repository includes `render.yaml` and a backend Dockerfile. Configure your MongoDB URI, auth secret, CORS allowlist, and optional AI / Cloudinary settings in the Render dashboard.
 
 ### Frontend on Vercel
 
-Deploy the `frontend/` directory and set:
-- `NEXT_PUBLIC_API_URL=https://<your-backend-domain>`
+Deploy the `frontend/` directory and point `NEXT_PUBLIC_API_URL` at the backend domain.
 
 ---
 
-## Operations Playbook
+## API surface
 
-### Local dev startup order
+The backend includes routers for:
 
-1. Start Mongo (`docker compose up` or local Mongo service).
-2. Start backend (`fastapi dev`).
-3. Start frontend (`npm run dev`).
-4. Verify `/health` and `/docs` before feature work.
+- `auth`
+- `users`
+- `profiles`
+- `threads`
+- `posts`
+- `messages`
+- `notifications`
+- `connections`
+- `channels`
+- `feed`
+- `ai`
+- `jobs`
+- `bot`
+- `admin`
+- `admin_feed`
+- `admin_profiles`
+- `health`
 
-### Smoke test checklist
-
-- `GET /health` returns `status: ok`.
-- Frontend loads without CORS errors.
-- Login/register flow works (if enabled in your auth mode).
-- Create/read thread flow succeeds.
-- Notifications/messages endpoints respond normally.
-
-### Suggested pre-PR quality gate
-
-- Backend tests pass.
-- Frontend lint passes (`npm run lint`).
-- No secrets committed.
-- Any new env vars documented in README.
-
----
-
-## Security & Ops Notes
-
-- Use a **long, random JWT secret** in production.
-- Restrict `CORS_ORIGINS` to trusted domains only.
-- Keep `OPENAI_API_KEY` server-side only (never expose to browser).
-- Run behind HTTPS in production.
-- Use managed Mongo backups/snapshots for recovery.
+That gives the project a broad product surface while keeping the implementation modular and easy to extend.
 
 ---
 
-## Troubleshooting
+## Why this project is hiring-ready
 
-### Backend won’t start with JWT error
+KhoshGolpo is not just a demo CRUD app. It shows:
 
-If you see validation errors about `jwt_secret_key`, ensure:
+- a real product shape with social, feed, messaging, and jobs workflows
+- thoughtful backend architecture with async APIs and modular routers
+- optional AI features that are controllable instead of bolted on
+- admin and moderation flows that reflect production realities
+- a polished frontend with multiple workspaces and clear product areas
+- deployment and local-dev paths that are practical for real teams
 
-- `AUTH_MODE=jwt` has a real secret value (32+ chars), or
-- use `AUTH_MODE=static` for local quick tests.
-
-### CORS errors in browser
-
-Update `CORS_ORIGINS` in `backend/.env` to include your frontend origin exactly (for example, `http://127.0.0.1:3000`).
-
-### Frontend cannot reach backend
-
-- Confirm backend is running on port `8000`.
-- Set `NEXT_PUBLIC_API_URL` correctly.
-- Restart frontend after changing env vars.
-
-### Mongo connection issues
-
-- Verify `MONGODB_URI` and database availability.
-- For Docker Compose, check container health/logs.
-- Confirm port `27017` is not blocked by another service.
-
-### Rate limit responses (HTTP 429)
-
-The backend includes rate limiting; reduce request burst frequency during load testing or tune limits in your backend implementation.
-
----
-
-## FAQ
-
-### Is OpenAI required?
-
-No. AI-related features are optional. You can run KhoshGolpo without setting `OPENAI_API_KEY`.
-
-### Can I use this as API-only?
-
-Yes. Backend routes and docs are independently usable at `/docs`.
-
-### Is Docker mandatory for local development?
-
-No. Docker is recommended for consistent Mongo setup, but local services work too.
-
-### Which auth mode should I use?
-
-- `jwt`: production-like mode (recommended for real usage)
-- `static`: simplified mode for certain local/test flows
-
----
-
-## Product Positioning (Marketing Copy)
-
-KhoshGolpo is not just a forum clone—it’s a **conversation engine** for communities that care about quality, trust, and momentum.
-
-Whether you’re building a developer community, an edtech network, or a niche interest platform, KhoshGolpo gives you:
-
-- **A compelling social core** (threads, profiles, messaging, notifications)
-- **Operational confidence** (admin controls, moderation signals, auditability)
-- **Growth leverage** (intelligent feed features, bot-assisted activity, extensible AI hooks)
-
-In short: build your community product faster, launch with confidence, and iterate like a modern SaaS team.
-
----
-
-## Launch Checklist
-
-Before going live:
-
-- [ ] Production `JWT_SECRET_KEY` is strong and unique
-- [ ] `CORS_ORIGINS` restricted to production frontend domain(s)
-- [ ] Mongo backups and restore process verified
-- [ ] API health checks monitored
-- [ ] Error logging and alerting configured
-- [ ] AI settings reviewed (`AI_MODEL`, thresholds)
-- [ ] Demo users and sample data removed from production
-- [ ] License section updated for distribution
-
----
-
-## Contributing
-
-1. Create a feature branch.
-2. Keep changes scoped and documented.
-3. Run backend tests before opening a PR.
-4. Submit a PR with a clear summary and screenshots for UI changes.
+It’s the kind of repo that helps a reviewer understand both product thinking and engineering depth.
 
 ---
 
 ## License
 
-Add your project license here (for example: MIT, Apache-2.0, or proprietary).
-
+Add your project license here before publishing publicly.

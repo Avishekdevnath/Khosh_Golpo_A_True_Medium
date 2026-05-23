@@ -67,3 +67,8 @@ pnpm-debug.log*
 
 # Local planning/reference workspace
 guide/
+
+# Local junk / migration artifacts
+({
+.ignore
+main-clean-history.bundle

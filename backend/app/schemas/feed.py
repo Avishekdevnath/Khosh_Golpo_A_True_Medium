@@ -17,6 +17,8 @@ class FeedItemOut(BaseModel):
     author_username: str | None = None
     author_display_name: str | None = None
     post_count: int
+    like_count: int = 0
+    liked_by_me: bool = False
     status: ThreadStatus
     is_pinned: bool
     is_flagged: bool = False

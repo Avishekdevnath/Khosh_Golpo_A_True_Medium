@@ -26,6 +26,8 @@ export interface FeedItem {
   author_username: string | null;
   author_display_name: string | null;
   post_count: number;
+  like_count: number;
+  liked_by_me: boolean;
   status: ThreadStatus;
   is_pinned: boolean;
   is_flagged: boolean;
