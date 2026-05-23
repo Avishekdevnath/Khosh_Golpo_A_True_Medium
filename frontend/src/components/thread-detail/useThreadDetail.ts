@@ -161,6 +161,15 @@ export function useThreadDetail(
     }
   }
 
+  async function refreshThread() {
+    try {
+      const updated = await apiGet<ThreadOut>(`threads/${thread.id}`);
+      setThread(updated);
+    } catch {
+      setReplyErr("Failed to refresh thread");
+    }
+  }
+
   async function handleThreadLike() {
     const wasLiked = thread.liked_by_me;
     setThread((prev) => ({
@@ -245,7 +254,7 @@ export function useThreadDetail(
 
   async function confirmDelete(deleteId: string) {
     await apiDelete(`posts/${deleteId}`);
-    await refreshPosts();
+    await Promise.all([refreshPosts(), refreshThread()]);
     showToast("Reply deleted");
   }
 
@@ -256,7 +265,7 @@ export function useThreadDetail(
       mentions: extractMentions(content),
       parent_post_id: parentPostId ?? null,
     });
-    await refreshPosts();
+    await Promise.all([refreshPosts(), refreshThread()]);
     showToast("Reply posted!");
   }
 
