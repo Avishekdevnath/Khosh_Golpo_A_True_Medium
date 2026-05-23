@@ -179,6 +179,7 @@ export function useThreadDetail(
     }));
     try {
       await apiPost(`threads/${thread.id}/like`, {});
+      await refreshThread();
     } catch {
       setThread((prev) => ({
         ...prev,
