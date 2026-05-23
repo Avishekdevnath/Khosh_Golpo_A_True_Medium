@@ -77,8 +77,6 @@ function uniqueByThreadId(items: ThreadOut[]): ThreadOut[] {
 function toThreadOut(item: FeedItem): ThreadOut {
   return {
     ...item,
-    like_count: 0,
-    liked_by_me: false,
     author_is_bot: false,
   };
 }
