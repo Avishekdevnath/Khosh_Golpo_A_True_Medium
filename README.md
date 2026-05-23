@@ -263,6 +263,28 @@ Start with `backend/.env.example` and adjust values for your environment.
 
 ---
 
+## Recent updates (May 2026)
+
+### Real-time sync for thread engagement metrics
+
+Thread updates (likes, post counts) now sync in real-time across both detail panel and list view:
+
+- **Backend**: Feed API (`/feed/home`, `/feed/following`, `/feed/explore`) now returns accurate `like_count` and `liked_by_me` for each thread
+- **Frontend**: Detail panel updates trigger a callback that refreshes the thread in the list cache, eliminating stale counts
+- **UX**: Like a thread in the detail panel → count updates immediately in both views without page refresh
+
+### Thread card markdown rendering
+
+Thread card bodies now properly render markdown formatting (bold, italic, code blocks, links) instead of displaying raw syntax.
+
+### Bug fixes
+
+- Fixed feed API overwriting like_count with hardcoded 0 values
+- Restored like_count and liked_by_me fields from feed API responses
+- Thread detail hook now calls parent callback on all state updates (like, edit, reply)
+
+---
+
 ## Testing
 
 Backend tests live in `backend/tests/` and can be run from `backend/` with pytest. The frontend also exposes a lint script through Next.js.
