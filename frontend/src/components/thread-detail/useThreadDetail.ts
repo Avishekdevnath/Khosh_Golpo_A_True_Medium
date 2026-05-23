@@ -113,6 +113,7 @@ export function useThreadDetail(
   initialThread: ThreadOut,
   initialPosts: PostNode[],
   showToast: (message: string, type?: "success" | "error") => void,
+  onThreadUpdate?: (thread: ThreadOut) => void,
 ): UseThreadDetailReturn {
   const [thread, setThread] = useState(initialThread);
   const [posts, setPosts] = useState(initialPosts);
@@ -165,6 +166,7 @@ export function useThreadDetail(
     try {
       const updated = await apiGet<ThreadOut>(`threads/${thread.id}`);
       setThread(updated);
+      onThreadUpdate?.(updated);
     } catch {
       setReplyErr("Failed to refresh thread");
     }
@@ -244,6 +246,7 @@ export function useThreadDetail(
 
     const updated = await apiPatch<ThreadOut>(`threads/${thread.id}`, payload);
     setThread(updated);
+    onThreadUpdate?.(updated);
     showToast("Thread updated");
   }
 

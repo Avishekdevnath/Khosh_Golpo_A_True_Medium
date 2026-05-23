@@ -22,6 +22,7 @@ import MoreFromAuthor from "@/components/threads/article/MoreFromAuthor";
 type ThreadDetailWorkspaceProps = {
   thread: ThreadOut;
   initialPosts: PostNode[];
+  onThreadUpdate?: (thread: ThreadOut) => void;
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -43,6 +44,7 @@ function normalizeTagsInput(raw: string): string[] {
 export default function ThreadDetailWorkspace({
   thread: initial,
   initialPosts,
+  onThreadUpdate,
 }: ThreadDetailWorkspaceProps) {
   const router = useRouter();
   const { user } = useAuthStore();
@@ -67,7 +69,7 @@ export default function ThreadDetailWorkspace({
     submitReport,
     replyErr,
     setReplyErr,
-  } = useThreadDetail(initial, initialPosts, showToast);
+  } = useThreadDetail(initial, initialPosts, showToast, onThreadUpdate);
 
   // ── Reply composer state ───────────────────────────────────────────────────
   const [reply, setReply] = useState("");
