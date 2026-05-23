@@ -28,6 +28,7 @@ interface PostItemProps {
   post: PostNode;
   currentUserId: string | null;
   currentUsername: string | null;
+  currentUserRole?: "admin" | "moderator" | "member";
   userCache: Map<string, UserBrief>;
   onEdit: (id: string, content: string) => void;
   onDelete: (id: string) => void;
@@ -40,6 +41,7 @@ function PostItem({
   post,
   currentUserId,
   currentUsername,
+  currentUserRole,
   userCache,
   onEdit,
   onDelete,
@@ -55,6 +57,7 @@ function PostItem({
   const isOwner =
     (currentUserId !== null && currentUserId === post.author_id) ||
     (currentUsername !== null && post.author_username === currentUsername);
+  const canEdit = isOwner || currentUserRole === "admin";
 
   return (
     <div className="group flex gap-3 py-5">
@@ -146,7 +149,7 @@ function PostItem({
             </button>
           )}
 
-          {isOwner && (
+          {canEdit && (
             <>
               <button
                 type="button"
@@ -188,6 +191,7 @@ function PostItem({
                 post={child}
                 currentUserId={currentUserId}
                 currentUsername={currentUsername}
+                currentUserRole={currentUserRole}
                 userCache={userCache}
                 onEdit={onEdit}
                 onDelete={onDelete}
@@ -209,6 +213,7 @@ interface PostTreeProps {
   posts: PostNode[];
   currentUserId: string | null;
   currentUsername: string | null;
+  currentUserRole?: "admin" | "moderator" | "member";
   userCache: Map<string, UserBrief>;
   onEdit: (id: string, content: string) => void;
   onDelete: (id: string) => void;
@@ -221,6 +226,7 @@ export default function PostTree({
   posts,
   currentUserId,
   currentUsername,
+  currentUserRole,
   userCache,
   onEdit,
   onDelete,
@@ -250,6 +256,7 @@ export default function PostTree({
               post={p}
               currentUserId={currentUserId}
               currentUsername={currentUsername}
+              currentUserRole={currentUserRole}
               userCache={userCache}
               onEdit={onEdit}
               onDelete={onDelete}

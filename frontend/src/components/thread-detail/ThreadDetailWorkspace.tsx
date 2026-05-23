@@ -285,6 +285,7 @@ export default function ThreadDetailWorkspace({
             posts={posts}
             currentUserId={user?.id ?? null}
             currentUsername={user?.username ?? null}
+            currentUserRole={user?.role}
             userCache={userCache}
             onEdit={handleEdit}
             onDelete={(id) => setDeleteConfirmId(id)}

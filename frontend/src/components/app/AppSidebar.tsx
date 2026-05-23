@@ -7,9 +7,15 @@ import {
   BarChart3,
   Bell,
   Briefcase,
+  ClipboardList,
+  FileText,
+  Flag,
+  Gavel,
   Mail,
   MessageSquare,
   Settings,
+  Shield,
+  Trash2,
   Users,
 } from "lucide-react";
 
@@ -70,11 +76,23 @@ export default function AppSidebar() {
 
   const go = (href: string) => router.push(href);
   const isAdmin = user?.role === "admin";
+  const inAdminSection = pathname.startsWith("/admin");
 
   function isActive(href: string) {
     if (href === "/") return pathname === "/";
     return pathname === href || pathname.startsWith(href + "/");
   }
+
+  const adminTabs = [
+    { label: "Overview", href: "/admin/overview", Icon: BarChart3 },
+    { label: "Moderation", href: "/admin/moderation", Icon: Flag },
+    { label: "Appeals", href: "/admin/appeals", Icon: Gavel },
+    { label: "Users", href: "/admin/users", Icon: Users },
+    { label: "Content", href: "/admin/content", Icon: FileText },
+    { label: "Removed", href: "/admin/removed", Icon: Trash2 },
+    { label: "Audit", href: "/admin/audit", Icon: ClipboardList },
+    { label: "Bots", href: "/admin/bot", Icon: Shield },
+  ];
 
   /* ── Nav row ── */
   function NavRow({ item }: { item: NavItem }) {
@@ -143,7 +161,18 @@ export default function AppSidebar() {
           {isAdmin && (
             <>
               <div className="my-2 h-px bg-sidebar-border" />
-              <NavRow item={{ label: "Dashboard", href: "/admin", Icon: BarChart3 }} />
+              {!inAdminSection ? (
+                <NavRow item={{ label: "Dashboard", href: "/admin", Icon: BarChart3 }} />
+              ) : (
+                <>
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 px-1 py-2">Admin Tabs</div>
+                  <div className="flex flex-col gap-0.5">
+                    {adminTabs.map(tab => (
+                      <NavRow key={tab.href} item={tab} />
+                    ))}
+                  </div>
+                </>
+              )}
             </>
           )}
         </nav>
