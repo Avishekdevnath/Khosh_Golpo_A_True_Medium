@@ -20,6 +20,7 @@ import { avatarSeed, initials } from "@/lib/workspaceUtils";
 import { profilePathFromUsername, toProfilePath } from "@/lib/profileRouting";
 import TopicPickerBanner from "@/components/threads/TopicPickerBanner";
 import UserHoverCard from "@/components/shared/UserHoverCard";
+import RichText from "@/components/shared/RichText";
 import type { TabKey, TabState, ThreadOut, ThreadStatus } from "@/components/threads/useThreadsPage";
 import { createEmptyTabState } from "@/components/threads/useThreadsPage";
 import type { PopularTopic, SortMode } from "@/types/feed";
@@ -424,9 +425,9 @@ export default function ThreadListPanel({
                         <h3 className={`m-0 mb-1.5 font-serif font-bold leading-[1.3] tracking-tight text-foreground line-clamp-2 ${isLarge ? "text-[22px]" : "text-[18px]"}`}>
                           {thread.title}
                         </h3>
-                        <p className="m-0 mb-2.5 line-clamp-2 text-[14px] leading-[1.5] text-text-secondary">
-                          {thread.body}
-                        </p>
+                        <div className="m-0 mb-2.5 line-clamp-2 text-[14px] leading-[1.5] text-text-secondary">
+                          <RichText content={thread.body} variant="compact" />
+                        </div>
 
                         {/* Meta row — date · likes · replies + actions right */}
                         <div className="flex flex-nowrap items-center gap-2.5 text-[13px] text-text-secondary overflow-hidden">
